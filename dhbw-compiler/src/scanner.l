@@ -1,5 +1,7 @@
 /* 
  * scanner.l - Scanner utility for the DHBW compiler
+ *
+ * Test comment Daniel
  */
 
 %{
