@@ -238,9 +238,9 @@ expression
      | expression GT expression
      | expression PLUS expression
      | expression MINUS expression
- /*    | expression MUL expression */
+     | expression MUL expression
  /*    | expression DIV expression */
-     | expression MOD expression 
+ /*    | expression MOD expression */
      | MINUS expression %prec UNARY_MINUS
      | PLUS expression %prec UNARY_PLUS
      | ID BRACKET_OPEN primary BRACKET_CLOSE
