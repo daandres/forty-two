@@ -31,14 +31,14 @@ return						{	return RETURN; }
 \;							{	return SEMICOLON; }
 \{							{	return BRACE_OPEN; }
 \}							{	return BRACE_CLOSE; }
-\EOF						{	return END_OF_FILE; }
+<<EOF>>						{	return END_OF_FILE; }
 
 [1-9][0-9]*|0				{	yylval.integer = atoi(yytext);
 								return NUM; }
 ([a-zA-Z]|\_)[0-9a-zA-Z_]*	{	return ID; }
 
 \=							{	return ASSIGN; }
-\||							{	return LOGICAL_OR; }
+\|\|							{	return LOGICAL_OR; }
 \!							{	return LOGICAL_NOT; }
 \&&							{	return LOGICAL_AND; }
 \==							{	return EQ; }
@@ -60,4 +60,7 @@ return						{	return RETURN; }
 \(							{	return PARA_OPEN; }
 \)							{	return PARA_CLOSE; }
 
+[ \t\n]						;
+.							{	printf("Unexpected token!\n"); 
+								yyterminate(); }
 %%
