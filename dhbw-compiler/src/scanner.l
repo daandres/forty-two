@@ -43,12 +43,12 @@ return						{	return RETURN; }
 \<							{	return LS; }
 \>\>						{	return SHIFT_RIGHT; }
 \>							{	return GT; }
-\<=							{	return LSEQ; }
-\>=							{	return GTEQ; }
+\<\=						{	return LSEQ; }
+\>\=						{	return GTEQ; }
 \|\|						{	return LOGICAL_OR; }
+\!\=						{	return NE; }
 \!							{	return LOGICAL_NOT; }
-\&&							{	return LOGICAL_AND; }
-\!=							{	return NE; }
+\&\&						{	return LOGICAL_AND; }
 \+							{	return PLUS; }
 \-							{	return MINUS; }
 \*							{	return MUL; }
