@@ -38,7 +38,7 @@ return						{	return RETURN; }
 ([a-zA-Z]|\_)[0-9a-zA-Z_]*	{	return ID; }
 
 \=							{	return ASSIGN; }
-\|\|							{	return LOGICAL_OR; }
+\|\|						{	return LOGICAL_OR; }
 \!							{	return LOGICAL_NOT; }
 \&&							{	return LOGICAL_AND; }
 \==							{	return EQ; }
@@ -53,8 +53,6 @@ return						{	return RETURN; }
 \/							{	return DIV; }
 \%							{	return MOD; }
 \!							{	return NOT; }
-\-							{	return UNARY_MINUS; }
-\+							{	return UNARY_PLUS; }
 \[							{	return BRACKET_OPEN; }
 \]							{	return BRACKET_CLOSE; }
 \(							{	return PARA_OPEN; }
