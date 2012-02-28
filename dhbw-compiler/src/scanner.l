@@ -37,22 +37,21 @@ return						{	return RETURN; }
 								return NUM; }
 ([a-zA-Z]|\_)[0-9a-zA-Z_]*	{	return ID; }
 
+\=\=						{	return EQ; }
 \=							{	return ASSIGN; }
+\<\<						{	return SHIFT_LEFT; }
+\<							{	return LS; }
+\>\>						{	return SHIFT_RIGHT; }
+\>							{	return GT; }
+\<=							{	return LSEQ; }
+\>=							{	return GTEQ; }
 \|\|						{	return LOGICAL_OR; }
 \!							{	return LOGICAL_NOT; }
 \&&							{	return LOGICAL_AND; }
-\==							{	return EQ; }
 \!=							{	return NE; }
-\<							{	return LS; }
-\<=							{	return LSEQ; }
-\>=							{	return GTEQ; }
-\>							{	return GT; }
 \+							{	return PLUS; }
 \-							{	return MINUS; }
 \*							{	return MUL; }
-\/							{	return DIV; }
-\%							{	return MOD; }
-\!							{	return NOT; }
 \[							{	return BRACKET_OPEN; }
 \]							{	return BRACKET_CLOSE; }
 \(							{	return PARA_OPEN; }
