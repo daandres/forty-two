@@ -4,6 +4,7 @@
 
 %{
 	#include "parser.h"
+	#include <stdio.h>
 %}
 
 /* 
@@ -23,7 +24,8 @@ do							{	return DO; }
 while						{	return WHILE; }
 if							{	return IF; }
 else						{	return ELSE; }
-int							{	return INT; }
+int							{	printf("INT");
+								return INT; }
 void						{	return VOID; }
 return						{	return RETURN; }
 \:							{	return COLON; }
@@ -33,7 +35,7 @@ return						{	return RETURN; }
 \}							{	return BRACE_CLOSE; }
 <<EOF>>						{	return END_OF_FILE; }
 
-[1-9][0-9]*|0				{	yylval.i = atoi(yytext);
+0|[1-9][0-9]*				{	yylval->i = atoi(yytext);
 								return NUM; }
 ([a-zA-Z]|\_)[0-9a-zA-Z_]*	{	return ID; }
 
@@ -58,7 +60,7 @@ return						{	return RETURN; }
 \)							{	return PARA_CLOSE; }
 \/\/(.)*\n					;
 
-\n							;
+\n							{ printf("newline"); }
 [ \t]+						;
 .							{	printf("Unexpected token!\n"); 
 								yyterminate(); }

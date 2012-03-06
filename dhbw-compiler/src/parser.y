@@ -3,6 +3,8 @@
  */
  
 %{
+  #include <stdio.h>
+  void yyerror(char *message);
 %}
  
 %debug
@@ -42,7 +44,7 @@ int i;
 %token UNARY_MINUS UNARY_PLUS
 %token BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-
+/* %left COMMA ; wird nicht gebraucht, da wir das nicht unterstützen*/
 %left ASSIGN
 %left LOGICAL_OR
 %left LOGICAL_AND
@@ -279,4 +281,5 @@ function_call_parameters
 
 void yyerror (const char *msg)
 {
+  fprintf(stderr, "Syntax Error\n");
 }

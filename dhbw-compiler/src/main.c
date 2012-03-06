@@ -11,6 +11,8 @@
 static const char *C_EXT = ".c";
 static const char *IR_EXT = ".ir";
 static const char *OUTPUT_EXT = ".s";
+extern FILE *yyin;
+extern int yyparse(void);
 
 cc_options_t cc_options = {
   .print_ir = 0,
@@ -260,6 +262,21 @@ int main (int argc, char *argv[]) {
     rm_cleanup_resources(&resource_mgr);
     exit(EXIT_FAILURE);
   }
+
+  FILE *fp;
+  // fopen von datei und yyin zuweisen
+  fp = fopen(argv[1], "r");
+  if(!fp)
+   {
+    printf("couldn't open file for reading\n");
+    exit(0);
+   }
+  // parser methode aufrufen: yyparse ohne parameter
+  yyin = fp;
+  yyparse();
+  // fclose
+  fclose(yyin);
+
 
   printf("Input: %s\n", cc_options.input_file);
   printf("Output: %s\n", cc_options.output_file);
