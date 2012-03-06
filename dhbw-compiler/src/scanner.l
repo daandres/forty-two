@@ -58,7 +58,8 @@ return						{	return RETURN; }
 \)							{	return PARA_CLOSE; }
 \/\/(.)*\n					;
 
-[ \t\n]						;
+\n							;
+[ \t]+						;
 .							{	printf("Unexpected token!\n"); 
 								yyterminate(); }
 %%
