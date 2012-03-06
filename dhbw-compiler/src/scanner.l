@@ -56,8 +56,10 @@ return						{	return RETURN; }
 \]							{	return BRACKET_CLOSE; }
 \(							{	return PARA_OPEN; }
 \)							{	return PARA_CLOSE; }
+\/\/(.)*\n					;
 
-[ \t\n]						;
+\n							;
+[ \t]+						;
 .							{	printf("Unexpected token!\n"); 
 								yyterminate(); }
 %%
