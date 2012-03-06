@@ -33,7 +33,7 @@ return						{	return RETURN; }
 \}							{	return BRACE_CLOSE; }
 <<EOF>>						{	return END_OF_FILE; }
 
-[1-9][0-9]*|0				{	yylval.integer = atoi(yytext);
+[1-9][0-9]*|0				{	yylval.i = atoi(yytext);
 								return NUM; }
 ([a-zA-Z]|\_)[0-9a-zA-Z_]*	{	return ID; }
 
@@ -43,12 +43,12 @@ return						{	return RETURN; }
 \<							{	return LS; }
 \>\>						{	return SHIFT_RIGHT; }
 \>							{	return GT; }
-\<\=						{	return LSEQ; }
-\>\=						{	return GTEQ; }
+\<=							{	return LSEQ; }
+\>=							{	return GTEQ; }
 \|\|						{	return LOGICAL_OR; }
-\!\=						{	return NE; }
 \!							{	return LOGICAL_NOT; }
-\&\&						{	return LOGICAL_AND; }
+\&&							{	return LOGICAL_AND; }
+\!=							{	return NE; }
 \+							{	return PLUS; }
 \-							{	return MINUS; }
 \*							{	return MUL; }

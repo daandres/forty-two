@@ -9,6 +9,10 @@
 %locations
 %start program
 
+%union {
+int i;
+}
+
 /*
  * One shift/reduce conflict is expected for the "dangling-else" problem. This
  * conflict however is solved by the default behavior of bison for shift/reduce 
@@ -50,6 +54,7 @@
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
+%type <i> NUM
 %%
 
 /* 
