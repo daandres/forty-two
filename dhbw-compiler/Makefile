@@ -16,6 +16,8 @@ STANDARDS = -std=c99 -D_POSIX_C_SOURCE=200809L
 INCLUDES = -I$(SRCDIR) -I$(OBJDIR) -I$(SRCDIR)/include
 CFLAGS = -O0 -Wall -Wextra -pedantic -g $(INCLUDES) $(STANDARDS) -Wno-unused-parameter
 CFLAGS_GEN = -O2 -g -I$(OBJDIR) -w $(INCLUDES) $(STANDARDS)
+BFLAGS_DEBUG = 
+FFLAGS_DEBUG =
 
 .PHONY: all check test
 all: compiler 
@@ -26,7 +28,7 @@ all: compiler
 DHBWCC_OBJECTS = $(addprefix $(OBJDIR)/, scanner.o parser.o main.o diag.o resource_manager.o)
 
 ## Convenient targets for DHBW Compiler
-.PHONY: compiler cc_objects cc_parser cc_scanner 
+.PHONY: compiler cc_objects parser scanner 
 compiler: $(OBJDIR)/dhbwcc
 cc_objects: $(GENERATED_OBJECTS)
 parser: $(OBJDIR)/parser.c $(OBJDIR)/parser.h
@@ -51,16 +53,25 @@ $(OBJDIR)/parser.o: $(OBJDIR)/parser.c $(OBJDIR)/parser.h
 	$(CC) $(CFLAGS_GEN) -c $< -o $@
 
 $(OBJDIR)/parser.c $(OBJDIR)/parser.h: $(SRCDIR)/parser.y
-	$(BISON) -v -t --locations --defines=$(OBJDIR)/parser.h \
+	$(BISON) $(BFLAGS_DEBUG) -d -v --locations --defines=$(OBJDIR)/parser.h \
 	  -o $(OBJDIR)/parser.c -rall --report-file=$(OBJDIR)/bison.out $<
 
 $(OBJDIR)/scanner.c: $(SRCDIR)/scanner.l
-	$(FLEX) -d -T -o $(OBJDIR)/scanner.c --bison-bridge --bison-locations $<
+	$(FLEX) $(FFLAGS_DEBUG) -o $(OBJDIR)/scanner.c --bison-bridge --bison-locations $<
 	#$(FLEX) -o $(OBJDIR)/scanner.c --bison-bridge --bison-locations $<
 
 .PHONY: clean_compiler
 clean_compiler:
 	$(RM) -f bin/*
+
+
+###############################################
+# DHBW Compiler  Debug                        #
+###############################################
+.PHONY: debug
+debug:BFLAGS_DEBUG = -t
+debug:FFLAGS_DEBUG = -T -d
+debug: all
 
 
 ###############################################
