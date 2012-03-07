@@ -263,16 +263,15 @@ int main (int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  FILE *fp;
   // fopen von datei und yyin zuweisen
-  fp = fopen(argv[1], "r");
-  if(!fp)
+  yyin = fopen(argv[1], "r");
+  if(!yyin)
    {
     printf("couldn't open file for reading\n");
     exit(0);
    }
   // parser methode aufrufen: yyparse ohne parameter
-  yyin = fp;
+  //yyin = fp;
   yyparse();
   // fclose
   fclose(yyin);
