@@ -5,20 +5,23 @@
 %{
 	#include "parser.h"
 	#include <stdio.h>
-	
 %}
 
 /* 
  * Default setting for flex which indicates that yytext, which is one of the main connections
  * between the scanner and parser, is handled as pointer of char instead of an array of char. 
 */
-%pointer	
+%pointer
 
 /* save the line number of terminals */
 %option yylineno
 
 /* finish after scanning the provided file */
 %option noyywrap		
+
+number 		0|([1-9][0-9]*)
+identifier 	([a-zA-Z]|\_)[0-9a-zA-Z_]*
+comment 	\/\/(.)*\n
 
 %%
 do							{	return DO; }
@@ -34,9 +37,10 @@ return						{	return RETURN; }
 \{							{	return BRACE_OPEN; }
 \}							{	return BRACE_CLOSE; }
 
-([0-9][0-9]*)				{	yylval = atoi(yytext);
+{number}					{	//printf("LEX NUM - %d\n", atoi(yytext));
 								return NUM; }
-([a-zA-Z]|\_)[0-9a-zA-Z_]*	{	return ID; }
+{identifier}				{	//printf("LEX ID - %s\n", strdup(yytext));
+								return ID; }
 
 \=\=						{	return EQ; }
 \=							{	return ASSIGN; }
@@ -57,11 +61,11 @@ return						{	return RETURN; }
 \]							{	return BRACKET_CLOSE; }
 \(							{	return PARA_OPEN; }
 \)							{	return PARA_CLOSE; }
-\/\/(.)*\n					;
+{comment}					;
 
 \n							;
 [ \t]						;
 .							{	fprintf(stderr,"Unexpected token!\n"); 
 								yyterminate(); }
 %%
-//<<EOF>>					{	fprintf(stderr,"EOF\n");return END_OF_FILE; } auskommentiert, da EOF automatisch als EIngabe Ende erkannt wird...
+//<<EOF>>					{	fprintf(stderr,"EOF\n");return END_OF_FILE; } auskommentiert, da EOF automatisch als Eingabe Ende erkannt wird...

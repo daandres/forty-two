@@ -5,13 +5,17 @@
 %{
   #include <stdio.h>
   #include <stdarg.h>
+  #include <stdlib.h>
+  extern char * yytext;
+  int yylex(void);
 %}
  
 %debug
 %locations
+%error-verbose
 %start program
 
-%union {
+%union{
 int i;
 }
 
@@ -33,7 +37,7 @@ int i;
 %token END_OF_FILE
 
 %token ID
-%token NUM
+%token <i> NUM
 
 /* TODO: add associativity and precedence so that the 256 shift-reduce vanish */
 %token ASSIGN
@@ -56,7 +60,7 @@ int i;
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <i> NUM
+
 %%
 
 /* 
@@ -258,8 +262,8 @@ expression
      ;
 
 primary
-     : NUM
-     | ID
+     : NUM {printf("NUM - %d\n", atoi(yytext));}
+     | ID {printf("ID - %s\n", strdup(yytext));}
      ;
 
 /*

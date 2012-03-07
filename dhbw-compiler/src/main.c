@@ -14,6 +14,7 @@ static const char *OUTPUT_EXT = ".s";
 extern FILE *yyin;
 extern int yyparse(void);
 
+
 cc_options_t cc_options = {
   .print_ir = 0,
   .ir_file = NULL,
@@ -254,7 +255,7 @@ int process_options (int argc, char *argv[]) {
  * \param argv The input parameters.
  */
 int main (int argc, char *argv[]) {
-  /* the resource manager must be initialized before any 
+  /* the resource manager must be initialized before any
    * further actions are implemented */
   rm_init(&resource_mgr);
 
@@ -267,14 +268,16 @@ int main (int argc, char *argv[]) {
   yyin = fopen(argv[1], "r");
   if(!yyin)
    {
-    printf("couldn't open file for reading\n");
-    exit(0);
+    fprintf(stderr, "couldn't open file for reading\n");
+    exit(1);
    }
   // parser methode aufrufen: yyparse ohne parameter
   //yyin = fp;
   yyparse();
   // fclose
   fclose(yyin);
+
+  printf("Syntax correct!\n");
 
 
   printf("Input: %s\n", cc_options.input_file);
