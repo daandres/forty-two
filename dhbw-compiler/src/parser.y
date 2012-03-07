@@ -4,6 +4,7 @@
  
 %{
   #include <stdio.h>
+  #include <stdarg.h>
 %}
  
 %debug
@@ -202,6 +203,7 @@ stmt
      | RETURN expression SEMICOLON
      | RETURN SEMICOLON
      | SEMICOLON /* empty statement */
+  //   | error SEMICOLON {fprintf(stderr, "error\n"); yyerrok;}/* Skip all things after error until SEMICOLON, maybe this is already done by defining it in the primary rule */
      ;
 
 /*
@@ -252,6 +254,7 @@ expression
      | PARA_OPEN expression PARA_CLOSE
      | function_call PARA_CLOSE
      | primary
+     | error/*error rule*/{fprintf(stderr, "error\n"); yyerrok;}
      ;
 
 primary
@@ -278,7 +281,15 @@ function_call_parameters
 
 %%
 
-void yyerror (const char *msg)
+void yyerror(char *s, ...)
 {
-  fprintf(stderr, "Syntax Error\n");
+  va_list ap;
+  va_start(ap, s);
+
+  if(yylloc.first_line)
+    fprintf(stderr, "%d.%d-%d.%d: error: ", yylloc.first_line, yylloc.first_column,
+	    yylloc.last_line, yylloc.last_column);
+  vfprintf(stderr, s, ap);
+  fprintf(stderr, "\n");
+
 }

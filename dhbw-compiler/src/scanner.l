@@ -5,6 +5,7 @@
 %{
 	#include "parser.h"
 	#include <stdio.h>
+	
 %}
 
 /* 
@@ -24,8 +25,7 @@ do							{	return DO; }
 while						{	return WHILE; }
 if							{	return IF; }
 else						{	return ELSE; }
-int							{	printf("INT");
-								return INT; }
+int							{	return INT; }
 void						{	return VOID; }
 return						{	return RETURN; }
 \:							{	return COLON; }
@@ -33,9 +33,8 @@ return						{	return RETURN; }
 \;							{	return SEMICOLON; }
 \{							{	return BRACE_OPEN; }
 \}							{	return BRACE_CLOSE; }
-<<EOF>>						{	return END_OF_FILE; }
 
-0|[1-9][0-9]*				{	yylval->i = atoi(yytext);
+([0-9][0-9]*)				{	yylval = atoi(yytext);
 								return NUM; }
 ([a-zA-Z]|\_)[0-9a-zA-Z_]*	{	return ID; }
 
@@ -60,8 +59,9 @@ return						{	return RETURN; }
 \)							{	return PARA_CLOSE; }
 \/\/(.)*\n					;
 
-\n							{ printf("newline"); }
-[ \t]+						;
-.							{	printf("Unexpected token!\n"); 
+\n							;
+[ \t]						;
+.							{	fprintf(stderr,"Unexpected token!\n"); 
 								yyterminate(); }
 %%
+//<<EOF>>					{	fprintf(stderr,"EOF\n");return END_OF_FILE; } auskommentiert, da EOF automatisch als EIngabe Ende erkannt wird...
