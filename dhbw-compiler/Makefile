@@ -57,7 +57,7 @@ $(OBJDIR)/parser.c $(OBJDIR)/parser.h: $(SRCDIR)/parser.y
 	  -o $(OBJDIR)/parser.c -rall --report-file=$(OBJDIR)/bison.out $<
 
 $(OBJDIR)/scanner.c: $(SRCDIR)/scanner.l
-	$(FLEX) $(FFLAGS_DEBUG) -o $(OBJDIR)/scanner.c --bison-bridge --bison-locations $<
+	$(FLEX) $(FFLAGS_DEBUG) -o $(OBJDIR)/scanner.c $<
 	#$(FLEX) -o $(OBJDIR)/scanner.c --bison-bridge --bison-locations $<
 
 .PHONY: clean_compiler
@@ -69,8 +69,8 @@ clean_compiler:
 # DHBW Compiler  Debug                        #
 ###############################################
 .PHONY: debug
-debug:BFLAGS_DEBUG = -t
-debug:FFLAGS_DEBUG = -T -d
+debug: BFLAGS_DEBUG = -t
+debug: FFLAGS_DEBUG = -T -d
 debug: all
 
 

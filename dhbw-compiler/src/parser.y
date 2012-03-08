@@ -6,7 +6,7 @@
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
-  extern char * yytext;
+  #define YYERROR_VERBOSE
   int yylex(void);
 %}
  
@@ -16,7 +16,8 @@
 %start program
 
 %union{
-int i;
+	int i;
+	char *id;
 }
 
 /*
@@ -36,7 +37,7 @@ int i;
 %token BRACE_OPEN BRACE_CLOSE
 %token END_OF_FILE
 
-%token ID
+%token <id> ID
 %token <i> NUM
 
 /* TODO: add associativity and precedence so that the 256 shift-reduce vanish */
@@ -262,8 +263,8 @@ expression
      ;
 
 primary
-     : NUM {printf("NUM - %d\n", atoi(yytext));}
-     | ID {printf("ID - %s\n", strdup(yytext));}
+     : NUM {printf("NUM - %d,  %d\n", $1, @1.first_line);}
+     | ID {printf("ID - %s\n", $1);}
      ;
 
 /*

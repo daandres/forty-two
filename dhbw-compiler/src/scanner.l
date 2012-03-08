@@ -5,6 +5,13 @@
 %{
 	#include "parser.h"
 	#include <stdio.h>
+	/* handle locations */
+	//int yycolumn = 1;
+
+	//#define YY_USER_ACTION yylloc.first_line = yyloc.last_line = yylineno; \
+    //yylloc.first_column = yycolumn; yylloc.last_column = yycolumn+yyleng-1; \
+    //yycolumn += yyleng;
+	
 %}
 
 /* 
@@ -38,8 +45,10 @@ return						{	return RETURN; }
 \}							{	return BRACE_CLOSE; }
 
 {number}					{	//printf("LEX NUM - %d\n", atoi(yytext));
+								yylval.i = atoi(yytext);
 								return NUM; }
 {identifier}				{	//printf("LEX ID - %s\n", strdup(yytext));
+								yylval.id = strdup(yytext);
 								return ID; }
 
 \=\=						{	return EQ; }
