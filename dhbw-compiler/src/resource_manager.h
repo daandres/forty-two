@@ -10,8 +10,8 @@ typedef void (*rm_cleanup_fp)(void *);
  *        resource manager.
  */
 typedef struct resource_entry {
-  rm_cleanup_fp handler;                        /**< The resource handler function pointer */
-  void *data;                                   /**< The anonymous data passed to the handler */
+	rm_cleanup_fp handler; /**< The resource handler function pointer */
+	void *data; /**< The anonymous data passed to the handler */
 } resource_entry_t;
 
 /**
@@ -19,13 +19,14 @@ typedef struct resource_entry {
  * \brief Resource manager data structure.
  */
 typedef struct resource_mgr {
-  int num_entries;                              /**< The number of registered handlers */
-  resource_entry_t **entries;                   /**< The list of registered handlers */
+	int num_entries; /**< The number of registered handlers */
+	resource_entry_t **entries; /**< The list of registered handlers */
 } resource_mgr_t;
 
-extern void rm_register_handler (resource_mgr_t *mgr, rm_cleanup_fp handler, void *data);
-extern void rm_cleanup_resources (resource_mgr_t *mgr);
-extern void rm_init (resource_mgr_t *mgr);
+extern void rm_register_handler(resource_mgr_t *mgr, rm_cleanup_fp handler,
+		void *data);
+extern void rm_cleanup_resources(resource_mgr_t *mgr);
+extern void rm_init(resource_mgr_t *mgr);
 
 extern resource_mgr_t resource_mgr;
 
