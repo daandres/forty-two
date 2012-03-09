@@ -6,8 +6,25 @@
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
+  #include "symtab.h"
   #define YYERROR_VERBOSE
   int yylex(void);
+  
+	input_symbol(char *sym_name) {
+		sym_entry *s;
+		s = getsym(sym_name);
+		if (s == 0) {
+			s->name = sym_name;
+			putsym(s);
+		} else {
+			printf("%s is already defined\n", sym_name);
+		}
+	}
+	check_symbol(char *sym_name) {
+		if (getsym(sym_name) == 0)
+			printf("%s is an undeclared identifier\n", sym_name);
+	}
+  
 %}
  
 %debug
@@ -263,8 +280,10 @@ expression
      ;
 
 primary
-     : NUM {printf("NUM - %d,  %d\n", $1, @1.first_line);}
-     | ID {printf("ID - %s\n", $1);}
+     : NUM 		{printf("NUM - %d,  %d\n", $1, @1.first_line);}
+     | ID 		{	input_symbol($1);
+     				printf("ID - %s\n", $1);
+     			}
      ;
 
 /*
