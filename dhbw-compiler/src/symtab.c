@@ -21,18 +21,18 @@
 //	return found_entry;
 //}
 
- sym_union* searchGlobal(char varName[]) { /* Kann Funktion und Variable zurückliefern */
-	 printf("search %s Global startet.", varName);
+ sym_union* searchGlobal(char symName[]) { /* Kann Funktion und Variable zurückliefern */
+	 printf("search %s Global startet.", symName);
  }
 
- sym_variable* searchLocal(char varName[], char funcName[]) { /* Kann nur Variable zurückliefern */
-	 printf("search %s Local in %s startet.", varName, funcName);
+ sym_union* searchLocal(char symName[], char funcName[]) { /* Kann nur Variable zurückliefern */
+	 printf("search %s Local in %s startet.", symName, funcName);
  }
 
- int insertSymGlobal(char varName[]) {
-	 printf("New Variable or Function %s in Local.", varName);
+ int insertSymGlobal(char symName[]) {
+	 printf("New Variable or Function %s in Local.", symName);
  }
 
- int insertSymLocal(char varName[], char funcName[]) {
-	 printf("New Variable %s in %s.", varName, funcName);
+ int insertSymLocal(char symName[], char funcName[]) {
+	 printf("New Variable %s in %s.", symName, funcName);
  }

@@ -55,7 +55,7 @@ typedef struct sym_function sym_function;
 typedef struct sym_union sym_union;
 
 sym_union* searchGlobal(); /* Kann Funktion und Variable zurückliefern */
-sym_variable* searchLocal(); /* Kann nur Variable zurückliefern */
+sym_union* searchLocal(); /* Kann nur Variable zurückliefern */
 int insertSymGlobal();
 int insertSymLocal();
 
