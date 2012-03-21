@@ -11,48 +11,40 @@
 #include "uthash.h"
 #include <stdio.h>
 
-/* Überhaupt benötigt? */
-struct list_node {
-	struct sym_variable content;
-	struct var_list_node *next;
-};
-
 enum types {
-	voidType, intType, intArrayType
-};
+	voidType = 0, intType = 1, intArrayType = 2
+} typeEnum;
 
-struct sym_variable {
-	char name[];
-	enum type varType;
+enum symbol {
+	symFunction, symVariable
+} symbolEnum;
+
+typedef struct sym_variable {
+	char name[255];
+	enum types varType;
 	int* address;
 	int size;
 	UT_hash_handle hh; /* makes this structure hashable */
-};
+} sym_variable;
 
-struct sym_function {
-	char name[];
-	enum type returnType;
+typedef struct sym_function {
+	char name[255];
+	enum types returnType;
 	/* callVars => einfach verkettete Liste<sym_variable> oder doch Hashmap */
-	/* lokalVars => einfach verkettete Liste<sym_variable> oder doch Hashmap */
-	char interCode[] /* evtl. durch Pointer ersetzen */;
+	/* lokalVars => einfach verkettete Liste<sym_variable> oder doch Hashmap */	 
+	char* interCode; //TODO Pointer setzen;
+} sym_function;
+
+union variable_or_function{
+	sym_variable symVariable;
+	sym_function symFunction;
 };
 
-union variable_or_function {
-	struct sym_variable variable;
-	struct sym_function function;
-};
-
-struct sym_union {
-	int whichOne; /* 0 -> variable; 1 -> function */
-	union variable_or_funtion;
+typedef struct sym_union {
+	enum symbol symbolType; /* 1 -> variable; 0 -> function */
+	union variable_or_function vof;
 	UT_hash_handle hh; /* makes this structure hashable */
-};
-
-typedef struct sym_variable sym_variable;
-
-typedef struct sym_function sym_function;
-
-typedef struct sym_union sym_union;
+} sym_union;
 
 sym_union* searchGlobal(); /* Kann Funktion und Variable zurückliefern */
 sym_union* searchLocal(); /* Kann nur Variable zurückliefern */
