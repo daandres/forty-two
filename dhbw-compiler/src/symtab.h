@@ -52,4 +52,6 @@ sym_union* searchLocal(); /* Kann nur Variable zurückliefern */
 int insertSymGlobal();
 int insertSymLocal();
 
+//ICH RAFFE DEN SCHEI? EINFACH NICHT
+
 #endif /* SYMTAB_H_ */

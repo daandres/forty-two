@@ -56,7 +56,6 @@
 
  sym_union* searchBoth(char symName[], char funcName[]) { /* Kann nur Variable zurückliefern */
 	 printf("search %s Local in %s startet.", symName, funcName);
-	 //searchLocal
 	 sym_union* found_entry = searchLocal(symName, funcName);
 	 if(found_entry == NULL) {
 		 found_entry = searchGlobal(symName);
@@ -105,3 +104,5 @@
 	 }   
 	 return 0;	 
  }
+
+ //WAS ZUR HÖLLE SOLL DIESER VERDAMMTE SCHEI? DRECK
