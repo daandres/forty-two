@@ -64,27 +64,29 @@
 	 return found_entry;
  }
 
- int insertFuncGlobal(char symName[], sym_function func) {
+ int insertFuncGlobal(char* symName, sym_function func) {
 	 printf("New Variable or Function %s in Local.", symName);
 	 if(searchGlobal(symName) == NULL) {
 		 sym_union* new_entry;
 		 new_entry = (sym_union *) malloc(sizeof(*new_entry));
 		 new_entry->symbolType = symFunction;
 		 new_entry->vof.symFunction = func;
-		 new_entry->name = &symName;
+		 new_entry->name = symName;
 		 HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
 		 return 1;
 	 }
 	 return 0;
  }
 
- int insertVarGlobal(char symName[255], sym_variable var) {
+ int insertVarGlobal(char* symName, sym_variable var) {
 	 printf("New Variable or Function %s in Local.", symName);
 	 if(searchGlobal(symName) == NULL) {
 		 sym_union* new_entry;
-		 new_entry->symbolType = symVariable;
+		 new_entry = (sym_union *) malloc(sizeof(*new_entry));
+		 new_entry->symbolType = symFunction;
 		 new_entry->vof.symVariable = var;
-		 //HASH_ADD_STR(sym_table, symName, new_entry);
+		 new_entry->name = symName;
+		 HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
 		 return 1;
 	 }
 	 return 0;
@@ -94,9 +96,11 @@
 	 printf("New Variable %s in %s.", symName, funcName);
 	 if(searchLocal(symName, funcName) == NULL) {
 		 sym_union* new_entry;
+		 new_entry = (sym_union *) malloc(sizeof(*new_entry));
 		 new_entry->symbolType = symVariable;
 		 new_entry->vof.symVariable = var;
-		 //HASH_ADD_STR(sym_table, symName, new_entry);
+		 new_entry->name = symName;
+		 HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
 		 return 1;
 	 }   
 	 return 0;	 

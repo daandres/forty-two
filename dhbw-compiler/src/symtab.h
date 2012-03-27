@@ -44,7 +44,7 @@ typedef struct sym_union {
 	enum symbol symbolType; /* 1 -> variable; 0 -> function */
 	union variable_or_function vof;
 	UT_hash_handle hh; /* makes this structure hashable */
-	char* name[];
+	char* name;
 } sym_union;
 
 sym_union* searchGlobal(); /* Kann Funktion und Variable zurückliefern */
