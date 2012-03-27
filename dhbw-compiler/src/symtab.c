@@ -45,7 +45,6 @@
 	 if(found_variable == NULL) {
 		 HASH_FIND_STR(function->vof.symFunction.callVars, symName, found_variable);
 	 }
-
 	 sym_union* whole_entry;
 	 whole_entry = (sym_union *) malloc(sizeof(*whole_entry));
 	 whole_entry->symbolType = symVariable;
@@ -72,6 +71,7 @@
 		 new_entry->vof.symFunction = func;
 		 new_entry->name = symName;
 		 HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
+		 //free(new_entry);
 		 return 1;
 	 }
 	 return 0;
@@ -86,6 +86,7 @@
 		 new_entry->vof.symVariable = var;
 		 new_entry->name = symName;
 		 HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
+		 //free(new_entry);
 		 return 1;
 	 }
 	 return 0;
@@ -100,9 +101,8 @@
 		 new_entry->vof.symVariable = var;
 		 new_entry->name = symName;
 		 HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
+		 //free(new_entry);
 		 return 1;
 	 }   
 	 return 0;	 
  }
-
- //WAS ZUR HÖLLE SOLL DIESER VERDAMMTE SCHEI? DRECK
