@@ -31,7 +31,7 @@
 	 return whole_entry;
  }
 
- sym_union* searchLocal(char symName[], char funcName[]) { /* Kann nur Variable zurückliefern */
+ sym_union* searchLocal(char symName[], char funcName[]) { /* Kann nur Variable zur�ckliefern */
 	 printf("search %s Local in %s startet.", symName, funcName);
 	 sym_union* function = searchGlobal(funcName);
 	 if(function == NULL || function->symbolType != 0) {

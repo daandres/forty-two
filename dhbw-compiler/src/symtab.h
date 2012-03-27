@@ -47,8 +47,8 @@ typedef struct sym_union {
 	char* name;
 } sym_union;
 
-sym_union* searchGlobal(); /* Kann Funktion und Variable zur√ºckliefern */
-sym_union* searchLocal(); /* Kann nur Variable zur√ºckliefern */
+sym_union* searchGlobal(); /* Kann Funktion und Variable zurückliefern */
+sym_union* searchLocal(); /* Kann nur Variable zurückliefern */
 int insertSymGlobal();
 int insertSymLocal();
 

@@ -57,7 +57,7 @@ $(OBJDIR)/parser.o: $(OBJDIR)/parser.c $(OBJDIR)/parser.h
 
 $(OBJDIR)/parser.c $(OBJDIR)/parser.h: $(SRCDIR)/parser.y
 	$(BISON) $(BFLAGS_DEBUG) -d -v --locations --defines=$(OBJDIR)/parser.h \
-	  -o $(OBJDIR)/parser.c -rall --report-file=$(OBJDIR)/bison.out $<
+	  -o $(OBJDIR)/parser.c -rall  --report-file=$(OBJDIR)/bison.out $<
 
 $(OBJDIR)/scanner.c: $(SRCDIR)/scanner.l
 	$(FLEX) $(FFLAGS_DEBUG) -o $(OBJDIR)/scanner.c $<
