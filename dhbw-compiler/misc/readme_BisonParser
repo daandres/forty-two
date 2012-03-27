@@ -6,6 +6,6 @@ Installation:
 3. Starte Eclipse
 4. Gehe zu Winddow -> Preferencs -> General -> Editors -> File Associations
 5. Wähle den Wert *.y aus
-6. WÄhle im unteren Feld 'Bison Editor' aus und klicke auf Default
-7. Schlie dEigenschaften
+6. Wähle im unteren Feld 'Bison Editor' aus und klicke auf Default
+7. Schließe die Eigenschaften
 8. Schließe alle Parser Dateien und öffne sie erneut. 
