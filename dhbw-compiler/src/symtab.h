@@ -30,8 +30,8 @@ typedef struct sym_variable {
 typedef struct sym_function {
 	char name[255];
 	enum types returnType;
-	/* callVars => einfach verkettete Liste<sym_variable> oder doch Hashmap */
-	/* lokalVars => einfach verkettete Liste<sym_variable> oder doch Hashmap */	 
+	sym_variable* callVars;
+	sym_variable* lokalVars;
 	char* interCode; //TODO Pointer setzen;
 } sym_function;
 
@@ -44,11 +44,14 @@ typedef struct sym_union {
 	enum symbol symbolType; /* 1 -> variable; 0 -> function */
 	union variable_or_function vof;
 	UT_hash_handle hh; /* makes this structure hashable */
+	char* name;
 } sym_union;
 
-sym_union* searchGlobal(); /* Kann Funktion und Variable zur√ºckliefern */
-sym_union* searchLocal(); /* Kann nur Variable zur√ºckliefern */
+sym_union* searchGlobal(); /* Kann Funktion und Variable zurückliefern */
+sym_union* searchLocal(); /* Kann nur Variable zurückliefern */
 int insertSymGlobal();
 int insertSymLocal();
+
+//ICH RAFFE DEN SCHEI? EINFACH NICHT
 
 #endif /* SYMTAB_H_ */
