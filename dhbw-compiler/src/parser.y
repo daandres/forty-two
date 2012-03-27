@@ -4,19 +4,24 @@
  
 %{
 
+
+  #include "ir_code.h"
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
   #include "symtab.h"
-  #include "ir_code.h"
+
   #define YYERROR_VERBOSE
   int yylex(void);
-
+  
+  
+  
 %}
 
 %union {
   int i;
   char *id;
+  EXPTYPE expt; //for TAC generation
 }
  
 %debug
@@ -54,6 +59,9 @@
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
+%type <expt> program_element_list program_element 
+%type <expt> type variable_declaration identifier_declaration function_definition function_declaration function_parameter_list function_parameter
+%type <expt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %%
 
 program
@@ -137,7 +145,7 @@ stmt_loop
      ;
 									
 expression
-     : expression ASSIGN expression
+     : expression ASSIGN expression		
      | expression LOGICAL_OR expression
      | expression LOGICAL_AND expression
      | LOGICAL_NOT expression
@@ -159,8 +167,11 @@ expression
      ;
 
 primary
-     : NUM
-     | ID
+     : NUM	{//$$ = $1.i;
+				}
+     | ID	{// TODO Suche von ID in SymTab --> sind wir in einer Funktion? Wenn ja, wie wissen wir das?
+			//$$ = $1.id;
+			}
      ;
 
 function_call
