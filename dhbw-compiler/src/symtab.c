@@ -9,18 +9,6 @@
 
  sym_union *sym_table = NULL;
 
-//void * putsym(sym_entry *new_entry) {
-//	printf("NEW Symbol in Symbol Table: %s", new_entry->name);
-//	HASH_ADD_STR(sym_table, name, new_entry);
-//	return 0;
-//}
-//
-//sym_entry * getsym(char *search) {
-//	sym_entry *found_entry;
-//	HASH_FIND_STR(sym_table, search, found_entry);
-//	return found_entry;
-//}
-
  sym_union* searchGlobal(char symName[]) { /* Kann Funktion und Variable zurückliefern */
 	 printf("search Global startet in %s.", symName);
 	 sym_union* found_entry;
@@ -105,4 +93,8 @@
 		 return 1;
 	 }   
 	 return 0;	 
+ }
+
+ void printSymTable() {
+//test
  }

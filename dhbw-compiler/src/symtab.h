@@ -19,6 +19,10 @@ enum symbol {
 	symFunction, symVariable
 } symbolEnum;
 
+enum prototype {
+	no = 0, proto = 1
+} prototypeEnum;
+
 typedef struct sym_variable {
 	char name[255];
 	enum types varType;
@@ -30,6 +34,7 @@ typedef struct sym_variable {
 typedef struct sym_function {
 	char name[255];
 	enum types returnType;
+	enum prototype;
 	sym_variable* callVars;
 	sym_variable* lokalVars;
 	char* interCode; //TODO Pointer setzen;
@@ -47,8 +52,8 @@ typedef struct sym_union {
 	char* name;
 } sym_union;
 
-sym_union* searchGlobal(); /* Kann Funktion und Variable zurŸckliefern */
-sym_union* searchLocal(); /* Kann nur Variable zurŸckliefern */
+sym_union* searchGlobal(); /* Kann Funktion und Variable zurï¿½ckliefern */
+sym_union* searchLocal(); /* Kann nur Variable zurï¿½ckliefern */
 int insertSymGlobal();
 int insertSymLocal();
 
