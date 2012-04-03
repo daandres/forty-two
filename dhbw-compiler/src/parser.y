@@ -13,15 +13,16 @@
 
   #define YYERROR_VERBOSE
   int yylex(void);
-  
+  extern sym_union *sym_table;
   
   
 %}
 
 %union {
   int i;
-  char *id;
-  EXPTYPE expt; //for TAC generation
+  char *lexem;
+  IRT airt; //for TAC generation
+  typeEnum etyp;
 }
  
 %debug
@@ -45,7 +46,7 @@
 %token COLON COMMA SEMICOLON
 %token BRACE_OPEN BRACE_CLOSE
 
-%token <id> ID
+%token <lexem> ID
 %token <i> NUM
 
 %right ASSIGN 
@@ -59,9 +60,10 @@
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <expt> program_element_list program_element 
-%type <expt> type variable_declaration identifier_declaration function_definition function_declaration function_parameter_list function_parameter
-%type <expt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
+%type <airt> program_element_list program_element 
+%type <airt> variable_declaration identifier_declaration function_definition function_declaration function_parameter_list function_parameter
+%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
+%type <i> type
 %%
 
 program
@@ -81,8 +83,8 @@ program_element
      ;
 									
 type
-     : INT
-     | VOID
+     : INT {$$ = intType;}
+     | VOID {$$ = voidType;}
      ;
 
 variable_declaration
@@ -101,7 +103,7 @@ function_definition
      ;
 
 function_declaration
-     : type ID PARA_OPEN PARA_CLOSE
+     : type ID PARA_OPEN PARA_CLOSE 
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE
      ;
 
