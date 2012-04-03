@@ -9,14 +9,16 @@
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
-  #include "symtab.h"
-
+	
   #define YYERROR_VERBOSE
   int yylex(void);
   extern sym_union *sym_table;
   
   
 %}
+%code requires{
+#include "symtab.h"
+}
 
 %union {
   int i;
@@ -63,7 +65,7 @@
 %type <airt> program_element_list program_element 
 %type <airt> variable_declaration identifier_declaration function_definition function_declaration function_parameter_list function_parameter
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
-%type <i> type
+%type <etyp> type
 %%
 
 program
@@ -83,7 +85,7 @@ program_element
      ;
 									
 type
-     : INT {$$ = intType;}
+     : INT {$$ = intType;} /*Using typedefinitions from symtab.h instead of lexems for types*/
      | VOID {$$ = voidType;}
      ;
 
