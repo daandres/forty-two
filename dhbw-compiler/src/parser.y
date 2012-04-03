@@ -62,7 +62,10 @@
 %type <expt> program_element_list program_element 
 %type <expt> type variable_declaration identifier_declaration function_definition function_declaration function_parameter_list function_parameter
 %type <expt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
+%type finit
 %%
+
+finit: /*empty epsilon*/ {/*change to function context. move current table to 'saved' and initialize(or load?) the function context in 'top'*/};
 
 program
      : program_element_list
@@ -96,8 +99,8 @@ identifier_declaration
      ;
 
 function_definition
-     : type ID PARA_OPEN PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
-     | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
+     : type ID PARA_OPEN PARA_CLOSE BRACE_OPEN finit stmt_list BRACE_CLOSE
+     | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN finit stmt_list BRACE_CLOSE
      ;
 
 function_declaration
