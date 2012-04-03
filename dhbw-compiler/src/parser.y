@@ -105,7 +105,7 @@ function_definition
      ;
 
 function_declaration
-     : type ID PARA_OPEN PARA_CLOSE 
+     : type ID PARA_OPEN PARA_CLOSE;
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE
      ;
 
