@@ -3,7 +3,9 @@
  */
 
 %{
-	#include "parser.h"
+    #include "ir_code.h"
+ 
+	#include "parser.h"	
 	#include <stdio.h>
 	/* handle locations */
 	//int yycolumn = 1;
