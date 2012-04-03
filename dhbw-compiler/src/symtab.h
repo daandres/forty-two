@@ -11,15 +11,15 @@
 #include "uthash.h"
 #include <stdio.h>
 
-enum types {
+typedef enum types {
 	voidType = 0, intType = 1, intArrayType = 2
 } typeEnum;
 
-enum symbol {
+typedef enum symbol {
 	symFunction, symVariable
 } symbolEnum;
 
-enum prototype {
+typedef enum prototype {
 	no = 0, proto = 1
 } prototypeEnum;
 
