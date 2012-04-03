@@ -103,6 +103,15 @@
 	 return 0;	 
  }
 
- void printSymTable() {
-//test
+ int printSymTable(char* name) {
+	 FILE *datei;
+	 datei = fopen ("testdatei.txt", "w");
+	 if (datei == NULL) {
+		 printf("Fehler beim oeffnen der Datei.");
+		 return 1;
+	 }
+	 fprintf (datei, "Hallo, Welt\n");
+	 fclose (datei);
+	 //for(int i=0; i<)
+	 return 0;
  }

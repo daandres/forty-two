@@ -12,12 +12,13 @@
 	
   #define YYERROR_VERBOSE
   int yylex(void);
-  extern sym_union *sym_table;
   
   
 %}
 %code requires{
 #include "symtab.h"
+ extern sym_union *sym_table;
+
 }
 
 %union {
@@ -90,13 +91,13 @@ type
      ;
 
 variable_declaration
-     : variable_declaration COMMA identifier_declaration
-     | type identifier_declaration
+     : variable_declaration COMMA identifier_declaration	{	}
+     | type identifier_declaration	{	}
      ;
 
 identifier_declaration
-     : ID BRACKET_OPEN NUM BRACKET_CLOSE
-     | ID
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{	}
+     | ID	{	}
      ;
 
 function_definition
