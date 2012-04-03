@@ -14,13 +14,14 @@
 /*
  * This struct is for Expressions.
  */
-typedef struct ETYPE {
+typedef struct IRTYPE {
 		int* true;
 		int* false;
 		int* next;
 		int quad;
-		char place[5];
-	} EXPTYPE;
+		char pos[5];
+	} IRT;
+
 
 enum opcode {
 	ASS, ADD, SUB, MULt, DIV, MIN,
