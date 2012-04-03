@@ -24,20 +24,19 @@ typedef enum prototype {
 } prototypeEnum;
 
 typedef struct sym_variable {
-	char name[255];
+	char* name; //Nur für die Lokalen Variablen Listen genutzt
 	enum types varType;
-	int* address;
-	int size;
+	int offsetAddress;
+	int size; // Größe eines Arrays
 	UT_hash_handle hh; /* makes this structure hashable */
 } sym_variable;
 
 typedef struct sym_function {
-	char name[255];
 	enum types returnType;
-	enum prototype;
+	enum prototype protOrNot;
 	sym_variable* callVars;
 	sym_variable* lokalVars;
-	char* interCode; //TODO Pointer setzen;
+	char* interCode;
 } sym_function;
 
 union variable_or_function{
@@ -56,7 +55,5 @@ sym_union* searchGlobal(); /* Kann Funktion und Variable zur�ckliefern */
 sym_union* searchLocal(); /* Kann nur Variable zur�ckliefern */
 int insertSymGlobal();
 int insertSymLocal();
-
-//ICH RAFFE DEN SCHEI? EINFACH NICHT
 
 #endif /* SYMTAB_H_ */
