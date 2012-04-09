@@ -52,7 +52,7 @@
  }
 
  int insertFuncGlobal(char* symName, sym_function func) {
-	 printf("New Variable or Function %s in Local.", symName);
+	 printf("New Function %s in Local.", symName); //Moritz: Habe 'Variable or' rausgenommen
 	 if(searchGlobal(symName) == NULL) {
 		 sym_union* new_entry;
 		 new_entry = (sym_union *) malloc(sizeof(*new_entry));
@@ -68,7 +68,7 @@
  }
 
  int insertVarGlobal(char* symName, sym_variable var) {
-	 printf("New Variable or Function %s in Local.", symName);
+	 printf("New Variable %s in Local.", symName); //Moritz: Habe 'or Function' rausgenommen
 	 if(searchGlobal(symName) == NULL) {
 		 sym_union* new_entry;
 		 new_entry = (sym_union *) malloc(sizeof(*new_entry));
