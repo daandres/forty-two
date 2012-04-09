@@ -193,18 +193,19 @@ function_parameter
 									if($2.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType)
     	 	 	 	 	 	 	 	 	 {
-    	 	 	 	 	 	 	 	 		 $2.varType = intArrayType;
+    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
     	 	 	 	 	 	 	 	 	 }
     	 	 	 	 	 	 	 	 	 else
     	 	 	 	 	 	 	 	 	 {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
     	 	 	 	 	 	 	 	 	 };
      	 	 	 	 	 	 	 	 }else{
-     	 	 	 	 	 	 	 		 $2.varType = $1;
+     	 	 	 	 	 	 	 		 var.varType = $1;
      	 	 	 	 	 	 	 	 }
 									var.name = $2.name;
-     								insertVarLocal(var.name, function_context, var, 1);
-     	 	 	 	 	 	 	 	 $$.varType = $2.varType;
+									$$=var;
+     								//insertVarLocal(var.name, function_context, var, 1);
+     	 	 	 	 	 	 	 	 //$$.varType = $2.varType; //Hab ich doch schon oben gemacht
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 									
