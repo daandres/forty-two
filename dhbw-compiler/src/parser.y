@@ -6,6 +6,7 @@
 
 
   #include "ir_code.h"
+	
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
@@ -14,6 +15,7 @@
   int yylex(void);
   
   char* function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
+  short func_dec = 0; //1 wenn eine identifier_declaration für eine Funktion stattfinden soll.
   
   
 %}
@@ -71,7 +73,13 @@
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %type <etyp> type
 %type <svar> function_parameter identifier_declaration
+%type <i>function_context_declaration
 %%
+
+/*****Epsilonproductions******/
+function_context_declaration
+	:  /* empty */  { func_dec = 1; }  //Denotes, that the following declarations(identifiers) are for parameter-purpose only
+/****************************/
 
 program
      : program_element_list
@@ -99,9 +107,16 @@ variable_declaration
      | type identifier_declaration	{	}
      ;
 
-identifier_declaration
-     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ $$ } /* Declaration für function_parameter*/
-     | ID	{	}
+identifier_declaration //TODO: Frage klären, ob bereits der identifier in die SymTab aufgenommen werden muss
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_variable var;
+     	 	 	 	 	 	 	 	 	 	 var.name = $1;
+     	 	 	 	 	 	 	 	 	 	 var.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
+     	 	 	 	 	 	 	 	 	 	 $$ = var;
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
+     | ID	{sym_variable var;
+	 	 	 var.name = $1;
+	 	 	 $$ = var;
+     	 	 	 	 	 	 }
      ;
 
 function_definition
@@ -115,10 +130,10 @@ function_declaration
      	 	 	 	 	 	 	 	 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
      	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 if(insertFuncGlobal($2, func) == 1){
-     	 	 	 	 	 	 	 		 printf("Fehler bei Funktionsdeklaration. Deklaration konnte nicht angelegt werden");
-     	 	 	 	 	 	 	 	 }else{
-     	 	 	 	 	 	 	 		 printf("Funktion %s wurde Deklariert.", $2);
-     	 	 	 	 	 	 	 	 };
+										 yyerror("Error during functiondeclaration. Declaration could not be created.");
+									 }else{
+										 printf("Function %s declared.", $2);
+									 };
      	 	 	 	 	 	 	 	 	 	 	 	 	 } 
      | type ID PARA_OPEN function_parameter_list PARA_CLOSE { sym_function func;
 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1;
@@ -127,9 +142,9 @@ function_declaration
 															 //TODO: Parameterliste via InsertVarLocal einfügen.
 															 
 															 if(insertFuncGlobal($2, func) == 1){
-																 printf("Fehler bei Funktionsdeklaration. Deklaration konnte nicht angelegt werden");
+																 yyerror("Error during functiondeclaration. Declaration could not be created.");
 															 }else{
-																 printf("Funktion %s wurde Deklariert.", $2);
+																 printf("Function %s declared.", $2);
 															 };
 														 }
      ;
@@ -140,7 +155,20 @@ function_parameter_list
      ;
 	
 function_parameter
-     : type identifier_declaration
+     : type identifier_declaration { if($2.varType == ArrayType){
+    	 	 	 	 	 	 	 	 	 if($1 == intType)
+    	 	 	 	 	 	 	 	 	 {
+    	 	 	 	 	 	 	 	 		 $2.varType = intArrayType;
+    	 	 	 	 	 	 	 	 	 }
+    	 	 	 	 	 	 	 	 	 else
+    	 	 	 	 	 	 	 	 	 {
+    	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer errors are valid.");
+    	 	 	 	 	 	 	 	 	 };
+     	 	 	 	 	 	 	 	 }else{
+     	 	 	 	 	 	 	 		 $2.varType = $1;
+     	 	 	 	 	 	 	 	 }
+     	 	 	 	 	 	 	 	 $$ = $2;
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 									
 stmt_list

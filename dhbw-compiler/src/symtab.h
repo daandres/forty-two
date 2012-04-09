@@ -11,8 +11,9 @@
 #include "uthash.h"
 #include <stdio.h>
 
+//Moritz: Habe types um ArrayType ergänzt
 typedef enum types {
-	voidType = 0, intType = 1, intArrayType = 2
+	voidType = 0, intType = 1, intArrayType = 2, ArrayType = 3
 } typeEnum;
 
 typedef enum symbol {
