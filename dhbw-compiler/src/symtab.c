@@ -112,6 +112,63 @@
 	 }
 	 fprintf (datei, "Hallo, Welt\n");
 	 fclose (datei);
-	 //for(int i=0; i<)
+	 
+	 struct sym_union *act;
+	 struct sym_variable *subVar;
+
+	for(act=sym_table; act != NULL; act=act->hh.next) {
+		printf("-----------------------------------");
+		
+		if(act->symbolType == 1) {
+			printf("Variablen Name: %s \n", act->name);
+			if(act->vof.symVariable.varType == intType) {
+				printf("Typ: int \n");
+			}
+			else if(act->vof.symVariable.varType == intArrayType) {
+				printf("Typ: int-Array, Größe: %i \n", act->vof.symVariable.size);
+			}
+			printf("Offset Adresse: %i \n", act->vof.symVariable.offsetAddress);			
+		}
+		
+		else {
+			printf("Function name: %s \n", act->name);
+			printf("Aufrufvariablen: \n");
+			for(subVar=act->vof.symFunction.callVars; subVar != NULL; subVar=subVar->hh.next) {
+				printf("- Name: %s, ", subVar->name);
+				if(subVar->varType == intType) {
+					printf("Typ: int, ");
+				}
+				else if(subVar->varType == intArrayType) {
+					printf("Typ: int-Array, Größe: %i, ", subVar->size);
+				}
+				printf("Offset Adresse: %i \n", subVar->offsetAddress);
+			}
+			if(act->vof.symFunction.returnType == voidType) {
+				printf("Rückgabetyp: void \n");
+			}
+			else if(act->vof.symFunction.returnType == intType) {
+				printf("Rückgabetyp: int \n");
+			}
+			else if(act->vof.symFunction.returnType == intArrayType) {
+				printf("Rückgabetyp: int-Array \n");
+			}
+			if(act->vof.symFunction.protOrNot == proto) {
+				printf("Prototyp! \n");
+			}
+			for(subVar=act->vof.symFunction.lokalVars; subVar != NULL; subVar=subVar->hh.next) {
+				printf("- Name: %s, ", subVar->name);
+				if(subVar->varType == intType) {
+					printf("Typ: int, ");
+				}
+				else if(subVar->varType == intArrayType) {
+					printf("Typ: int-Array, Größe: %i, ", subVar->size);
+				}
+				printf("Offset Adresse: %i \n", subVar->offsetAddress);
+			}			
+			printf("Zwischencode: \n %s \n", act->vof.symFunction.interCode);
+		}
+	 
+	}
+	 
 	 return 0;
  }
