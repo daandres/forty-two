@@ -6,12 +6,16 @@
 
 
   #include "ir_code.h"
+	
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
 	
   #define YYERROR_VERBOSE
   int yylex(void);
+  
+  char* function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
+  short func_dec = 0; //1 wenn eine identifier_declaration f�r eine Funktion stattfinden soll.
   
   
 %}
@@ -26,6 +30,7 @@
   char *lexem;
   IRT airt; //for TAC generation
   typeEnum etyp;
+  sym_variable svar;
 }
  
 %debug
@@ -64,10 +69,17 @@
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 %type <airt> program_element_list program_element 
-%type <airt> variable_declaration identifier_declaration function_definition function_declaration function_parameter_list function_parameter
+%type <airt>  function_definition function_declaration function_parameter_list
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %type <etyp> type
+%type <svar> function_parameter identifier_declaration variable_declaration
+%type <i>function_context_declaration
 %%
+
+/*****Epsilonproductions******/
+function_context_declaration
+	:  /* empty */  { func_dec = 1; }  //Denotes, that the following declarations(identifiers) are for parameter-purpose only
+/****************************/
 
 program
      : program_element_list
@@ -91,13 +103,54 @@ type
      ;
 
 variable_declaration
-     : variable_declaration COMMA identifier_declaration	{	}
-     | type identifier_declaration	{	}
+     : variable_declaration COMMA identifier_declaration	{	
+									sym_variable var;
+									if($3.varType == ArrayType){
+    	 	 	 	 	 	 	 	 	 if($1.varType == intType) {
+    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
+    	 	 	 	 	 	 	 	 	 } else {
+    	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
+    	 	 	 	 	 	 	 	 	 }
+     	 	 	 	 	 	 	 	 } else {
+     	 	 	 	 	 	 	 		 var.varType = $1.varType;
+     	 	 	 	 	 	 	 	 }
+									$$.varType = $1.varType;
+									var.name = $3.name;
+									if(function_context == NULL){
+										insertVarGlobal(var.name, var);
+									} else {
+										insertVarLocal(var.name, function_context, var, 0);
+									}
+									}
+     | type identifier_declaration	{	sym_variable var;
+     									if($2.varType == ArrayType){
+    	 	 	 	 	 	 	 	 	 if($1 == intType) {
+    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
+    	 	 	 	 	 	 	 	 		 } else {
+    	 	 	 	 	 	 	 	 			 yyerror("Error: Only Integer arrays are valid.");
+    	 	 	 	 	 	 	 	 		 }
+     	 	 	 	 	 	 	 		 } else {
+     	 	 	 	 	 	 	 			 var.varType = $1;
+     	 	 	 	 	 	 	 		 }
+										$$.varType = var.varType;
+										var.name = $2.name;	
+										if(function_context == NULL){
+											insertVarGlobal(var.name, var);
+										} else {
+											insertVarLocal(var.name, function_context, var, 0);
+										}}
      ;
 
-identifier_declaration
-     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{	}
-     | ID	{	}
+identifier_declaration //TODO: Frage kl�ren, ob bereits der identifier in die SymTab aufgenommen werden muss
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_variable var;
+     	 	 	 	 	 	 	 	 	 	 var.name = $1;
+     	 	 	 	 	 	 	 	 	 	 var.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
+     	 	 	 	 	 	 	 	 	 	 $$ = var;
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
+     | ID	{sym_variable var;
+	 	 	 var.name = $1;
+	 	 	 $$ = var;
+     	 	 	 	 	 	 }
      ;
 
 function_definition
@@ -106,8 +159,28 @@ function_definition
      ;
 
 function_declaration
-     : type ID PARA_OPEN PARA_CLOSE 
-     | type ID PARA_OPEN function_parameter_list PARA_CLOSE
+     : type ID PARA_OPEN PARA_CLOSE	{ sym_function func;
+     	 	 	 	 	 	 	 	 func.returnType = $1;
+     	 	 	 	 	 	 	 	 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
+     	 	 	 	 	 	 	 	 
+     	 	 	 	 	 	 	 	 if(insertFuncGlobal($2, func) == 1){
+										 yyerror("Error during functiondeclaration. Declaration could not be created.");
+									 }else{
+										 printf("Function %s declared.", $2);
+									 };
+     	 	 	 	 	 	 	 	 	 	 	 	 	 } 
+     | type ID PARA_OPEN function_parameter_list PARA_CLOSE { sym_function func;
+	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1;
+															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
+															 
+															 //TODO: Parameterliste via InsertVarLocal einf�gen. --> in function_parameter...
+															 
+															 if(insertFuncGlobal($2, func) == 1){
+																 yyerror("Error during functiondeclaration. Declaration could not be created.");
+															 }else{
+																 printf("Function %s declared.", $2);
+															 };
+														 }
      ;
 
 function_parameter_list
@@ -116,7 +189,23 @@ function_parameter_list
      ;
 	
 function_parameter
-     : type identifier_declaration
+     : type identifier_declaration { sym_variable var;
+									if($2.varType == ArrayType){
+    	 	 	 	 	 	 	 	 	 if($1 == intType)
+    	 	 	 	 	 	 	 	 	 {
+    	 	 	 	 	 	 	 	 		 $2.varType = intArrayType;
+    	 	 	 	 	 	 	 	 	 }
+    	 	 	 	 	 	 	 	 	 else
+    	 	 	 	 	 	 	 	 	 {
+    	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
+    	 	 	 	 	 	 	 	 	 };
+     	 	 	 	 	 	 	 	 }else{
+     	 	 	 	 	 	 	 		 $2.varType = $1;
+     	 	 	 	 	 	 	 	 }
+									var.name = $2.name;
+     								insertVarLocal(var.name, function_context, var, 1);
+     	 	 	 	 	 	 	 	 $$.varType = $2.varType;
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 									
 stmt_list
