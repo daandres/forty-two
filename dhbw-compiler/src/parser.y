@@ -15,7 +15,7 @@
   int yylex(void);
   
   char* function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
-  short func_dec = 0; //1 wenn eine identifier_declaration fŸr eine Funktion stattfinden soll.
+  short func_dec = 0; //1 wenn eine identifier_declaration fï¿½r eine Funktion stattfinden soll.
   
   
 %}
@@ -69,10 +69,10 @@
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 %type <airt> program_element_list program_element 
-%type <airt> variable_declaration function_definition function_declaration function_parameter_list
+%type <airt>  function_definition function_declaration function_parameter_list
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %type <etyp> type
-%type <svar> function_parameter identifier_declaration
+%type <svar> function_parameter identifier_declaration variable_declaration
 %type <i>function_context_declaration
 %%
 
@@ -103,11 +103,45 @@ type
      ;
 
 variable_declaration
-     : variable_declaration COMMA identifier_declaration	{	}
-     | type identifier_declaration	{	}
+     : variable_declaration COMMA identifier_declaration	{	
+									sym_variable var;
+									if($3.varType == ArrayType){
+    	 	 	 	 	 	 	 	 	 if($1.varType == intType) {
+    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
+    	 	 	 	 	 	 	 	 	 } else {
+    	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
+    	 	 	 	 	 	 	 	 	 }
+     	 	 	 	 	 	 	 	 } else {
+     	 	 	 	 	 	 	 		 var.varType = $1.varType;
+     	 	 	 	 	 	 	 	 }
+									$$.varType = $1.varType;
+									var.name = $3.name;
+									if(function_context == NULL){
+										insertVarGlobal(var.name, var);
+									} else {
+										insertVarLocal(var.name, function_context, var, 0);
+									}
+									}
+     | type identifier_declaration	{	sym_variable var;
+     									if($2.varType == ArrayType){
+    	 	 	 	 	 	 	 	 	 if($1 == intType) {
+    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
+    	 	 	 	 	 	 	 	 		 } else {
+    	 	 	 	 	 	 	 	 			 yyerror("Error: Only Integer arrays are valid.");
+    	 	 	 	 	 	 	 	 		 }
+     	 	 	 	 	 	 	 		 } else {
+     	 	 	 	 	 	 	 			 var.varType = $1;
+     	 	 	 	 	 	 	 		 }
+										$$.varType = var.varType;
+										var.name = $2.name;	
+										if(function_context == NULL){
+											insertVarGlobal(var.name, var);
+										} else {
+											insertVarLocal(var.name, function_context, var, 0);
+										}}
      ;
 
-identifier_declaration //TODO: Frage klŠren, ob bereits der identifier in die SymTab aufgenommen werden muss
+identifier_declaration //TODO: Frage klï¿½ren, ob bereits der identifier in die SymTab aufgenommen werden muss
      : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_variable var;
      	 	 	 	 	 	 	 	 	 	 var.name = $1;
      	 	 	 	 	 	 	 	 	 	 var.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
@@ -139,7 +173,7 @@ function_declaration
 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1;
 															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
 															 
-															 //TODO: Parameterliste via InsertVarLocal einfŸgen.
+															 //TODO: Parameterliste via InsertVarLocal einfï¿½gen. --> in function_parameter...
 															 
 															 if(insertFuncGlobal($2, func) == 1){
 																 yyerror("Error during functiondeclaration. Declaration could not be created.");
@@ -155,19 +189,22 @@ function_parameter_list
      ;
 	
 function_parameter
-     : type identifier_declaration { if($2.varType == ArrayType){
+     : type identifier_declaration { sym_variable var;
+									if($2.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType)
     	 	 	 	 	 	 	 	 	 {
     	 	 	 	 	 	 	 	 		 $2.varType = intArrayType;
     	 	 	 	 	 	 	 	 	 }
     	 	 	 	 	 	 	 	 	 else
     	 	 	 	 	 	 	 	 	 {
-    	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer errors are valid.");
+    	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
     	 	 	 	 	 	 	 	 	 };
      	 	 	 	 	 	 	 	 }else{
      	 	 	 	 	 	 	 		 $2.varType = $1;
      	 	 	 	 	 	 	 	 }
-     	 	 	 	 	 	 	 	 $$ = $2;
+									var.name = $2.name;
+     								insertVarLocal(var.name, function_context, var, 1);
+     	 	 	 	 	 	 	 	 $$.varType = $2.varType;
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 									
