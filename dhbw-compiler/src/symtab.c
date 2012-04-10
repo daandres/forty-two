@@ -23,10 +23,11 @@
  sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
 	 printf("MARCEL: searchLocal %s in %s startet. \n", symName, funcName);
 	 sym_union* function = searchGlobal(funcName);
-	 if(function == NULL || function->symbolType != 0) {
-		 if(function->vof.symFunction.lokalVars == NULL && function->vof.symFunction.callVars == NULL) {
-			 return NULL;
-		 }
+	 if(function == NULL || function->symbolType == symVariable) {
+		 return NULL;
+	 }
+	 if(function->vof.symFunction.lokalVars == NULL && function->vof.symFunction.callVars == NULL) {
+		 return NULL;
 	 }
 	 sym_variable* found_variable;
 	 found_variable = (sym_variable *) malloc(sizeof(*found_variable));
@@ -149,7 +150,12 @@
 		fprintf(datei, "-----------------------------------");
 		
 		if(act->symbolType == 1) {
-			fprintf(datei, "Variablen Name: %s \n", act->name);
+			if(act->name == NULL) {
+				fprintf(datei, "Name = null");
+			}
+			else {
+				fprintf(datei, "Variablen Name: %s \n", act->name);
+			}
 			if(act->vof.symVariable.varType == intType) {
 				fprintf(datei, "Typ: int \n");
 			}
@@ -160,10 +166,20 @@
 		}
 		
 		else {
-			fprintf(datei, "Function name: %s \n", act->name);
+			if(act->name == NULL) {
+				fprintf(datei, "Name = null");
+			}
+			else {
+				fprintf(datei, "Function name: %s \n", act->name);
+			}
 			fprintf(datei, "Aufrufvariablen: \n");
 			for(subVar=act->vof.symFunction.callVars; subVar != NULL; subVar=subVar->hh.next) {
-				fprintf(datei, "- Name: %s, ", subVar->name);
+				if(subVar->name == NULL) {
+					fprintf(datei, "- Name = null, ");
+				}
+				else {
+					fprintf(datei, "- Name: %s, ", subVar->name);
+				}
 				if(subVar->varType == intType) {
 					fprintf(datei, "Typ: int, ");
 				}
@@ -185,7 +201,12 @@
 				fprintf(datei, "Prototyp! \n");
 			}
 			for(subVar=act->vof.symFunction.lokalVars; subVar != NULL; subVar=subVar->hh.next) {
-				fprintf(datei, "- Name: %s, ", subVar->name);
+				if(subVar->name == NULL) {
+					fprintf(datei, "- Name = null, ");
+				}
+				else {
+					fprintf(datei, "- Name: %s, ", subVar->name);
+				}
 				if(subVar->varType == intType) {
 					fprintf(datei, "Typ: int, ");
 				}
