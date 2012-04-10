@@ -74,14 +74,14 @@ int insertFuncGlobal(char* symName, sym_function func) {
 	return 0;
 }
 
-int alterFuncGlobal(char* symName, sym_function func) {
-	sym_union* entry = searchGlobal(symName);
-	if (entry != NULL) {
-		entry->vof.symFunction = func;
-		return 1;
-	}
-	return 0;
-}
+//int alterFuncGlobal(char* symName, sym_function func) {
+//	sym_union* entry = searchGlobal(symName);
+//	if (entry != NULL) {
+//		entry->vof.symFunction = func;
+//		return 1;
+//	}
+//	return 0;
+//}
 
 int insertVarGlobal(char* symName, sym_variable var) {
 	printf("MARCEL: New Variable %s in global. \n", symName); //Moritz: Habe 'or Function' rausgenommen
@@ -101,14 +101,14 @@ int insertVarGlobal(char* symName, sym_variable var) {
 	return 0;
 }
 
-int alterVarGlobal(char* symName, sym_variable var) {
-	sym_union* entry = searchGlobal(symName);
-	if (entry != NULL) {
-		entry->vof.symVariable = var;
-		return 1;
-	}
-	return 0;
-}
+//int alterVarGlobal(char* symName, sym_variable var) {
+//	sym_union* entry = searchGlobal(symName);
+//	if (entry != NULL) {
+//		entry->vof.symVariable = var;
+//		return 1;
+//	}
+//	return 0;
+//}
 
 int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
 	printf("MARCEL: New Variable %s local in %s. \n", symName, funcName);
@@ -132,15 +132,15 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
 	return 0;
 }
 
-int alterVarLocal(char* symName, char* funcName, sym_variable var) {
-	sym_union* function = searchGlobal(funcName);
-	sym_union* entry = searchLocal(symName, funcName);
-	if (function != NULL && entry != NULL) {
-		entry->vof.symVariable = var;
-		return 1;
-	}
-	return 0;
-}
+//int alterVarLocal(char* symName, char* funcName, sym_variable var) {
+//	sym_union* function = searchGlobal(funcName);
+//	sym_union* entry = searchLocal(symName, funcName);
+//	if (function != NULL && entry != NULL) {
+//		entry->vof.symVariable = var;
+//		return 1;
+//	}
+//	return 0;
+//}
 
 int printSymTable(char* name) {
 	FILE *datei;
@@ -153,78 +153,78 @@ int printSymTable(char* name) {
 	fprintf(datei, "Hallo, Welt\n");
 
 	struct sym_union *act;
-	struct sym_variable *subVar;
+//	struct sym_variable *subVar;
 
 	for (act = sym_table; act != NULL; act = act->hh.next) {
 		fprintf(datei, "-----------------------------------");
 
-		if (act->symbolType == 1) {
+		if (act->symbolType == symVariable) {
 			if (act->name == NULL) {
-				fprintf(datei, "Name = null");
+				fprintf(datei, "Variable Name = null");
 			} else {
 				fprintf(datei, "Variablen Name: %s \n", act->name);
 			}
-			if (act->vof.symVariable.varType == intType) {
-				fprintf(datei, "Typ: int \n");
-			} else if (act->vof.symVariable.varType == intArrayType) {
-				fprintf(datei, "Typ: int-Array, Größe: %i \n",
-						act->vof.symVariable.size);
-			}
-			fprintf(datei, "Offset Adresse: %i \n",
-					act->vof.symVariable.offsetAddress);
+//			if (act->vof.symVariable.varType == intType) {
+//				fprintf(datei, "Typ: int \n");
+//			} else if (act->vof.symVariable.varType == intArrayType) {
+//				fprintf(datei, "Typ: int-Array, Größe: %i \n",
+//						act->vof.symVariable.size);
+//			}
+//			fprintf(datei, "Offset Adresse: %i \n",
+//					act->vof.symVariable.offsetAddress);
 		}
 
-		else {
+		else if(act->symbolType == symFunction) {
 			if (act->name == NULL) {
-				fprintf(datei, "Name = null");
+				fprintf(datei, "Function Name = null");
 			} else {
 				fprintf(datei, "Function name: %s \n", act->name);
+//			}
+//			fprintf(datei, "Aufrufvariablen: \n");
+//			if (act->vof.symFunction.callVars != NULL) {
+//				for (subVar = act->vof.symFunction.callVars; subVar != NULL;
+//						subVar = subVar->hh.next) {
+//					if (subVar->name == NULL) {
+//						fprintf(datei, "- Name = null, ");
+//					} else {
+//						fprintf(datei, "- Name: %s, ", subVar->name);
+//					}
+//					if (subVar->varType == intType) {
+//						fprintf(datei, "Typ: int, ");
+//					} else if (subVar->varType == intArrayType) {
+//						fprintf(datei, "Typ: int-Array, Größe: %i, ",
+//								subVar->size);
+//					}
+//					fprintf(datei, "Offset Adresse: %i \n",
+//							subVar->offsetAddress);
+//				}
+//			}
+//			if (act->vof.symFunction.returnType == voidType) {
+//				fprintf(datei, "Rückgabetyp: void \n");
+//			} else if (act->vof.symFunction.returnType == intType) {
+//				fprintf(datei, "Rückgabetyp: int \n");
+//			} else if (act->vof.symFunction.returnType == intArrayType) {
+//				fprintf(datei, "Rückgabetyp: int-Array \n");
+//			}
+//			if (act->vof.symFunction.protOrNot == proto) {
+//				fprintf(datei, "Prototyp! \n");
+//			}
+//			for (subVar = act->vof.symFunction.lokalVars; subVar != NULL;
+//					subVar = subVar->hh.next) {
+//				if (subVar->name == NULL) {
+//					fprintf(datei, "- Name = null, ");
+//				} else {
+//					fprintf(datei, "- Name: %s, ", subVar->name);
+//				}
+//				if (subVar->varType == intType) {
+//					fprintf(datei, "Typ: int, ");
+//				} else if (subVar->varType == intArrayType) {
+//					fprintf(datei, "Typ: int-Array, Größe: %i, ", subVar->size);
+//				}
+//				fprintf(datei, "Offset Adresse: %i \n", subVar->offsetAddress);
 			}
-			fprintf(datei, "Aufrufvariablen: \n");
-			if (act->vof.symFunction.callVars != NULL) {
-				for (subVar = act->vof.symFunction.callVars; subVar != NULL;
-						subVar = subVar->hh.next) {
-					if (subVar->name == NULL) {
-						fprintf(datei, "- Name = null, ");
-					} else {
-						fprintf(datei, "- Name: %s, ", subVar->name);
-					}
-					if (subVar->varType == intType) {
-						fprintf(datei, "Typ: int, ");
-					} else if (subVar->varType == intArrayType) {
-						fprintf(datei, "Typ: int-Array, Größe: %i, ",
-								subVar->size);
-					}
-					fprintf(datei, "Offset Adresse: %i \n",
-							subVar->offsetAddress);
-				}
-			}
-			if (act->vof.symFunction.returnType == voidType) {
-				fprintf(datei, "Rückgabetyp: void \n");
-			} else if (act->vof.symFunction.returnType == intType) {
-				fprintf(datei, "Rückgabetyp: int \n");
-			} else if (act->vof.symFunction.returnType == intArrayType) {
-				fprintf(datei, "Rückgabetyp: int-Array \n");
-			}
-			if (act->vof.symFunction.protOrNot == proto) {
-				fprintf(datei, "Prototyp! \n");
-			}
-			for (subVar = act->vof.symFunction.lokalVars; subVar != NULL;
-					subVar = subVar->hh.next) {
-				if (subVar->name == NULL) {
-					fprintf(datei, "- Name = null, ");
-				} else {
-					fprintf(datei, "- Name: %s, ", subVar->name);
-				}
-				if (subVar->varType == intType) {
-					fprintf(datei, "Typ: int, ");
-				} else if (subVar->varType == intArrayType) {
-					fprintf(datei, "Typ: int-Array, Größe: %i, ", subVar->size);
-				}
-				fprintf(datei, "Offset Adresse: %i \n", subVar->offsetAddress);
-			}
-			fprintf(datei, "Zwischencode: \n %s \n",
-					act->vof.symFunction.interCode);
+//			fprintf(datei, "Zwischencode: \n %s \n",
+//					act->vof.symFunction.interCode);
 		}
 
 	}
