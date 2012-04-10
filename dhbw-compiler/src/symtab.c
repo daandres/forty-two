@@ -64,6 +64,8 @@ int insertFuncGlobal(char* symName, sym_function func) {
 		new_entry->symbolType = symFunction;
 		new_entry->vof.symFunction = func;
 		new_entry->name = symName;
+		new_entry->vof.symFunction.callVars = NULL;
+
 		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name),
 				new_entry);
 		//free(new_entry);
@@ -88,7 +90,7 @@ int insertVarGlobal(char* symName, sym_variable var) {
 		new_entry = (sym_union *) malloc(sizeof(*new_entry));
 		if (new_entry == NULL)
 			return 0;
-		new_entry->symbolType = symFunction;
+		new_entry->symbolType = symVariable;
 		new_entry->vof.symVariable = var;
 		new_entry->name = symName;
 		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name),
