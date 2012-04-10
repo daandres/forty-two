@@ -9,6 +9,7 @@
 #define SYMTAB_H_
 
 #include "uthash.h"
+#include "utlist.h"
 #include <stdio.h>
 
 //Moritz: Habe types um ArrayType ergŠnzt
@@ -44,6 +45,16 @@ union variable_or_function{
 	sym_variable symVariable;
 	sym_function symFunction;
 };
+
+
+
+/**MORITZ**/
+typedef struct func_param {
+	char* name;
+	enum types varType;
+	struct func_param *next, *prev;
+} func_param;
+/**********/
 
 typedef struct sym_union {
 	enum symbol symbolType; /* 1 -> variable; 0 -> function */

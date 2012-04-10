@@ -9,6 +9,10 @@
 
  sym_union *sym_table = NULL;
 
+ /***MORITZ: Für funktionsparameter func_param****/
+ func_param *param_list = NULL;
+ /*********************************************/
+
 
  sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zur√ºckliefern */
 	 printf("MARCEL: searchGlobal startet for %s. \n", symName);

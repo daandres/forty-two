@@ -6,7 +6,7 @@
 
 
   #include "ir_code.h"
-	
+#include "utlist.h"
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
@@ -15,7 +15,7 @@
   int yylex(void);
   
   char* function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
-
+  int param_counter = 0;
   
   
   
@@ -23,6 +23,7 @@
 %code requires{
 #include "symtab.h"
  extern sym_union *sym_table;
+ extern func_param *param_list;
 
 }
 
@@ -32,7 +33,7 @@
   IRT airt; //for TAC generation
   typeEnum etyp;
   sym_variable svar;
-  sym_function sfun;
+  sym_variable* svararr;
 }
  
 %debug
@@ -76,6 +77,7 @@
 %type <etyp> type
 %type <svar> function_parameter identifier_declaration variable_declaration function_header
 %type <lexem> function_context_declaration
+%type <svararr> function_parameter_list
 %%
 
 /*****Epsilonproductions******/
@@ -168,21 +170,23 @@ function_declaration
     	 	 	 	 	 	 	 	 sym_function func;
     	 	 	 	 	 	 	 	 func.returnType = $1.varType;
      	 	 	 	 	 	 	 	 func.protOrNot = proto; 
-     	 	 	 	 	 	 	printf("VAL: %s\n", function_context);
+     	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 if(insertFuncGlobal($1.name, func) != 1){
      	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
 										 return;
 									 }else{
 										 printf("Function %s declared. \n\n", $1.name);
 									 };
+     	 	 	 	 	 	 	 	 function_context = NULL;
      	 	 	 	 	 	 	 	 	 	 	 	 	 } 
      | function_header function_parameter_list PARA_CLOSE { 
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 sym_function func;
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 sym_variable var;
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 func_param * fparam;
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 
 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1.varType;
 															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
 															 
-															 
-															 printf("VAL: %s\n", function_context);
 															 
 															 if(insertFuncGlobal($1.name, func) != 1){
 																 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
@@ -191,8 +195,18 @@ function_declaration
 																 printf("Function %s declared. \n\n", $1.name);
 															 };
 															 
-															 //printf("Value: %s \n", $4.name);
-															// insertVarLocal($4.name, $2, $4, 1);
+						     	 	 	 	 	 	 	 	 
+															 
+						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) {
+						     	 	 	 	 	 	 	 		 var.varType = fparam->varType;
+						     	 	 	 	 	 	 	 		 var.name = fparam->name;
+						     	 	 	 	 	 	 	 		 
+						     	 	 	 	 	 	 	 		 DL_DELETE(param_list,fparam);
+						     	 	 	 	 	 	 	 		 
+						     	 	 	 	 	 	 	 		 insertVarLocal(var.name, function_context, var, 1);
+						     	 	 	 	 	 	 	 	 }
+						     	 	 	 	 	 	 	 	 
+						     	 	 	 	 	 	 	 	 function_context = NULL;
 														 }
      ;
 
@@ -205,24 +219,25 @@ function_header
 												}
 	;
 	
-function_parameter_list //TODO: proper function_parameter_list
-     : function_parameter { /*$$ = &$1;*/}
-     | function_parameter_list COMMA function_parameter {   /*sym_variable *var = (sym_variable *) malloc(sizeof(sym_variable)+sizeof($1)); 
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	int i;
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	int border = sizeof(var)/sizeof(var[0]);
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	for(i = 0; i<border-1;i++){
-    	 	 	 	 	 	 	 	 	 	 	 	 	 		var[i] = $1[i];
-    	 	 	 	 	 	 	 	 	 	 	 	 	 	}
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	var[i+1] = $3;
-
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	$$ = var; *///Zu fehleranfŠllig/unpraktisch. versuche die produktion fŸr declaration/definition aufzuspalten
-
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
+function_parameter_list 
+     : function_parameter {  func_param *fparam = malloc(sizeof(func_param));
+     	 	 	 	 	 	 fparam->name = $1.name;
+     	 	 	 	 	 	 fparam->varType = $1.varType;
+     	 	 	 	 	 	 
+    	 	 	 	 	 	 DL_APPEND(param_list,fparam);
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
+     | function_parameter_list COMMA function_parameter { 
+														 func_param *fparam = malloc(sizeof(func_param));
+														 fparam->name = $3.name;
+														 fparam->varType = $3.varType;
+														 
+														 DL_APPEND(param_list,fparam);
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 	
 function_parameter
      : type identifier_declaration { sym_variable var;
+     
 									if($2.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType)
     	 	 	 	 	 	 	 	 	 {
@@ -235,11 +250,9 @@ function_parameter
     	 	 	 	 	 	 	 	 	 };
      	 	 	 	 	 	 	 	 }else{
      	 	 	 	 	 	 	 		 var.varType = $1;
-     	 	 	 	 	 	 	 	 }
+     	 	 	 	 	 	 	 	 };
 									var.name = $2.name;
-									$$=var;
-     								//insertVarLocal(var.name, function_context, var, 1);
-     	 	 	 	 	 	 	 	 //$$.varType = $2.varType; //Hab ich doch schon oben gemacht
+									$$ = var;
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 									
