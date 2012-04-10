@@ -9,9 +9,10 @@
 
  sym_union *sym_table = NULL;
 
- sym_union* searchGlobal(char symName[]) { /* Kann Funktion und Variable zurückliefern */
-	 printf("search Global startet in %s. \n", symName);
-	 sym_union* found_entry;
+
+ sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
+	 printf("search Global startet for %s. \n", symName);
+	 sym_union* found_entry = NULL;
 	 found_entry = (sym_union *) malloc(sizeof(*found_entry));
 	 HASH_FIND_STR(sym_table, symName, found_entry);
 	 sym_union* whole_entry = found_entry;
@@ -19,7 +20,7 @@
 	 return whole_entry;
  }
 
- sym_union* searchLocal(char symName[], char funcName[]) { /* Kann nur Variable zur�ckliefern */
+ sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
 	 printf("search %s Local in %s startet. \n", symName, funcName);
 	 sym_union* function = searchGlobal(funcName);
 	 if(function == NULL || function->symbolType != 0) {
@@ -42,7 +43,7 @@
 	 return whole_entry;
  }
 
- sym_union* searchBoth(char symName[], char funcName[]) { /* Kann nur Variable zurückliefern */
+ sym_union* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zurückliefern */
 	 printf("search %s Local in %s startet. \n", symName, funcName);
 	 sym_union* found_entry = searchLocal(symName, funcName);
 	 if(found_entry == NULL) {
@@ -101,7 +102,7 @@
 	 return 0;
  }
 
- int insertVarLocal(char* symName, char funcName[], sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
+ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
 	 printf("New Variable %s in %s. \n", symName, funcName);
 	 sym_union* function = searchGlobal(funcName);
 	 if(searchLocal(symName, funcName) == NULL && function != NULL) {
@@ -121,7 +122,7 @@
 	 return 0;	 
  }
  
- int alterVarLocal(char* symName, char funcName[], sym_variable var) {
+ int alterVarLocal(char* symName, char* funcName, sym_variable var) {
 	 sym_union* function = searchGlobal(funcName);
 	 sym_union* entry = searchLocal(symName, funcName);
 	 if(function != NULL && entry != NULL) {
