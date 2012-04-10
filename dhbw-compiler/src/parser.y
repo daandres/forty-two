@@ -32,7 +32,7 @@
   IRT airt; //for TAC generation
   typeEnum etyp;
   sym_variable svar;
-  sym_variable* svararr;
+  sym_function sfun;
 }
  
 %debug
@@ -74,9 +74,8 @@
 %type <airt>  function_definition function_declaration
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %type <etyp> type
-%type <svar> function_parameter identifier_declaration variable_declaration
-%type <svararr> function_parameter_list
-%type <i> function_context_declaration
+%type <svar> function_parameter identifier_declaration variable_declaration function_header
+%type <lexem> function_context_declaration
 %%
 
 /*****Epsilonproductions******/
@@ -144,6 +143,8 @@ variable_declaration
 										}
 									}
      ;
+     
+
 
 identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_variable var;
@@ -158,36 +159,36 @@ identifier_declaration
      ;
 
 function_definition
-     : type ID PARA_OPEN PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
-     | type ID PARA_OPEN function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
+     : function_header PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
+     | function_header function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
      ;
 
 function_declaration
-     : type ID PARA_OPEN PARA_CLOSE	{ 	 
+     : function_header PARA_CLOSE	{ 	 
     	 	 	 	 	 	 	 	 sym_function func;
-     	 	 	 	 	 	 	 	 func.returnType = $1;
-     	 	 	 	 	 	 	 	 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
-     	 	 	 	 	 	 	 	 
-     	 	 	 	 	 	 	 	 if(insertFuncGlobal($2, func) != 1){
-     	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $2, " Function was already declared.");
+    	 	 	 	 	 	 	 	 func.returnType = $1.varType;
+     	 	 	 	 	 	 	 	 func.protOrNot = proto; 
+     	 	 	 	 	 	 	printf("VAL: %s\n", function_context);
+     	 	 	 	 	 	 	 	 if(insertFuncGlobal($1.name, func) != 1){
+     	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
 										 return;
 									 }else{
-										 printf("Function %s declared. \n", $2);
+										 printf("Function %s declared. \n\n", $1.name);
 									 };
      	 	 	 	 	 	 	 	 	 	 	 	 	 } 
-     | type ID PARA_OPEN function_parameter_list PARA_CLOSE { 
+     | function_header function_parameter_list PARA_CLOSE { 
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 sym_function func;
-	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1;
+	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1.varType;
 															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
 															 
 															 
-															// printf("VAL: %d", sizeof(*$4));
+															 printf("VAL: %s\n", function_context);
 															 
-															 if(insertFuncGlobal($2, func) != 1){
-																 yyerror("Error while declaring function ", $2, " Function was already declared.");
+															 if(insertFuncGlobal($1.name, func) != 1){
+																 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
 																 return;
 															 }else{
-																 printf("Function %s declared. \n", $2);
+																 printf("Function %s declared. \n\n", $1.name);
 															 };
 															 
 															 //printf("Value: %s \n", $4.name);
@@ -195,9 +196,18 @@ function_declaration
 														 }
      ;
 
+//Selfmade function header to define the ID before the parameter_list and statements are processed
+function_header
+	: type ID PARA_OPEN {
+							$$.varType = $1;
+							$$.name = $2;
+							function_context = $2;
+												}
+	;
+	
 function_parameter_list //TODO: proper function_parameter_list
-     : function_parameter { $$ = &$1;}
-     | function_parameter_list COMMA function_parameter {   sym_variable *var = (sym_variable *) malloc(sizeof(sym_variable)+sizeof($1)); 
+     : function_parameter { /*$$ = &$1;*/}
+     | function_parameter_list COMMA function_parameter {   /*sym_variable *var = (sym_variable *) malloc(sizeof(sym_variable)+sizeof($1)); 
      	 	 	 	 	 	 	 	 	 	 	 	 	 	int i;
      	 	 	 	 	 	 	 	 	 	 	 	 	 	int border = sizeof(var)/sizeof(var[0]);
      	 	 	 	 	 	 	 	 	 	 	 	 	 	
@@ -205,7 +215,8 @@ function_parameter_list //TODO: proper function_parameter_list
     	 	 	 	 	 	 	 	 	 	 	 	 	 		var[i] = $1[i];
     	 	 	 	 	 	 	 	 	 	 	 	 	 	}
      	 	 	 	 	 	 	 	 	 	 	 	 	 	var[i+1] = $3;
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	$$ = var; //Zu fehleranfï¿½llig/unpraktisch. versuche die produktion fï¿½r declaration/definition aufzuspalten
+
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	$$ = var; *///Zu fehleranfŠllig/unpraktisch. versuche die produktion fŸr declaration/definition aufzuspalten
 
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
