@@ -11,7 +11,7 @@
 
 
  sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
-	 printf("search Global startet for %s. \n", symName);
+	 printf("MARCEL: searchGlobal startet for %s. \n", symName);
 	 sym_union* found_entry = NULL;
 	 found_entry = (sym_union *) malloc(sizeof(*found_entry));
 	 HASH_FIND_STR(sym_table, symName, found_entry);
@@ -21,7 +21,7 @@
  }
 
  sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
-	 printf("search %s Local in %s startet. \n", symName, funcName);
+	 printf("MARCEL: searchLocal %s in %s startet. \n", symName, funcName);
 	 sym_union* function = searchGlobal(funcName);
 	 if(function == NULL || function->symbolType != 0) {
 		 if(function->vof.symFunction.lokalVars == NULL && function->vof.symFunction.callVars == NULL) {
@@ -44,7 +44,7 @@
  }
 
  sym_union* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zurückliefern */
-	 printf("search %s Local in %s startet. \n", symName, funcName);
+	 printf("MARCEL: searchBoth %s in %s startet. \n", symName, funcName);
 	 sym_union* found_entry = searchLocal(symName, funcName);
 	 if(found_entry == NULL) {
 		 found_entry = searchGlobal(symName);
@@ -53,7 +53,7 @@
  }
 
  int insertFuncGlobal(char* symName, sym_function func) {
-	 printf("New Function %s in Local. \n", symName); //Moritz: Habe 'Variable or' rausgenommen
+	 printf("MARCEL: New Function %s in global. \n", symName);
 	 if(searchGlobal(symName) == NULL) {
 		 sym_union* new_entry;
 		 new_entry = (sym_union *) malloc(sizeof(*new_entry));
@@ -78,7 +78,7 @@
  }
 
  int insertVarGlobal(char* symName, sym_variable var) {
-	 printf("New Variable %s in Local. \n", symName); //Moritz: Habe 'or Function' rausgenommen
+	 printf("MARCEL: New Variable %s in global. \n", symName); //Moritz: Habe 'or Function' rausgenommen
 	 if(searchGlobal(symName) == NULL) {
 		 sym_union* new_entry;
 		 new_entry = (sym_union *) malloc(sizeof(*new_entry));
@@ -103,7 +103,7 @@
  }
 
  int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
-	 printf("New Variable %s in %s. \n", symName, funcName);
+	 printf("MARCEL: New Variable %s local in %s. \n", symName, funcName);
 	 sym_union* function = searchGlobal(funcName);
 	 if(searchLocal(symName, funcName) == NULL && function != NULL) {
 		 sym_variable* new_entry;
@@ -139,6 +139,7 @@
 		printf("Fehler beim oeffnen der Datei.");
 		return 0;
 	}
+	printf("MARCEL: Datei geöffnet.");
 	fprintf (datei, "Hallo, Welt\n");
 	 
 	struct sym_union *act;
