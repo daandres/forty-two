@@ -15,7 +15,8 @@
   int yylex(void);
   
   char* function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
-  short func_dec = 0; //1 wenn eine identifier_declaration fï¿½r eine Funktion stattfinden soll.
+
+  
   
   
 %}
@@ -31,6 +32,7 @@
   IRT airt; //for TAC generation
   typeEnum etyp;
   sym_variable svar;
+  sym_variable* svararr;
 }
  
 %debug
@@ -69,11 +71,12 @@
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 %type <airt> program_element_list program_element 
-%type <airt>  function_definition function_declaration function_parameter_list
+%type <airt>  function_definition function_declaration
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %type <etyp> type
 %type <svar> function_parameter identifier_declaration variable_declaration
-%type <i>function_context_declaration
+%type <svararr> function_parameter_list
+%type <i> function_context_declaration
 %%
 
 /*****Epsilonproductions******/
@@ -159,33 +162,50 @@ function_definition
      ;
 
 function_declaration
-     : type ID PARA_OPEN PARA_CLOSE	{ sym_function func;
+     : type ID PARA_OPEN PARA_CLOSE	{ 	 
+    	 	 	 	 	 	 	 	 sym_function func;
      	 	 	 	 	 	 	 	 func.returnType = $1;
      	 	 	 	 	 	 	 	 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
      	 	 	 	 	 	 	 	 
-     	 	 	 	 	 	 	 	 if(insertFuncGlobal($2, func) == 1){
-										 yyerror("Error during functiondeclaration. Declaration could not be created.");
+     	 	 	 	 	 	 	 	 if(insertFuncGlobal($2, func) != 1){
+     	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $2, " Function was already declared.");
+										 return;
 									 }else{
-										 printf("Function %s declared.", $2);
+										 printf("Function %s declared. \n", $2);
 									 };
      	 	 	 	 	 	 	 	 	 	 	 	 	 } 
-     | type ID PARA_OPEN function_parameter_list PARA_CLOSE { sym_function func;
+     | type ID PARA_OPEN function_parameter_list PARA_CLOSE { 
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 sym_function func;
 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1;
 															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
 															 
-															 //TODO: Parameterliste via InsertVarLocal einfï¿½gen. --> in function_parameter...
 															 
-															 if(insertFuncGlobal($2, func) == 1){
-																 yyerror("Error during functiondeclaration. Declaration could not be created.");
+															// printf("VAL: %d", sizeof(*$4));
+															 
+															 if(insertFuncGlobal($2, func) != 1){
+																 yyerror("Error while declaring function ", $2, " Function was already declared.");
+																 return;
 															 }else{
-																 printf("Function %s declared.", $2);
+																 printf("Function %s declared. \n", $2);
 															 };
+															 
+															 //printf("Value: %s \n", $4.name);
+															// insertVarLocal($4.name, $2, $4, 1);
 														 }
      ;
 
-function_parameter_list
-     : function_parameter
-     | function_parameter_list COMMA function_parameter
+function_parameter_list //TODO: proper function_parameter_list
+     : function_parameter { $$ = &$1;}
+     | function_parameter_list COMMA function_parameter {   sym_variable *var = (sym_variable *) malloc(sizeof(sym_variable)+sizeof($1)); 
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	int i;
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	int border = sizeof(var)/sizeof(var[0]);
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	for(i = 0; i<border-1;i++){
+    	 	 	 	 	 	 	 	 	 	 	 	 	 		var[i] = $1[i];
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	}
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	var[i+1] = $3;
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	$$ = var; //Zu fehleranfŠllig/unpraktisch. versuche die produktion fŸr declaration/definition aufzuspalten
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 	
 function_parameter
@@ -193,18 +213,20 @@ function_parameter
 									if($2.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType)
     	 	 	 	 	 	 	 	 	 {
-    	 	 	 	 	 	 	 	 		 $2.varType = intArrayType;
+    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
     	 	 	 	 	 	 	 	 	 }
     	 	 	 	 	 	 	 	 	 else
     	 	 	 	 	 	 	 	 	 {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
+    	 	 	 	 	 	 	 	 		 return;
     	 	 	 	 	 	 	 	 	 };
      	 	 	 	 	 	 	 	 }else{
-     	 	 	 	 	 	 	 		 $2.varType = $1;
+     	 	 	 	 	 	 	 		 var.varType = $1;
      	 	 	 	 	 	 	 	 }
 									var.name = $2.name;
-     								insertVarLocal(var.name, function_context, var, 1);
-     	 	 	 	 	 	 	 	 $$.varType = $2.varType;
+									$$=var;
+     								//insertVarLocal(var.name, function_context, var, 1);
+     	 	 	 	 	 	 	 	 //$$.varType = $2.varType; //Hab ich doch schon oben gemacht
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 									

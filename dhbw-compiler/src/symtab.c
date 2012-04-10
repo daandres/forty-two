@@ -9,9 +9,10 @@
 
  sym_union *sym_table = NULL;
 
+
  sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
-	 printf("search Global startet in %s. \n", symName);
-	 sym_union* found_entry;
+	 printf("search Global startet for %s. \n", symName);
+	 sym_union* found_entry = NULL;
 	 found_entry = (sym_union *) malloc(sizeof(*found_entry));
 	 HASH_FIND_STR(sym_table, symName, found_entry);
 	 sym_union* whole_entry = found_entry;
