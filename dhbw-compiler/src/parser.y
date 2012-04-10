@@ -75,7 +75,7 @@
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %type <etyp> type
 %type <svar> function_parameter identifier_declaration variable_declaration
-%type <svar> function_parameter_list
+%type <svararr> function_parameter_list
 %type <i> function_context_declaration
 %%
 
@@ -180,7 +180,7 @@ function_declaration
 															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
 															 
 															 
-															 
+															// printf("VAL: %d", sizeof(*$4));
 															 
 															 if(insertFuncGlobal($2, func) != 1){
 																 yyerror("Error while declaring function ", $2, " Function was already declared.");
@@ -189,13 +189,14 @@ function_declaration
 																 printf("Function %s declared. \n", $2);
 															 };
 															 
-															 //insertVarLocal($4.name, $2, $4, 1);
+															 //printf("Value: %s \n", $4.name);
+															// insertVarLocal($4.name, $2, $4, 1);
 														 }
      ;
 
 function_parameter_list //TODO: proper function_parameter_list
-     : function_parameter { $$ = $1;}
-     | function_parameter_list COMMA function_parameter {   /*sym_variable *var = (sym_variable *) malloc(sizeof(sym_variable)+sizeof($1)); 
+     : function_parameter { $$ = &$1;}
+     | function_parameter_list COMMA function_parameter {   sym_variable *var = (sym_variable *) malloc(sizeof(sym_variable)+sizeof($1)); 
      	 	 	 	 	 	 	 	 	 	 	 	 	 	int i;
      	 	 	 	 	 	 	 	 	 	 	 	 	 	int border = sizeof(var)/sizeof(var[0]);
      	 	 	 	 	 	 	 	 	 	 	 	 	 	
@@ -203,7 +204,7 @@ function_parameter_list //TODO: proper function_parameter_list
     	 	 	 	 	 	 	 	 	 	 	 	 	 		var[i] = $1[i];
     	 	 	 	 	 	 	 	 	 	 	 	 	 	}
      	 	 	 	 	 	 	 	 	 	 	 	 	 	var[i+1] = $3;
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	$$ = var;*/ //Zu fehleranfällig/unpraktisch. versuche die produktion für declaration/definition aufzuspalten
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	$$ = var; //Zu fehleranfällig/unpraktisch. versuche die produktion für declaration/definition aufzuspalten
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 	
