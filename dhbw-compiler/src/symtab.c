@@ -156,7 +156,7 @@ int printSymTable(char* name) {
 //	struct sym_variable *subVar;
 
 	for (act = sym_table; act != NULL; act = act->hh.next) {
-		fprintf(datei, "-----------------------------------");
+		fprintf(datei, "-----------------------------------\n");
 
 		if (act->symbolType == symVariable) {
 			if (act->name == NULL) {
