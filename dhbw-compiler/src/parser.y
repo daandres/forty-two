@@ -123,7 +123,7 @@ variable_declaration
 									} else {
 										insertVarLocal(var.name, function_context, var, 0);
 									}
-									}
+								}
      | type identifier_declaration	{	sym_variable var;
      									if($2.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType) {
@@ -140,12 +140,13 @@ variable_declaration
 											insertVarGlobal(var.name, var);
 										} else {
 											insertVarLocal(var.name, function_context, var, 0);
-										}}
+										}
+									}
      ;
      
 
 
-identifier_declaration //TODO: Frage klï¿½ren, ob bereits der identifier in die SymTab aufgenommen werden muss
+identifier_declaration
      : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_variable var;
      	 	 	 	 	 	 	 	 	 	 var.name = $1;
      	 	 	 	 	 	 	 	 	 	 var.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
@@ -214,7 +215,9 @@ function_parameter_list //TODO: proper function_parameter_list
     	 	 	 	 	 	 	 	 	 	 	 	 	 		var[i] = $1[i];
     	 	 	 	 	 	 	 	 	 	 	 	 	 	}
      	 	 	 	 	 	 	 	 	 	 	 	 	 	var[i+1] = $3;
+
      	 	 	 	 	 	 	 	 	 	 	 	 	 	$$ = var; *///Zu fehleranfŠllig/unpraktisch. versuche die produktion fŸr declaration/definition aufzuspalten
+
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 	

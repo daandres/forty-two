@@ -1,6 +1,7 @@
 int global, a[10];
 
 void print (int i);
+
 int scan ();
 void exit (int i);
 
