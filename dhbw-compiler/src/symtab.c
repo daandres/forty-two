@@ -18,7 +18,8 @@ sym_union *sym_table = NULL;
 sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
 	printf("MARCEL: searchGlobal startet for %s. \n", symName);
 	sym_union* found_entry = NULL;
-	found_entry = (sym_union *) malloc(sizeof(*found_entry));
+	//found_entry = (sym_union *) malloc(sizeof(*found_entry));
+	found_entry = malloc(sizeof(sym_union));
 	HASH_FIND_STR(sym_table, symName, found_entry);
 	sym_union* whole_entry = found_entry;
 	free(found_entry);
@@ -31,9 +32,14 @@ sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur
 
 	sym_union* function = searchGlobal(funcName);
 
+	printf("RESULT SEARCHLOCAL: %s\n", function->name);
+
 	if (function == NULL || function->symbolType == symVariable) {
 		return NULL;
 	}
+
+	printf("Wuseldusel\n");
+
 	if (function->vof.symFunction.lokalVars == NULL
 			&& function->vof.symFunction.callVars == NULL) {
 		return NULL;
@@ -124,7 +130,7 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
 
 	sym_union* function = searchGlobal(funcName);
 
-	printf("RESULT: %s\n", function->name);
+	printf("RESULT INSERTVARLOCAL: %s\n", function->name);
 
 	if (searchLocal(symName, funcName) == NULL && function != NULL) {
 		sym_variable* new_entry;
