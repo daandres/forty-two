@@ -28,7 +28,9 @@ sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückli
 
 sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
 	printf("MARCEL: searchLocal %s in %s startet. \n", symName, funcName);
+
 	sym_union* function = searchGlobal(funcName);
+
 	if (function == NULL || function->symbolType == symVariable) {
 		return NULL;
 	}
@@ -119,7 +121,11 @@ int insertVarGlobal(char* symName, sym_variable var) {
 
 int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
 	printf("MARCEL: New Variable %s local in %s. \n", symName, funcName);
+
 	sym_union* function = searchGlobal(funcName);
+
+	printf("RESULT: %s\n", function->name);
+
 	if (searchLocal(symName, funcName) == NULL && function != NULL) {
 		sym_variable* new_entry;
 		new_entry = (sym_variable *) malloc(sizeof(*new_entry));

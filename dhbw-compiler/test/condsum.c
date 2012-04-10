@@ -1,6 +1,6 @@
 int global, a[10];
 
-void print (int gerd);
+void print (int gerd, int urban);
 
 int scan ();
 void exit (int i);

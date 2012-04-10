@@ -203,6 +203,7 @@ function_declaration
 						     	 	 	 	 	 	 	 		 
 						     	 	 	 	 	 	 	 		 DL_DELETE(param_list,fparam);
 						     	 	 	 	 	 	 	 		 
+						     	 	 	 	 	 	 	 		 //TODO: Check for successfull insertion
 						     	 	 	 	 	 	 	 		 insertVarLocal(var.name, function_context, var, 1);
 						     	 	 	 	 	 	 	 	 }
 						     	 	 	 	 	 	 	 	 
