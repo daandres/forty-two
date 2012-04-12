@@ -75,12 +75,34 @@
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %type <etyp> type
 %type <sunion> function_parameter identifier_declaration variable_declaration function_header
-%type <lexem> function_context_declaration
+%type <lexem> function_def
 %%
 
 /*****Epsilonproductions******/
-function_context_declaration
-	:  /* empty */  { func_dec = 1; }  //Denotes, that the following declarations(identifiers) are for parameter-purpose only
+function_def
+	:  /* empty */  {  sym_function func; //The returntypeis left blank for now. will be added in the definition
+						func.protOrNot = no;
+						
+						if(insertFuncGlobal(function_context, func) == 1){
+							
+							printf("WARNING: Function %s was used before it was declared. Adding declaration automatically. \n\n", function_context);
+							
+						 }else{
+							 
+						 };
+						
+						if(param_list != NULL){
+							 function_param *fparam;
+																						 
+							 DL_FOREACH(param_list,fparam) printf("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
+							 
+							 insertCallVarLocal(function_context, param_list);
+							 
+							 param_list = NULL;
+						}
+						
+						
+										} 
 /****************************/
 
 program
@@ -104,7 +126,7 @@ type
      | VOID {$$ = voidType;}
      ;
 
-variable_declaration
+variable_declaration //TODO: Check if all the variables have the same Type;
      : variable_declaration COMMA identifier_declaration	{	
 									sym_union var;
 									if($3.vof.symVariable.varType == ArrayType){
@@ -112,6 +134,7 @@ variable_declaration
     	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 	 } else {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
+    	 	 	 	 	 	 	 	 		 exit(1);
     	 	 	 	 	 	 	 	 	 }
      	 	 	 	 	 	 	 	 } else {
      	 	 	 	 	 	 	 		 var.vof.symVariable.varType = $1.vof.symVariable.varType;
@@ -130,6 +153,7 @@ variable_declaration
     	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 		 } else {
     	 	 	 	 	 	 	 	 			 yyerror("Error: Only Integer arrays are valid.");
+    	 	 	 	 	 	 	 	 			 exit(1);
     	 	 	 	 	 	 	 	 		 }
      	 	 	 	 	 	 	 		 } else {
      	 	 	 	 	 	 	 			 var.vof.symVariable.varType = $1;
@@ -159,8 +183,19 @@ identifier_declaration
      ;
 
 function_definition
-     : function_header PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
-     | function_header function_parameter_list PARA_CLOSE BRACE_OPEN stmt_list BRACE_CLOSE
+     : function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    sym_union* function = searchGlobal($1.name);
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 param_list = NULL;
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 function_context = NULL;
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
+     | function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	sym_union* function = searchGlobal($1.name);
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 param_list = NULL;
+     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 function_context = NULL;
+																																		 }
      ;
 
 function_declaration
@@ -171,10 +206,13 @@ function_declaration
      	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 if(insertFuncGlobal($1.name, func) != 1){
      	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
-										 return;
+										 exit(1);
 									 }else{
 										 printf("Function %s declared. \n\n", $1.name);
 									 };
+     	 	 	 	 	 	 	 	 
+     	 	 	 	 	 	 	 	 param_list = NULL; //Set the listpointer to Null, so the next declaration can start anew
+									 function_context = NULL;
      	 	 	 	 	 	 	 	 	 	 	 	 	 } 
      | function_header function_parameter_list PARA_CLOSE { 
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 sym_function func;
@@ -183,7 +221,7 @@ function_declaration
 															 
 															 if(insertFuncGlobal($1.name, func) != 1){
 																 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
-																 return;
+																 exit(1);
 															 }else{
 																 printf("Function %s declared. \n\n", $1.name);
 															 };
@@ -191,9 +229,9 @@ function_declaration
 						     	 	 	 	 	 	 	 	 
 															 function_param *fparam;
 															 
-						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) printf("Variable: %s", fparam->name);
+						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) printf("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
 															 
-															 //insertCallVarLocal(function_context, param_list);
+															 insertCallVarLocal(function_context, param_list);
 						     	 	 	 	 	 	 	 	 
 															 param_list = NULL; //Set the listpointer to Null, so the next declaration can start anew
 						     	 	 	 	 	 	 	 	 function_context = NULL;
@@ -234,7 +272,7 @@ function_parameter
     	 	 	 	 	 	 	 	 	 else
     	 	 	 	 	 	 	 	 	 {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
-    	 	 	 	 	 	 	 	 		 return;
+    	 	 	 	 	 	 	 	 		 exit(1);
     	 	 	 	 	 	 	 	 	 };
      	 	 	 	 	 	 	 	 }else{
      	 	 	 	 	 	 	 		 var.vof.symVariable.varType = $1;
@@ -249,6 +287,7 @@ stmt_list
      | stmt_list stmt
      ;
 
+//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable code is detected.     
 stmt
      : stmt_block
      | variable_declaration SEMICOLON

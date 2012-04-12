@@ -51,7 +51,8 @@ int insertFuncGlobal(char* symName, sym_function func) {
 			return 0;
 		new_entry->symbolType = symFunction;
 		new_entry->name = symName;
-		//new_entry->vof.symFunction = func; //TODO anpassen
+
+		new_entry->vof.symFunction = func;
 		new_entry->vof.symFunction.local_variables = NULL;
 		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name),
 				new_entry);
