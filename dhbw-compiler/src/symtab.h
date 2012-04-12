@@ -11,7 +11,7 @@
 #include "uthash.h"
 #include <stdio.h>
 
-//Moritz: Habe types um ArrayType erg�nzt
+//Moritz: Habe types um ArrayType erg�nzt
 typedef enum types {
 	voidType = 0, intType = 1, intArrayType = 2, ArrayType = 3
 } typeEnum;
@@ -25,22 +25,20 @@ typedef enum prototype {
 } prototypeEnum;
 
 typedef struct sym_variable {
-	char* name; //Nur für die Lokalen Variablen Listen genutzt
 	enum types varType;
 	int offsetAddress;
 	int size; // Größe eines Arrays
-	UT_hash_handle hh; /* makes this structure hashable */
 } sym_variable;
 
 typedef struct sym_function {
 	enum types returnType;
 	enum prototype protOrNot;
-	sym_variable* callVars;
-	sym_variable* lokalVars;
+//	sym_variable* callVars;
+	struct sym_union* local_variables;
 	char* interCode;
 } sym_function;
 
-union variable_or_function{
+union variable_or_function {
 	sym_variable symVariable;
 	sym_function symFunction;
 };

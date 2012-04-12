@@ -12,37 +12,22 @@ sym_union *sym_table = NULL;
 sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
 	printf("MARCEL: searchGlobal startet for %s. \n", symName);
 	sym_union* found_entry = NULL;
-	found_entry = (sym_union *) malloc(sizeof(*found_entry));
 	HASH_FIND_STR(sym_table, symName, found_entry);
-	sym_union* whole_entry = found_entry;
-	free(found_entry);
-	return whole_entry;
+	return found_entry;
 }
 
 sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
 	printf("MARCEL: searchLocal %s in %s startet. \n", symName, funcName);
 	sym_union* function = searchGlobal(funcName);
-	if (function == NULL || function->symbolType == symVariable) {
+	if (function == NULL || function->symbolType != symFunction) {
 		return NULL;
 	}
-	if (function->vof.symFunction.lokalVars == NULL
-			&& function->vof.symFunction.callVars == NULL) {
+	if (function->vof.symFunction.local_variables == NULL) {
 		return NULL;
 	}
-	sym_variable* found_variable;
-	found_variable = (sym_variable *) malloc(sizeof(*found_variable));
-	HASH_FIND_STR(function->vof.symFunction.lokalVars, symName, found_variable);
-	if (found_variable == NULL) {
-		HASH_FIND_STR(function->vof.symFunction.callVars, symName,
-				found_variable);
-	}
-	sym_union* whole_entry;
-	whole_entry = (sym_union *) malloc(sizeof(*whole_entry));
-	whole_entry->symbolType = symVariable;
-	whole_entry->vof.symVariable = *found_variable;
-	whole_entry->name = found_variable->name;
-	free(found_variable);
-	return whole_entry;
+	sym_union* found_variable;
+	HASH_FIND_STR(function->vof.symFunction.local_variables, symName, found_variable);
+	return found_variable;
 }
 
 sym_union* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zurückliefern */
@@ -58,17 +43,15 @@ int insertFuncGlobal(char* symName, sym_function func) {
 	printf("MARCEL: New Function %s in global. \n", symName);
 	if (searchGlobal(symName) == NULL) {
 		sym_union* new_entry;
-		new_entry = (sym_union *) malloc(sizeof(*new_entry));
+		new_entry = (sym_union *) malloc(sizeof(sym_union));
 		if (new_entry == NULL)
 			return 0;
 		new_entry->symbolType = symFunction;
-		new_entry->vof.symFunction = func;
 		new_entry->name = symName;
-		new_entry->vof.symFunction.callVars = NULL;
-
+		//new_entry->vof.symFunction = func; //TODO anpassen
+		new_entry->vof.symFunction.local_variables = NULL;
 		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name),
 				new_entry);
-		//free(new_entry);
 		return 1;
 	}
 	return 0;
@@ -87,15 +70,14 @@ int insertVarGlobal(char* symName, sym_variable var) {
 	printf("MARCEL: New Variable %s in global. \n", symName); //Moritz: Habe 'or Function' rausgenommen
 	if (searchGlobal(symName) == NULL) {
 		sym_union* new_entry;
-		new_entry = (sym_union *) malloc(sizeof(*new_entry));
+		new_entry = (sym_union *) malloc(sizeof(sym_union));
 		if (new_entry == NULL)
 			return 0;
 		new_entry->symbolType = symVariable;
-		new_entry->vof.symVariable = var;
 		new_entry->name = symName;
+		//new_entry->vof.symVariable = var; //TODO anpassen
 		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name),
 				new_entry);
-		//free(new_entry);
 		return 1;
 	}
 	return 0;
@@ -113,20 +95,15 @@ int insertVarGlobal(char* symName, sym_variable var) {
 int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
 	printf("MARCEL: New Variable %s local in %s. \n", symName, funcName);
 	sym_union* function = searchGlobal(funcName);
-	if (searchLocal(symName, funcName) == NULL && function != NULL) {
-		sym_variable* new_entry;
-		new_entry = (sym_variable *) malloc(sizeof(*new_entry));
+	if (function != NULL && function->symbolType == symFunction && searchLocal(symName, funcName) == NULL) {
+		sym_union* new_entry;
+		new_entry = (sym_union *) malloc(sizeof(sym_union));
 		if (new_entry == NULL)
 			return 0;
-		new_entry = &var;
-		if (varCall == 0) {
-			HASH_ADD_KEYPTR(hh, function->vof.symFunction.lokalVars,
-					new_entry->name, strlen(new_entry->name), new_entry);
-		} else {
-			HASH_ADD_KEYPTR(hh, function->vof.symFunction.callVars,
-					new_entry->name, strlen(new_entry->name), new_entry);
-		}
-		//free(new_entry);
+		new_entry->symbolType = symVariable;
+		new_entry->name = symName;
+		//new_entry->vof.symVariable = var; //TODO anpassen
+		//TODO HASH FUNCTION
 		return 1;
 	}
 	return 0;
@@ -153,7 +130,6 @@ int printSymTable(char* name) {
 	fprintf(datei, "Hallo, Welt\n");
 
 	struct sym_union *act;
-//	struct sym_variable *subVar;
 
 	for (act = sym_table; act != NULL; act = act->hh.next) {
 		fprintf(datei, "-----------------------------------\n");
@@ -164,10 +140,13 @@ int printSymTable(char* name) {
 			} else {
 				fprintf(datei, "Variablen Name: %s \n", act->name);
 			}
-//			if (act->vof.symVariable.varType == intType) {
+//			if(act->vof.symVariable.varType == intType) {
 //				fprintf(datei, "Typ: int \n");
 //			} else if (act->vof.symVariable.varType == intArrayType) {
 //				fprintf(datei, "Typ: int-Array, Größe: %i \n",
+//						act->vof.symVariable.size);
+//			} else if (act->vof.symVariable.varType == ArrayType) {
+//				fprintf(datei, "Typ: Array WTF MORITZ!!!, Größe: %i \n",
 //						act->vof.symVariable.size);
 //			}
 //			fprintf(datei, "Offset Adresse: %i \n",
@@ -175,56 +154,24 @@ int printSymTable(char* name) {
 		}
 
 		else if(act->symbolType == symFunction) {
-			if (act->name == NULL) {
+			if(act->name == NULL) {
 				fprintf(datei, "Function Name = null");
-			} else {
-				fprintf(datei, "Function name: %s \n", act->name);
-//			}
-//			fprintf(datei, "Aufrufvariablen: \n");
-//			if (act->vof.symFunction.callVars != NULL) {
-//				for (subVar = act->vof.symFunction.callVars; subVar != NULL;
-//						subVar = subVar->hh.next) {
-//					if (subVar->name == NULL) {
-//						fprintf(datei, "- Name = null, ");
-//					} else {
-//						fprintf(datei, "- Name: %s, ", subVar->name);
-//					}
-//					if (subVar->varType == intType) {
-//						fprintf(datei, "Typ: int, ");
-//					} else if (subVar->varType == intArrayType) {
-//						fprintf(datei, "Typ: int-Array, Größe: %i, ",
-//								subVar->size);
-//					}
-//					fprintf(datei, "Offset Adresse: %i \n",
-//							subVar->offsetAddress);
-//				}
-//			}
-//			if (act->vof.symFunction.returnType == voidType) {
-//				fprintf(datei, "Rückgabetyp: void \n");
-//			} else if (act->vof.symFunction.returnType == intType) {
-//				fprintf(datei, "Rückgabetyp: int \n");
-//			} else if (act->vof.symFunction.returnType == intArrayType) {
-//				fprintf(datei, "Rückgabetyp: int-Array \n");
-//			}
-//			if (act->vof.symFunction.protOrNot == proto) {
-//				fprintf(datei, "Prototyp! \n");
-//			}
-//			for (subVar = act->vof.symFunction.lokalVars; subVar != NULL;
-//					subVar = subVar->hh.next) {
-//				if (subVar->name == NULL) {
-//					fprintf(datei, "- Name = null, ");
-//				} else {
-//					fprintf(datei, "- Name: %s, ", subVar->name);
-//				}
-//				if (subVar->varType == intType) {
-//					fprintf(datei, "Typ: int, ");
-//				} else if (subVar->varType == intArrayType) {
-//					fprintf(datei, "Typ: int-Array, Größe: %i, ", subVar->size);
-//				}
-//				fprintf(datei, "Offset Adresse: %i \n", subVar->offsetAddress);
 			}
-//			fprintf(datei, "Zwischencode: \n %s \n",
-//					act->vof.symFunction.interCode);
+			else {
+				fprintf(datei, "Function name: %s \n", act->name);
+			}
+//			if(act->vof.symFunction.returnType == voidType) {
+//				fprintf(datei, "Rückgabewert: void");
+//			}
+//			else if(act->vof.symFunction.returnType == intType) {
+//				fprintf(datei, "Rückgabewert: int");
+//			}
+//			else if(act->vof.symFunction.returnType == intArrayType) {
+//				fprintf(datei, "Rückgabewert: int-Array");
+//			}
+//			if(act->vof.symFunction.interCode != NULL) {
+//				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode)
+//			}
 		}
 
 	}
