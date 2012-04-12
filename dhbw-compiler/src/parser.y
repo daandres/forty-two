@@ -191,8 +191,24 @@ function_declaration
 																 printf("Function %s declared. \n\n", $1.name);
 															 };
 															 
+<<<<<<< HEAD
 															 //printf("Value: %s \n", $4.name);
 															// insertVarLocal($4.name, $2, $4, 1);
+=======
+						     	 	 	 	 	 	 	 	 
+															 
+						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) {
+						     	 	 	 	 	 	 	 		 var.varType = fparam->varType;
+						     	 	 	 	 	 	 	 		 var.name = fparam->name;
+						     	 	 	 	 	 	 	 		 
+						     	 	 	 	 	 	 	 		 DL_DELETE(param_list,fparam);
+						     	 	 	 	 	 	 	 		 
+						     	 	 	 	 	 	 	 		 //TODO: Check for successfull insertion
+						     	 	 	 	 	 	 	 		 insertVarLocal(var.name, function_context, var, 1);
+						     	 	 	 	 	 	 	 	 }
+						     	 	 	 	 	 	 	 	 
+						     	 	 	 	 	 	 	 	 function_context = NULL;
+>>>>>>> branch 'master' of https://code.google.com/p/forty-two/
 														 }
      ;
 
