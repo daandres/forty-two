@@ -23,7 +23,7 @@
 %code requires{
 #include "symtab.h"
  extern sym_union *sym_table;
-
+ extern function_param *param_list;
 }
 
 %union {
@@ -31,7 +31,7 @@
   char *lexem;
   IRT airt; //for TAC generation
   typeEnum etyp;
-  sym_variable svar;
+  sym_union sunion;
   sym_function sfun;
 }
  
@@ -74,7 +74,7 @@
 %type <airt>  function_definition function_declaration
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
 %type <etyp> type
-%type <svar> function_parameter identifier_declaration variable_declaration function_header
+%type <sunion> function_parameter identifier_declaration variable_declaration function_header
 %type <lexem> function_context_declaration
 %%
 
@@ -106,40 +106,40 @@ type
 
 variable_declaration
      : variable_declaration COMMA identifier_declaration	{	
-									sym_variable var;
-									if($3.varType == ArrayType){
-    	 	 	 	 	 	 	 	 	 if($1.varType == intType) {
-    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
+									sym_union var;
+									if($3.vof.symVariable.varType == ArrayType){
+    	 	 	 	 	 	 	 	 	 if($1.vof.symVariable.varType == intType) {
+    	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 	 } else {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
     	 	 	 	 	 	 	 	 	 }
      	 	 	 	 	 	 	 	 } else {
-     	 	 	 	 	 	 	 		 var.varType = $1.varType;
+     	 	 	 	 	 	 	 		 var.vof.symVariable.varType = $1.vof.symVariable.varType;
      	 	 	 	 	 	 	 	 }
-									$$.varType = $1.varType;
+									$$.vof.symVariable.varType = $1.vof.symVariable.varType;
 									var.name = $3.name;
 									if(function_context == NULL){
-										insertVarGlobal(var.name, var);
+										insertVarGlobal(var.name, var.vof.symVariable);
 									} else {
-										insertVarLocal(var.name, function_context, var, 0);
+										insertVarLocal(var.name, function_context, var.vof.symVariable, 0);
 									}
 								}
-     | type identifier_declaration	{	sym_variable var;
-     									if($2.varType == ArrayType){
+     | type identifier_declaration	{	sym_union var;
+     									if($2.vof.symVariable.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType) {
-    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
+    	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 		 } else {
     	 	 	 	 	 	 	 	 			 yyerror("Error: Only Integer arrays are valid.");
     	 	 	 	 	 	 	 	 		 }
      	 	 	 	 	 	 	 		 } else {
-     	 	 	 	 	 	 	 			 var.varType = $1;
+     	 	 	 	 	 	 	 			 var.vof.symVariable.varType = $1;
      	 	 	 	 	 	 	 		 }
-										$$.varType = var.varType;
+										$$.vof.symVariable.varType = var.vof.symVariable.varType;
 										var.name = $2.name;	
 										if(function_context == NULL){
-											insertVarGlobal(var.name, var);
+											insertVarGlobal(var.name, var.vof.symVariable);
 										} else {
-											insertVarLocal(var.name, function_context, var, 0);
+											insertVarLocal(var.name, function_context, var.vof.symVariable, 0);
 										}
 									}
      ;
@@ -147,12 +147,12 @@ variable_declaration
 
 
 identifier_declaration
-     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_variable var;
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_union var;
      	 	 	 	 	 	 	 	 	 	 var.name = $1;
-     	 	 	 	 	 	 	 	 	 	 var.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
+     	 	 	 	 	 	 	 	 	 	 var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
      	 	 	 	 	 	 	 	 	 	 $$ = var;
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
-     | ID	{sym_variable var;
+     | ID	{sym_union var;
 	 	 	 var.name = $1;
 	 	 	 $$ = var;
      	 	 	 	 	 	 }
@@ -166,9 +166,9 @@ function_definition
 function_declaration
      : function_header PARA_CLOSE	{ 	 
     	 	 	 	 	 	 	 	 sym_function func;
-    	 	 	 	 	 	 	 	 func.returnType = $1.varType;
+    	 	 	 	 	 	 	 	 func.returnType = $1.vof.symVariable.varType;
      	 	 	 	 	 	 	 	 func.protOrNot = proto; 
-     	 	 	 	 	 	 	printf("VAL: %s\n", function_context);
+     	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 if(insertFuncGlobal($1.name, func) != 1){
      	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
 										 return;
@@ -178,11 +178,8 @@ function_declaration
      	 	 	 	 	 	 	 	 	 	 	 	 	 } 
      | function_header function_parameter_list PARA_CLOSE { 
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 sym_function func;
-	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1.varType;
+	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1.vof.symVariable.varType;
 															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
-															 
-															 
-															 printf("VAL: %s\n", function_context);
 															 
 															 if(insertFuncGlobal($1.name, func) != 1){
 																 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
@@ -191,58 +188,48 @@ function_declaration
 																 printf("Function %s declared. \n\n", $1.name);
 															 };
 															 
-<<<<<<< HEAD
-															 //printf("Value: %s \n", $4.name);
-															// insertVarLocal($4.name, $2, $4, 1);
-=======
 						     	 	 	 	 	 	 	 	 
+															 function_param *fparam;
 															 
-						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) {
-						     	 	 	 	 	 	 	 		 var.varType = fparam->varType;
-						     	 	 	 	 	 	 	 		 var.name = fparam->name;
-						     	 	 	 	 	 	 	 		 
-						     	 	 	 	 	 	 	 		 DL_DELETE(param_list,fparam);
-						     	 	 	 	 	 	 	 		 
-						     	 	 	 	 	 	 	 		 //TODO: Check for successfull insertion
-						     	 	 	 	 	 	 	 		 insertVarLocal(var.name, function_context, var, 1);
-						     	 	 	 	 	 	 	 	 }
+						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) printf("Variable: %s", fparam->name);
+															 
+															 //insertCallVarLocal(function_context, param_list);
 						     	 	 	 	 	 	 	 	 
+															 param_list = NULL; //Set the listpointer to Null, so the next declaration can start anew
 						     	 	 	 	 	 	 	 	 function_context = NULL;
->>>>>>> branch 'master' of https://code.google.com/p/forty-two/
 														 }
      ;
 
 //Selfmade function header to define the ID before the parameter_list and statements are processed
 function_header
 	: type ID PARA_OPEN {
-							$$.varType = $1;
+							$$.vof.symFunction.returnType= $1;
 							$$.name = $2;
 							function_context = $2;
 												}
 	;
 	
-function_parameter_list //TODO: proper function_parameter_list
-     : function_parameter { /*$$ = &$1;*/}
-     | function_parameter_list COMMA function_parameter {   /*sym_variable *var = (sym_variable *) malloc(sizeof(sym_variable)+sizeof($1)); 
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	int i;
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	int border = sizeof(var)/sizeof(var[0]);
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	for(i = 0; i<border-1;i++){
-    	 	 	 	 	 	 	 	 	 	 	 	 	 		var[i] = $1[i];
-    	 	 	 	 	 	 	 	 	 	 	 	 	 	}
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	var[i+1] = $3;
-
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	$$ = var; *///Zu fehleranfŠllig/unpraktisch. versuche die produktion fŸr declaration/definition aufzuspalten
-
-     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
+function_parameter_list
+     : function_parameter { function_param* param = (function_param*)malloc(sizeof(function_param));
+     	 	 	 	 	 	 param->name = $1.name;
+     	 	 	 	 	 	 param->varType = $1.vof.symVariable.varType;
+     	 	 	 	 	 	 
+     	 	 	 	 	 	 DL_APPEND(param_list,param); 
+     	 	 	 	 	 	 	 	 	 	 	 	 }
+     | function_parameter_list COMMA function_parameter {  function_param* param = (function_param*)malloc(sizeof(function_param));
+															 param->name = $3.name;
+															 param->varType = $3.vof.symVariable.varType;
+															 
+															 DL_APPEND(param_list,param); }
      ;
 	
 function_parameter
-     : type identifier_declaration { sym_variable var;
-									if($2.varType == ArrayType){
+     : type identifier_declaration { sym_union var;
+     
+									if($2.vof.symVariable.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType)
     	 	 	 	 	 	 	 	 	 {
-    	 	 	 	 	 	 	 	 		 var.varType = intArrayType;
+    	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 	 }
     	 	 	 	 	 	 	 	 	 else
     	 	 	 	 	 	 	 	 	 {
@@ -250,12 +237,10 @@ function_parameter
     	 	 	 	 	 	 	 	 		 return;
     	 	 	 	 	 	 	 	 	 };
      	 	 	 	 	 	 	 	 }else{
-     	 	 	 	 	 	 	 		 var.varType = $1;
+     	 	 	 	 	 	 	 		 var.vof.symVariable.varType = $1;
      	 	 	 	 	 	 	 	 }
 									var.name = $2.name;
 									$$=var;
-     								//insertVarLocal(var.name, function_context, var, 1);
-     	 	 	 	 	 	 	 	 //$$.varType = $2.varType; //Hab ich doch schon oben gemacht
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
      ;
 									

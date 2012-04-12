@@ -9,6 +9,7 @@
 #define SYMTAB_H_
 
 #include "uthash.h"
+#include "utlist.h"
 #include <stdio.h>
 
 //Moritz: Habe types um ArrayType erg�nzt
@@ -30,10 +31,16 @@ typedef struct sym_variable {
 	int size; // Größe eines Arrays
 } sym_variable;
 
+typedef struct function_param {
+    char *name;
+    enum types varType;
+    struct function_param *prev, *next;
+} function_param;
+
 typedef struct sym_function {
 	enum types returnType;
 	enum prototype protOrNot;
-//	sym_variable* callVars;
+    function_param *callVar;
 	struct sym_union* local_variables;
 	char* interCode;
 } sym_function;
@@ -49,6 +56,8 @@ typedef struct sym_union {
 	UT_hash_handle hh; /* makes this structure hashable */
 	char* name;
 } sym_union;
+
+
 
 sym_union* searchGlobal(); /* Kann Funktion und Variable zur�ckliefern */
 sym_union* searchLocal(); /* Kann nur Variable zur�ckliefern */

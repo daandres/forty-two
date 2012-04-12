@@ -8,6 +8,7 @@
 #include "symtab.h"
 
 sym_union *sym_table = NULL;
+function_param *param_list = NULL;
 
 sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
 	printf("MARCEL: searchGlobal startet for %s. \n", symName);
@@ -98,6 +99,7 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
 	printf("MARCEL: New Variable %s local in %s. \n", symName, funcName);
 
 	sym_union* function = searchGlobal(funcName);
+
 	if (function != NULL && function->symbolType == symFunction && searchLocal(symName, funcName) == NULL) {
 		sym_union* new_entry;
 		new_entry = (sym_union *) malloc(sizeof(sym_union));
@@ -107,6 +109,22 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
 		new_entry->name = symName;
 		//new_entry->vof.symVariable = var; //TODO anpassen
 		//TODO HASH FUNCTION
+		return 1;
+	}
+	return 0;
+}
+
+/* Moritz:
+ * Own method for inserting call parameter definitions. As this happens during declaration,
+ * there is no need for checking the local sym-table for occurence.
+ */
+int insertCallVarLocal(char* funcName, function_param* parm) {
+	printf("MARCEL: New Call-Parameter-list in %s. \n", funcName);
+
+	sym_union* function = searchGlobal(funcName);
+
+	if (function != NULL && function->symbolType == symFunction) {
+		function->vof.symFunction.callVar = parm;
 		return 1;
 	}
 	return 0;
