@@ -343,7 +343,7 @@ primary
     	 	 	 if(function_context != NULL)
     	 	 	 {
     	 	 		 
-    	 	 		 sentry = searchLocal($1, function_context);
+    	 	 		 //sentry = searchLocal($1, function_context);
     	 	 	 }
     	 	 	 else
     	 	 	 {
@@ -351,7 +351,7 @@ primary
     	 	 		 exit(1);
     	 	 	 }
     	 	 	 
-    	 	 	 $$ = *sentry;
+    	 	 	 //$$ = *sentry;
 			}
      ;
 
