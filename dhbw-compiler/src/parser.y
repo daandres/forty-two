@@ -72,9 +72,9 @@
 
 %type <airt> program_element_list program_element 
 %type <airt>  function_definition function_declaration
-%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call primary function_call_parameters
+%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call function_call_parameters
 %type <etyp> type
-%type <sunion> function_parameter identifier_declaration variable_declaration function_header
+%type <sunion> function_parameter identifier_declaration variable_declaration function_header primary
 %type <lexem> function_def
 %%
 
@@ -338,8 +338,20 @@ expression
 primary
      : NUM	{//$$ = $1.i;
 				}
-     | ID	{// TODO Suche von ID in SymTab --> sind wir in einer Funktion? Wenn ja, wie wissen wir das?
-			//$$ = $1.id;
+     | ID	{
+    	 	 	 sym_union* sentry;
+    	 	 	 if(function_context != NULL)
+    	 	 	 {
+    	 	 		 
+    	 	 		 sentry = searchLocal($1, function_context);
+    	 	 	 }
+    	 	 	 else
+    	 	 	 {
+    	 	 		 yyerror("Identifiers can only be used within function context.");
+    	 	 		 exit(1);
+    	 	 	 }
+    	 	 	 
+    	 	 	 $$ = *sentry;
 			}
      ;
 

@@ -1,4 +1,5 @@
 int global, a[10];
+int b;
 
 void print (int gerd, int urban);
 
