@@ -143,9 +143,9 @@ int insertCallVarLocal(char* funcName, function_param* parm) {
 
 int printSymTable(char* filename) {
 	FILE *datei;
-	datei = fopen(filename, "w");
+	datei = fopen(filename, "a");
 	if (datei == NULL) {
-		printf("Fehler beim oeffnen der Datei.");
+		fprintf(stderr, "Fehler beim oeffnen der IR Datei.\n");
 		return 0;
 	}
 	printf("MARCEL: Datei %s geöffnet.\n", filename);
