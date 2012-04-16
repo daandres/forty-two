@@ -154,6 +154,7 @@ int printSymTable(char* filename) {
 	fprintf(datei, "Hallo, Welt\n");
 
 	struct sym_union *act;
+	struct sym_union *subvar;
 
 	for (act = sym_table; act != NULL; act = act->hh.next) {
 		fprintf(datei, "-----------------------------------\n");
@@ -195,6 +196,30 @@ int printSymTable(char* filename) {
 //			if(act->vof.symFunction.interCode != NULL) {
 //				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode)
 //			}
+			if(act->vof.symFunction.local_variables != NULL) { // really need this one?
+				for (subvar = act->vof.symFunction.local_variables; subvar != NULL; subvar = subvar->hh.next) {
+					fprintf(datei, "-----------------------------------\n");
+
+					if (act->symbolType == symVariable) {
+						if (act->name == NULL) {
+							fprintf(datei, "Variable Name = null");
+						} else {
+							fprintf(datei, "Variablen Name: %s \n", act->name);
+						}
+			//			if(act->vof.symVariable.varType == intType) {
+			//				fprintf(datei, "Typ: int \n");
+			//			} else if (act->vof.symVariable.varType == intArrayType) {
+			//				fprintf(datei, "Typ: int-Array, Größe: %i \n",
+			//						act->vof.symVariable.size);
+			//			} else if (act->vof.symVariable.varType == ArrayType) {
+			//				fprintf(datei, "Typ: Array WTF MORITZ!!!, Größe: %i \n",
+			//						act->vof.symVariable.size);
+			//			}
+			//			fprintf(datei, "Offset Adresse: %i \n",
+			//					act->vof.symVariable.offsetAddress);
+					}
+				}
+			}
 		}
 
 	}
