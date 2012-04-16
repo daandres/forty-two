@@ -148,6 +148,9 @@ int printSymTable(char* filename) {
 		return 0;
 	}
 	printf("MARCEL: Datei %s geöffnet.\n", filename);
+
+	fprintf(datei, "/* **************** */\n");
+	fprintf(datei, "/* Symbol Table     */\n\n");
 	fprintf(datei, "Hallo, Welt\n");
 
 	struct sym_union *act;
@@ -195,6 +198,9 @@ int printSymTable(char* filename) {
 		}
 
 	}
+
+	fprintf(datei, "\n/* Symbol Table End */\n");
+	fprintf(datei, "/* **************** */\n\n");
 	fclose(datei);
 	return 1;
 }
