@@ -54,8 +54,7 @@ int insertFuncGlobal(char* symName, sym_function func) {
 
 		new_entry->vof.symFunction = func;
 		new_entry->vof.symFunction.local_variables = NULL;
-		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name),
-				new_entry);
+		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
 		return 1;
 	}
 	return 0;
@@ -80,8 +79,7 @@ int insertVarGlobal(char* symName, sym_variable var) {
 		new_entry->symbolType = symVariable;
 		new_entry->name = symName;
 		//new_entry->vof.symVariable = var; //TODO anpassen
-		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name),
-				new_entry);
+		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
 		return 1;
 	}
 	return 0;
@@ -101,7 +99,8 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
 
 	sym_union* function = searchGlobal(funcName);
 
-	if (function != NULL && function->symbolType == symFunction && searchLocal(symName, funcName) == NULL) {
+	if (function != NULL
+	      && function->symbolType == symFunction&& searchLocal(symName, funcName) == NULL) {
 		sym_union* new_entry;
 		new_entry = (sym_union *) malloc(sizeof(sym_union));
 		if (new_entry == NULL)
@@ -175,11 +174,10 @@ int printSymTable(char* filename) {
 //					act->vof.symVariable.offsetAddress);
 		}
 
-		else if(act->symbolType == symFunction) {
-			if(act->name == NULL) {
+		else if (act->symbolType == symFunction) {
+			if (act->name == NULL) {
 				fprintf(datei, "Function Name = null");
-			}
-			else {
+			} else {
 				fprintf(datei, "Function name: %s \n", act->name);
 			}
 //			if(act->vof.symFunction.returnType == voidType) {

@@ -15,13 +15,11 @@
  * This struct is for Expressions.
  */
 typedef struct IRTYPE {
-		int* true;
-		int* false;
-		int* next;
-		int quad;
-		char pos[5];
-	} IRT;
-
+	int* true;int* false;
+	int* next;
+	int quad;
+	char pos[5];
+} IRT;
 
 enum opcode {
 	OP_ASSIGN, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MIN,
@@ -40,6 +38,5 @@ int* Makelist(int nquad);
 int* Merge(int* list1, int* list2);
 void Backpatch(int* list, int nquad);
 void Gen();
-
 
 #endif /* IR_CODE_H_ */
