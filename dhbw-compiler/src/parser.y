@@ -85,7 +85,7 @@ function_def
 						
 						if(insertFuncGlobal(function_context, func) == 1){
 							
-							printf("WARNING: Function %s was used before it was declared. Adding declaration automatically. \n\n", function_context);
+							debug("WARNING: Function %s was used before it was declared. Adding declaration automatically. \n", function_context);
 							
 						 }else{
 							 
@@ -94,7 +94,7 @@ function_def
 						if(param_list != NULL){
 							 function_param *fparam;
 																						 
-							 DL_FOREACH(param_list,fparam) printf("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
+							 DL_FOREACH(param_list,fparam) debug("Variable: %s of Type:%d", fparam->name, fparam->varType);
 							 
 							 insertCallVarLocal(function_context, param_list);
 							 
@@ -208,7 +208,7 @@ function_declaration
      	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
 										 exit(1);
 									 }else{
-										 printf("Function %s declared. \n\n", $1.name);
+										 debug("Function %s declared. \n", $1.name);
 									 };
      	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 param_list = NULL; //Set the listpointer to Null, so the next declaration can start anew
@@ -223,13 +223,13 @@ function_declaration
 																 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
 																 exit(1);
 															 }else{
-																 printf("Function %s declared. \n\n", $1.name);
+																 debug("Function %s declared. \n", $1.name);
 															 };
 															 
 						     	 	 	 	 	 	 	 	 
 															 function_param *fparam;
 															 
-						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) printf("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
+						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) debug("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
 															 
 															 insertCallVarLocal(function_context, param_list);
 						     	 	 	 	 	 	 	 	 

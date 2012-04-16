@@ -11,7 +11,7 @@ sym_union *sym_table = NULL;
 function_param *param_list = NULL;
 
 sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
-	printf("MARCEL: searchGlobal startet for %s. \n", symName);
+	debug("MARCEL: searchGlobal startet for %s.", symName);
 	sym_union* found_entry = NULL;
 	found_entry = malloc(sizeof(sym_union));
 	HASH_FIND_STR(sym_table, symName, found_entry);
@@ -19,7 +19,7 @@ sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückli
 }
 
 sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
-	printf("MARCEL: searchLocal %s in %s startet. \n", symName, funcName);
+	debug("MARCEL: searchLocal %s in %s startet.", symName, funcName);
 
 	sym_union* function = searchGlobal(funcName);
 	if (function == NULL || function->symbolType != symFunction) {
@@ -34,7 +34,7 @@ sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur
 }
 
 sym_union* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zurückliefern */
-	printf("MARCEL: searchBoth %s in %s startet. \n", symName, funcName);
+	debug("MARCEL: searchBoth %s in %s startet.", symName, funcName);
 	sym_union* found_entry = searchLocal(symName, funcName);
 	if (found_entry == NULL) {
 		found_entry = searchGlobal(symName);
@@ -43,7 +43,7 @@ sym_union* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zur�
 }
 
 int insertFuncGlobal(char* symName, sym_function func) {
-	printf("MARCEL: New Function %s in global. \n", symName);
+	debug("MARCEL: New Function %s in global.", symName);
 	if (searchGlobal(symName) == NULL) {
 		sym_union* new_entry;
 		new_entry = (sym_union *) malloc(sizeof(sym_union));
@@ -70,7 +70,7 @@ int insertFuncGlobal(char* symName, sym_function func) {
 //}
 
 int insertVarGlobal(char* symName, sym_variable var) {
-	printf("MARCEL: New Variable %s in global. \n", symName); //Moritz: Habe 'or Function' rausgenommen
+	debug("MARCEL: New Variable %s in global.", symName); //Moritz: Habe 'or Function' rausgenommen
 	if (searchGlobal(symName) == NULL) {
 		sym_union* new_entry;
 		new_entry = (sym_union *) malloc(sizeof(sym_union));
@@ -95,7 +95,7 @@ int insertVarGlobal(char* symName, sym_variable var) {
 //}
 
 int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
-	printf("MARCEL: New Variable %s local in %s. \n", symName, funcName);
+	debug("MARCEL: New Variable %s local in %s.", symName, funcName);
 
 	sym_union* function = searchGlobal(funcName);
 
@@ -119,7 +119,7 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
  * there is no need for checking the local sym-table for occurence.
  */
 int insertCallVarLocal(char* funcName, function_param* parm) {
-	printf("MARCEL: New Call-Parameter-list in %s. \n", funcName);
+	debug("MARCEL: New Call-Parameter-list in %s.", funcName);
 
 	sym_union* function = searchGlobal(funcName);
 
@@ -147,7 +147,7 @@ int printSymTable(char* filename) {
 		fprintf(stderr, "Fehler beim oeffnen der IR Datei.\n");
 		return 0;
 	}
-	printf("MARCEL: Datei %s geöffnet.\n", filename);
+	debug("MARCEL: Datei %s geöffnet.\n", filename);
 
 	fprintf(datei, "/* **************** */\n");
 	fprintf(datei, "/* Symbol Table     */\n\n");
@@ -202,5 +202,7 @@ int printSymTable(char* filename) {
 	fprintf(datei, "\n/* Symbol Table End */\n");
 	fprintf(datei, "/* **************** */\n\n");
 	fclose(datei);
+	debug("Symbol Table printed.\n");
+
 	return 1;
 }
