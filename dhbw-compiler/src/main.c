@@ -366,9 +366,10 @@ int main(int argc, char *argv[]) {
 
 	printf("Syntax correct!\n");
 
-	if (cc_options.print_ir == 1)
+	if (cc_options.print_ir == 1){
 		printSymTable(cc_options.ir_file);
-
+		printIrCode(cc_options.ir_file);
+	}
 	printf("Compiling ended.\n");
 
 	rm_cleanup_resources(&resource_mgr);

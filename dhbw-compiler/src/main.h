@@ -29,4 +29,6 @@ enum boolean {
 	true
 };
 
+void debug(char *string, ...);
+
 #endif

@@ -9,20 +9,22 @@
 #define IR_CODE_H_
 
 #include <stdio.h>
+#include "main.h"
 #define START 100
 
 /*
  * This struct is for Expressions.
  */
 typedef struct IRTYPE {
-	int* true;int* false;
-	int* next;
-	int quad;
-	char pos[5];
+	int* true; 		// true exit
+	int* false;		// false exit
+	int* next; 		// next exit
+	int quad; 		// number of statement
+	char* idName; 	// variable or temporary variable name
 } IRT;
 
 enum opcode {
-	OP_ASSIGN, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MIN,
+	OP_ASSIGN, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_MIN,
 
 	OP_IFEQ, OP_IFNE, OP_IFGT, OP_IFGE, OP_IFLT, OP_IFLE, OP_GOTO,
 
@@ -31,12 +33,12 @@ enum opcode {
 	OP_ARRAY_LOAD, OP_ARRAY_STORE
 };
 
-void gen(enum opcode, int target, int op_left, int op_right, int paramcount);
+void genStmt(enum opcode, int op_one, int op_two, int op_three, int paramcount);
+void printIrCode(char* f);
 
-char* Newtemp();
-int* Makelist(int nquad);
-int* Merge(int* list1, int* list2);
-void Backpatch(int* list, int nquad);
-void Gen();
+char* newtemp();
+int* makelist(int nquad);
+int* merge(int* list1, int* list2);
+void backpatch(int* list, int nquad);
 
 #endif /* IR_CODE_H_ */

@@ -319,16 +319,51 @@ expression
      | expression LOGICAL_AND expression
      | LOGICAL_NOT expression
      | expression EQ expression
+		{
+			//genStmt(OP_IFEQ, $1.idName, $3.idname, null, 3);
+		}
      | expression NE expression
-     | expression LS expression 
-     | expression LSEQ expression 
-     | expression GTEQ expression 
+		{
+			//genStmt(OP_IFNE, $1.idName, $3.idName, null, 3);
+		}
+     | expression LS expression
+		{
+			//genStmt(OP_IFLT, $1.idName, $3.idName, null, 3);
+		} 
+     | expression LSEQ expression
+		{
+			//genStmt(OP_IFLE, $1.idName, $3.idName, null, 3);
+		} 
+     | expression GTEQ expression
+		{
+			//genStmt(OP_IFGT, $1.idName, $3.idName, null, 3);
+		} 
      | expression GT expression
+		{
+			//genStmt(OP_IFGE, $1.idName, $3.idName, null, 3);
+		}
      | expression PLUS expression
+		{
+			//genStmt(OP_ADD, $1.idName, $3.idName, null, 3);
+		}
      | expression MINUS expression
+		{
+			//char* temp = newtemp();
+			//genStmt(OP_SUB, temp, $1.idName, $3.idName, 3);
+		}
      | expression MUL expression
+		{
+			//char* temp = newtemp();
+			//genStmt(OP_MUL, temp, $1.idName, $3.idName, 3);
+		}
      | MINUS expression %prec UNARY_MINUS
+		{
+			//genStmt(OP_MIN, $1.idName, null, null, 1);
+		}
      | PLUS expression %prec UNARY_PLUS
+		{
+			//genStmt(OP_ADD, $1.idName, 0, null, 2);
+		}
      | ID BRACKET_OPEN primary BRACKET_CLOSE
      | PARA_OPEN expression PARA_CLOSE
      | function_call
