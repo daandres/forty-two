@@ -141,14 +141,14 @@ int insertCallVarLocal(char* funcName, function_param* parm) {
 //	return 0;
 //}
 
-int printSymTable(char* name) {
+int printSymTable(char* filename) {
 	FILE *datei;
-	datei = fopen("testdatei.txt", "w");
+	datei = fopen(filename, "w");
 	if (datei == NULL) {
 		printf("Fehler beim oeffnen der Datei.");
 		return 0;
 	}
-	printf("MARCEL: Datei geöffnet.");
+	printf("MARCEL: Datei %s geöffnet.\n", filename);
 	fprintf(datei, "Hallo, Welt\n");
 
 	struct sym_union *act;

@@ -3,6 +3,7 @@
 
 #include "diag.h"
 #include "resource_manager.h"
+#include "symtab.h"
 
 /** 
  * \struct cc_options

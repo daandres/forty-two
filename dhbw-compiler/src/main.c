@@ -10,7 +10,7 @@
 /* Constants */
 static const char *C_EXT = ".c";
 static const char *IR_EXT = ".ir";
-static const char *OUTPUT_EXT = ".s";
+static const char *OUTPUT_EXT = ".asm";
 extern FILE *yyin;
 extern int yyparse(void);
 
@@ -266,8 +266,14 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
+	printf("Input: %s\n", cc_options.input_file);
+	printf("Output: %s\n", cc_options.output_file);
+	printf("IR: %s\n\n", cc_options.ir_file);
+
+	printf("Compiling startet.\n");
+
 	// fopen von datei und yyin zuweisen
-	yyin = fopen(argv[1], "r");
+	yyin = fopen(cc_options.input_file, "r");
 	if (!yyin) {
 		fprintf(stderr, "couldn't open file for reading\n");
 		exit(1);
@@ -280,15 +286,13 @@ int main(int argc, char *argv[]) {
 
 	printf("Syntax correct!\n");
 
-	printf("Input: %s\n", cc_options.input_file);
-	printf("Output: %s\n", cc_options.output_file);
-	printf("IR: %s\n", cc_options.ir_file);
+	if (cc_options.ir_file != NULL){
+		printSymTable(cc_options.ir_file);
+	}
 
-	printSymTable();
+	printf("Compiling ended.\n");
 
 	rm_cleanup_resources(&resource_mgr);
-
-	printf("Compiling ended1.\n");
 	return 0;
 }
 

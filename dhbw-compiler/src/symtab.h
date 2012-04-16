@@ -63,5 +63,6 @@ sym_union* searchGlobal(); /* Kann Funktion und Variable zur�ckliefern */
 sym_union* searchLocal(); /* Kann nur Variable zur�ckliefern */
 int insertSymGlobal();
 int insertSymLocal();
+int printSymTable(char* filename);
 
 #endif /* SYMTAB_H_ */
