@@ -1,6 +1,8 @@
-/* 
- * parser.y - Parser utility for the DHBW compiler
- */
+/****************************************************************************/
+/* This file was created for the forty-two yacp compiler project.           */ 
+/* Have a look at our code repository: https://code.google.com/p/forty-two/ */ 
+/* Authors: Marcel Schroeder, Moritz Hader, Daniel Andres                   */ 
+/****************************************************************************/
  
 %{
 
