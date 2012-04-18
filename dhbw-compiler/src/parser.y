@@ -1,6 +1,8 @@
-/* 
- * parser.y - Parser utility for the DHBW compiler
- */
+/****************************************************************************/
+/* This file was created for the forty-two yacp compiler project.           */ 
+/* Have a look at our code repository: https://code.google.com/p/forty-two/ */ 
+/* Authors: Marcel Schroeder, Moritz Hader, Daniel Andres                   */ 
+/****************************************************************************/
  
 %{
 
@@ -85,7 +87,7 @@ function_def
 						
 						if(insertFuncGlobal(function_context, func) == 1){
 							
-							printf("WARNING: Function %s was used before it was declared. Adding declaration automatically. \n\n", function_context);
+							debug("WARNING: Function %s was used before it was declared. Adding declaration automatically. \n", function_context);
 							
 						 }else{
 							 
@@ -94,7 +96,7 @@ function_def
 						if(param_list != NULL){
 							 function_param *fparam;
 																						 
-							 DL_FOREACH(param_list,fparam) printf("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
+							 DL_FOREACH(param_list,fparam) debug("Variable: %s of Type:%d", fparam->name, fparam->varType);
 							 
 							 insertCallVarLocal(function_context, param_list);
 							 
@@ -208,7 +210,7 @@ function_declaration
      	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
 										 exit(1);
 									 }else{
-										 printf("Function %s declared. \n\n", $1.name);
+										 debug("Function %s declared. \n", $1.name);
 									 };
      	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 param_list = NULL; //Set the listpointer to Null, so the next declaration can start anew
@@ -223,13 +225,13 @@ function_declaration
 																 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
 																 exit(1);
 															 }else{
-																 printf("Function %s declared. \n\n", $1.name);
+																 debug("Function %s declared. \n", $1.name);
 															 };
 															 
 						     	 	 	 	 	 	 	 	 
 															 function_param *fparam;
 															 
-						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) printf("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
+						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) debug("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
 															 
 															 insertCallVarLocal(function_context, param_list);
 						     	 	 	 	 	 	 	 	 
@@ -319,16 +321,51 @@ expression
      | expression LOGICAL_AND expression
      | LOGICAL_NOT expression
      | expression EQ expression
+		{
+			//genStmt(OP_IFEQ, $1.idName, $3.idname, null, 3);
+		}
      | expression NE expression
-     | expression LS expression 
-     | expression LSEQ expression 
-     | expression GTEQ expression 
+		{
+			//genStmt(OP_IFNE, $1.idName, $3.idName, null, 3);
+		}
+     | expression LS expression
+		{
+			//genStmt(OP_IFLT, $1.idName, $3.idName, null, 3);
+		} 
+     | expression LSEQ expression
+		{
+			//genStmt(OP_IFLE, $1.idName, $3.idName, null, 3);
+		} 
+     | expression GTEQ expression
+		{
+			//genStmt(OP_IFGT, $1.idName, $3.idName, null, 3);
+		} 
      | expression GT expression
+		{
+			//genStmt(OP_IFGE, $1.idName, $3.idName, null, 3);
+		}
      | expression PLUS expression
+		{
+			//genStmt(OP_ADD, $1.idName, $3.idName, null, 3);
+		}
      | expression MINUS expression
+		{
+			//char* temp = newtemp();
+			//genStmt(OP_SUB, temp, $1.idName, $3.idName, 3);
+		}
      | expression MUL expression
+		{
+			//char* temp = newtemp();
+			//genStmt(OP_MUL, temp, $1.idName, $3.idName, 3);
+		}
      | MINUS expression %prec UNARY_MINUS
+		{
+			//genStmt(OP_MIN, $1.idName, null, null, 1);
+		}
      | PLUS expression %prec UNARY_PLUS
+		{
+			//genStmt(OP_ADD, $1.idName, 0, null, 2);
+		}
      | ID BRACKET_OPEN primary BRACKET_CLOSE
      | PARA_OPEN expression PARA_CLOSE
      | function_call

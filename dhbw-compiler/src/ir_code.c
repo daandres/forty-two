@@ -15,16 +15,16 @@ char code[25][50]; // Code Blocks of TAC
 /*
  * This fuction generats a new temp identifier for the TAC. (.t1, .t2)
  */
-char* Newtemp() {
+char* newtemp() {
 	static int count = 1;
-	char* ch = (char*) malloc(sizeof(char) * 5);
-	sprintf(ch, ".t%d", count++);
-	return ch;
+	char* tmp = (char*) malloc(sizeof(char) * 5);
+	sprintf(tmp, ".t%d", count++);
+	return tmp;
 }
 /*
  * This function generates a true/falselist with a given quadruple  (next quad = nquad)
  */
-int* Makelist(int nquad) {
+int* makelist(int nquad) {
 	int* list = (int*) malloc(sizeof(int) * 15);
 	list[0] = nquad;
 	list[1] = 0;
@@ -33,7 +33,7 @@ int* Makelist(int nquad) {
 /*
  * This function merges two lists.
  */
-int* Merge(int* list1, int* list2) {
+int* merge(int* list1, int* list2) {
 	int* temp = list1, count1 = 0, count2 = 0;
 	while (list1[count1] != 0)
 		count1++;
@@ -47,7 +47,7 @@ int* Merge(int* list1, int* list2) {
 /*
  * This function backpatches temp identifiers with its addresses...
  */
-void Backpatch(int* list, int nquad) {
+void backpatch(int* list, int nquad) {
 	char addr[10];
 	sprintf(addr, "%d", nquad);
 	while (*list != 0) {
@@ -57,8 +57,27 @@ void Backpatch(int* list, int nquad) {
 }
 
 /*
- * This function generates a new quadrupel.
+ * This function generates a the next instruction number of the next quadrupel.
  */
-void Gen() {
+void genStmt(enum opcode op, int op_one, int op_two, int op_three, int paramcount) {
+
 	nextquad++;
+}
+
+void printIrCode(char* fn) {
+	FILE *f;
+	f = fopen(fn, "a");
+	if (f == NULL) {
+		fprintf(stderr, "Fehler beim oeffnen der IR Datei.\n");
+		return;
+	}
+	fprintf(f, "/* **************** */\n");
+	fprintf(f, "/* IR code          */\n\n");
+
+
+
+	fprintf(f, "\n/* IR code End      */\n");
+	fprintf(f, "/* **************** */\n\n");
+	fclose(f);
+	debug("IR code printed\n");
 }

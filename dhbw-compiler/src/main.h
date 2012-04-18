@@ -14,7 +14,9 @@
 typedef struct cc_options {
 	int print_ir; /**< Flag indicating if the IR should be printed */
 	char *ir_file; /**< The name of the IR file */
-	int ir_force; /**< Flag indicating if the IR file should be overwritten if it alerady exists */
+
+	int force; /**< Flag indicating if that any file should be overwritten if it alerady exists */
+	char *dbg;  /**< Name of debug log  */
 
 	char *input_file; /**< The name of the input file */
 	char *output_file; /**< The name of the output file */
@@ -26,5 +28,7 @@ enum boolean {
 	false = 0,
 	true
 };
+
+void debug(char *string, ...);
 
 #endif
