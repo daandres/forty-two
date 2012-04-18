@@ -78,7 +78,7 @@ int insertVarGlobal(char* symName, sym_variable var) {
 			return 0;
 		new_entry->symbolType = symVariable;
 		new_entry->name = symName;
-		//new_entry->vof.symVariable = var; //TODO anpassen
+		new_entry->vof.symVariable = var; //TODO anpassen
 		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
 		return 1;
 	}
@@ -106,8 +106,9 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
 			return 0;
 		new_entry->symbolType = symVariable;
 		new_entry->name = symName;
-		//new_entry->vof.symVariable = var; //TODO anpassen
-		//TODO HASH FUNCTION
+		debug("Local var inserted. Name: %s \n", new_entry->name);
+		new_entry->vof.symVariable = var;
+		HASH_ADD_KEYPTR(hh, function->vof.symFunction.local_variables, new_entry->name, strlen(new_entry->name), new_entry);
 		return 1;
 	}
 	return 0;
@@ -165,6 +166,8 @@ int printSymTable(char* filename) {
 				fprintf(datei, "Variablen Name: %s \n", act->name);
 			}
 			switch (act->vof.symVariable.varType) {
+				case voidType:
+					break;
 				case intType:
 					fprintf(datei, "Typ: int \n");
 					break;
@@ -203,7 +206,7 @@ int printSymTable(char* filename) {
 				for (subvar = act->vof.symFunction.local_variables; subvar != NULL; subvar = subvar->hh.next) {
 					fprintf(datei, "\t-----------------------------------\n");
 
-					if (act->symbolType == symVariable) {
+					//if (act->symbolType == symVariable) {
 						if (act->name == NULL) {
 							fprintf(datei, "\tVariable Name = null\n");
 						} else {
@@ -222,7 +225,7 @@ int printSymTable(char* filename) {
 						}
 
 						fprintf(datei, "\tOffset Adresse: %i \n", act->vof.symVariable.offsetAddress);
-					}
+					//}
 				}
 			}
 		}
