@@ -42,7 +42,7 @@ typedef struct IRCODE {
 	int paramcount; 	// number of parameters... if an op needs less then three operands
 } IRC;
 
-void genStmt(int quad, enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount);
+void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount);
 void printIrCode(char* f);
 
 char* newtemp();

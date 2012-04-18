@@ -9,17 +9,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-int nextquad = START;	// addresse of TAC
-IRC* code; 					// Code Blocks of TAC
-int size = 0; 				// size of dynamic code array
-static int count = 1;
+int nextquad = START;		// addresse of TAC
+IRC* code; 						// Code Blocks of TAC
+int size = 0; 					// size of dynamic code array
+static int tmpCount = 1;	// temp identifier code number
 
 /*
  * This fuction generats a new temp identifier for the TAC. (.t1, .t2)
  */
 char* newtemp() {
 	char* tmp = (char*) malloc(sizeof(char) * 5);
-	sprintf(tmp, ".t%0d", count++);
+	sprintf(tmp, ".t%0d", tmpCount++);
 	return tmp;
 }
 /*
@@ -84,10 +84,10 @@ void backpatch(int* list, int nquad) {
 /*
  * This function generates a new entry in code array and the next instruction number.
  */
-void genStmt(int quad, enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount) {
+void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount) {
 	size++;
 	code = (IRC *) realloc(code, size * sizeof(IRC));
-	(code + size - 1)->quad = quad;
+	(code + size - 1)->quad = nextquad;
 	(code + size - 1)->op = op;
 	strcpy((code + size - 1)->op_one, op_one);
 	strcpy((code + size - 1)->op_two, op_two);
