@@ -60,14 +60,15 @@ int insertFuncGlobal(char* symName, sym_function func) {
 	return 0;
 }
 
-//int alterFuncGlobal(char* symName, sym_function func) {
-//	sym_union* entry = searchGlobal(symName);
-//	if (entry != NULL) {
-//		entry->vof.symFunction = func;
-//		return 1;
-//	}
-//	return 0;
-//}
+//Noch nicht ausführlich getestet!!!
+int alterFuncGlobal(char* symName, sym_function func) {
+	sym_union* entry = searchGlobal(symName);
+	if (entry != NULL) {
+		entry->vof.symFunction = func;
+		return 1;
+	}
+	return 0;
+}
 
 int insertVarGlobal(char* symName, sym_variable var) {
 	debug("SymTab: New Variable %s in global.", symName); //Moritz: Habe 'or Function' rausgenommen
@@ -85,14 +86,15 @@ int insertVarGlobal(char* symName, sym_variable var) {
 	return 0;
 }
 
-//int alterVarGlobal(char* symName, sym_variable var) {
-//	sym_union* entry = searchGlobal(symName);
-//	if (entry != NULL) {
-//		entry->vof.symVariable = var;
-//		return 1;
-//	}
-//	return 0;
-//}
+//Noch nicht ausführlich getestet!!!
+int alterVarGlobal(char* symName, sym_variable var) {
+	sym_union* entry = searchGlobal(symName);
+	if (entry != NULL) {
+		entry->vof.symVariable = var;
+		return 1;
+	}
+	return 0;
+}
 
 int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
 	debug("SymTab: New Variable %s local in %s.", symName, funcName);
@@ -130,15 +132,15 @@ int insertCallVarLocal(char* funcName, function_param* parm) {
 	return 0;
 }
 
-//int alterVarLocal(char* symName, char* funcName, sym_variable var) {
-//	sym_union* function = searchGlobal(funcName);
-//	sym_union* entry = searchLocal(symName, funcName);
-//	if (function != NULL && entry != NULL) {
-//		entry->vof.symVariable = var;
-//		return 1;
-//	}
-//	return 0;
-//}
+//Noch nicht ausführlich getestet!!!
+int alterVarLocal(char* symName, char* funcName, sym_variable var) {
+	sym_union* entry = searchLocal(symName, funcName);
+	if (entry != NULL) {
+		entry->vof.symVariable = var;
+		return 1;
+	}
+	return 0;
+}
 
 int printSymTable(char* filename) {
 	FILE *datei;
@@ -205,7 +207,7 @@ int printSymTable(char* filename) {
 			if (act->vof.symFunction.interCode != NULL) {
 				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode);
 			}
-			if (act->vof.symFunction.local_variables != NULL) { // really need this one?
+			if (act->vof.symFunction.local_variables != NULL) {
 				for (subvar = act->vof.symFunction.local_variables; subvar != NULL; subvar = subvar->hh.next) {
 					fprintf(datei, "\t-----------------------------------\n");
 
