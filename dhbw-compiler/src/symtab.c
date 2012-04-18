@@ -197,6 +197,9 @@ int printSymTable(char* filename) {
 				case intArrayType:
 					fprintf(datei, "Rückgabewert: int-Array\n");
 					break;
+				case ArrayType:
+					fprintf(datei, "Rückgabewert: Array WTF MORITZ!!!\n");
+					break;
 			}
 
 			if (act->vof.symFunction.interCode != NULL) {
@@ -206,26 +209,28 @@ int printSymTable(char* filename) {
 				for (subvar = act->vof.symFunction.local_variables; subvar != NULL; subvar = subvar->hh.next) {
 					fprintf(datei, "\t-----------------------------------\n");
 
-					//if (act->symbolType == symVariable) {
-						if (act->name == NULL) {
+					if (subvar->symbolType == symVariable) {
+						if (subvar->name == NULL) {
 							fprintf(datei, "\tVariable Name = null\n");
 						} else {
-							fprintf(datei, "\tVariablen Name: %s \n", act->name);
+							fprintf(datei, "\tVariablen Name: %s \n", subvar->name);
 						}
-						switch (act->vof.symVariable.varType) {
+						switch (subvar->vof.symVariable.varType) {
+							case voidType:
+								break;
 							case intType:
 								fprintf(datei, "\tTyp: int \n");
 								break;
 							case intArrayType:
-								fprintf(datei, "\tTyp: int-Array, Größe: %i \n", act->vof.symVariable.size);
+								fprintf(datei, "\tTyp: int-Array, Größe: %i \n", subvar->vof.symVariable.size);
 								break;
 							case ArrayType:
-								fprintf(datei, "\tTyp: Array WTF MORITZ!!!, Größe: %i \n", act->vof.symVariable.size);
+								fprintf(datei, "\tTyp: Array WTF MORITZ!!!, Größe: %i \n", subvar->vof.symVariable.size);
 								break;
 						}
 
-						fprintf(datei, "\tOffset Adresse: %i \n", act->vof.symVariable.offsetAddress);
-					//}
+						fprintf(datei, "\tOffset Adresse: %i \n", subvar->vof.symVariable.offsetAddress);
+					}
 				}
 			}
 		}
