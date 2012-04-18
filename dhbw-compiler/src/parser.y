@@ -88,7 +88,7 @@ function_def
 						
 						if(insertFuncGlobal(function_context, func) == 1){
 							
-							debug("WARNING: Function %s was used before it was declared. Adding declaration automatically. \n", function_context);
+							printf("WARNING: Function %s was used before it was declared. Adding declaration automatically. \n", function_context);
 							
 						 }else{
 							 
@@ -216,7 +216,7 @@ function_declaration
      	 	 	 	 	 	 	 	 func.protOrNot = proto; 
      	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 if(insertFuncGlobal($1.name, func) != 1){
-     	 	 	 	 	 	 	 		 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
+     	 	 	 	 	 	 	 	     yyerror("Error while declaring function %s. Function was already declared.", $1.name);
 										 exit(1);
 									 }else{
 										 debug("Function %s declared. \n", $1.name);
@@ -231,7 +231,7 @@ function_declaration
 															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
 															 
 															 if(insertFuncGlobal($1.name, func) != 1){
-																 yyerror("Error while declaring function ", $1.name, " Function was already declared.");
+																 yyerror("Error while declaring function %s. Function was already declared.", $1.name);
 																 exit(1);
 															 }else{
 																 debug("Function %s declared. \n", $1.name);
@@ -384,15 +384,16 @@ expression
      ;
 
 primary
-     : NUM	{//$$ = $1.i;
-			$$.idName = "1";
+     : NUM	{
+			$$.idName = sprintf("%i", $1);
 				}
      | ID	{
-    	 	 	 sym_union* sentry;
     	 	 	 if(function_context != NULL)
     	 	 	 {
-    	 	 		 
-    	 	 		 //sentry = searchLocal($1, function_context);
+    	 	 		 if(searchBoth($1, function_context) == NULL){
+    	 	 			 yyerror("Identifier %s has not been defined.",$1);
+    	 	 			 exit(1);
+    	 	 		 }
     	 	 	 }
     	 	 	 else
     	 	 	 {
@@ -400,8 +401,7 @@ primary
     	 	 		 exit(1);
     	 	 	 }
     	 	 	 
-    	 	 	 //$$ = *sentry;
-    	 	 	 $$.idName = "2";
+    	 	 	 $$.idName = $1;
 			}
      ;
 
