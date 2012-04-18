@@ -76,8 +76,9 @@
 %type <airt>  function_definition function_declaration
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call function_call_parameters
 %type <etyp> type
-%type <sunion> function_parameter identifier_declaration variable_declaration function_header primary
+%type <sunion> function_parameter identifier_declaration variable_declaration function_header
 %type <lexem> function_def
+%type <airt> M_svQuad M_NextListAndNewIRCLine M_nextAndsv primary
 %%
 
 /*****Epsilonproductions******/
@@ -105,6 +106,14 @@ function_def
 						
 						
 										} 
+
+M_svQuad
+	: /* empty */ { $$.quad = nextquad;}
+M_NextListAndNewIRCLine
+	: /* empty */ { $$.next = makelist(nextquad);
+					genStmt(OP_GOTO, nextquad, nextquad);}
+M_nextAndsv
+	: M_NextListAndNewIRCLine M_svQuad { $$.quad = $2.quad;}
 /****************************/
 
 program
@@ -213,7 +222,7 @@ function_declaration
 										 debug("Function %s declared. \n", $1.name);
 									 };
      	 	 	 	 	 	 	 	 
-     	 	 	 	 	 	 	 	 param_list = NULL; //Set the listpointer to Null, so the next declaration can start anew
+     	 	 	 	 	 	 	 	 param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
 									 function_context = NULL;
      	 	 	 	 	 	 	 	 	 	 	 	 	 } 
      | function_header function_parameter_list PARA_CLOSE { 
@@ -235,7 +244,7 @@ function_declaration
 															 
 															 insertCallVarLocal(function_context, param_list);
 						     	 	 	 	 	 	 	 	 
-															 param_list = NULL; //Set the listpointer to Null, so the next declaration can start anew
+															 param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
 						     	 	 	 	 	 	 	 	 function_context = NULL;
 														 }
      ;
@@ -322,58 +331,61 @@ expression
      | LOGICAL_NOT expression
      | expression EQ expression
 		{
-			//genStmt(OP_IFEQ, $1.idName, $3.idname, null, 3);
+			//genStmt(OP_IFEQ, $1.idName, $3.idname, NULL, 3);
 		}
      | expression NE expression
 		{
-			//genStmt(OP_IFNE, $1.idName, $3.idName, null, 3);
+			//genStmt(OP_IFNE, $1.idName, $3.idName, NULL, 3);
 		}
      | expression LS expression
 		{
-			//genStmt(OP_IFLT, $1.idName, $3.idName, null, 3);
+			//genStmt(OP_IFLT, $1.idName, $3.idName, NULL, 3);
 		} 
      | expression LSEQ expression
 		{
-			//genStmt(OP_IFLE, $1.idName, $3.idName, null, 3);
+			//genStmt(OP_IFLE, $1.idName, $3.idName, NULL, 3);
 		} 
      | expression GTEQ expression
 		{
-			//genStmt(OP_IFGT, $1.idName, $3.idName, null, 3);
+			//genStmt(OP_IFGT, $1.idName, $3.idName, NULL, 3);
 		} 
      | expression GT expression
 		{
-			//genStmt(OP_IFGE, $1.idName, $3.idName, null, 3);
+			//char* temp = newtemp();
+			//genStmt(OP_IFGE, temp, $1.idName, $3.idName, 3);
 		}
      | expression PLUS expression
 		{
-			//genStmt(OP_ADD, $1.idName, $3.idName, null, 3);
-		}
+			//strcpy($$.idName, newtemp());
+			//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+}
      | expression MINUS expression
 		{
-			//char* temp = newtemp();
-			//genStmt(OP_SUB, temp, $1.idName, $3.idName, 3);
+			//strcpy($$.idName, newtemp());
+			//genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
 		}
      | expression MUL expression
 		{
-			//char* temp = newtemp();
-			//genStmt(OP_MUL, temp, $1.idName, $3.idName, 3);
-		}
+			//strcpy($$.idName, newtemp());
+			//genStmt(OP_ADD, $$.idName, $1.idName, $3.idName, 3);
+			}
      | MINUS expression %prec UNARY_MINUS
 		{
-			//genStmt(OP_MIN, $1.idName, null, null, 1);
+			genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
 		}
      | PLUS expression %prec UNARY_PLUS
 		{
-			//genStmt(OP_ADD, $1.idName, 0, null, 2);
+			genStmt(OP_ADD, $2.idName, 0, NULL, 2);
 		}
      | ID BRACKET_OPEN primary BRACKET_CLOSE
      | PARA_OPEN expression PARA_CLOSE
      | function_call
-     | primary
+     | primary { $$.idName = $1.idName;}
      ;
 
 primary
      : NUM	{//$$ = $1.i;
+			$$.idName = "1";
 				}
      | ID	{
     	 	 	 sym_union* sentry;
@@ -389,6 +401,7 @@ primary
     	 	 	 }
     	 	 	 
     	 	 	 //$$ = *sentry;
+    	 	 	 $$.idName = "2";
 			}
      ;
 
@@ -403,13 +416,13 @@ function_call_parameters
      ;
 
 %%
-
+ 
 void yyerror(char *s, ...){
   va_list ap;
   va_start(ap, s);
 
   if(yylloc.first_line)
-    fprintf(stderr, "%d.%d-%d.%d: error: ", yylloc.first_line, yylloc.first_column,
+    fprintf(stderr, "%d.%d-%d.%d: ", yylloc.first_line, yylloc.first_column,
 	    yylloc.last_line, yylloc.last_column);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
