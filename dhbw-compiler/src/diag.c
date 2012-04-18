@@ -21,8 +21,7 @@ void fatal_os_error(os_error_t err, int errno, const char *fn, const int line, c
 	if (err >= NUM_OS_ERRORS)
 		return;
 
-	fprintf(stderr, "Fatal OS Error (%s) in %s:%d -- ",
-	      ((errno != 0) ? os_err_msgs[err] : strerror(errno)), fn, line);
+	fprintf(stderr, "Fatal OS Error (%s) in %s:%d -- ", ((errno != 0) ? os_err_msgs[err] : strerror(errno)), fn, line);
 
 	va_list list;
 	va_start(list, msg);

@@ -15,8 +15,8 @@ static const char *OUTPUT_EXT = ".asm";
 extern FILE *yyin;
 extern int yyparse(void);
 
-cc_options_t cc_options = { .print_ir = 0, .ir_file = NULL, .force = 0, .dbg = NULL, .input_file =
-      NULL, .output_file = NULL };
+cc_options_t cc_options = { .print_ir = 0, .ir_file = NULL, .force = 0, .dbg = NULL, .input_file = NULL, .output_file =
+      NULL };
 
 /** 
  * \brief Print the help.
@@ -256,8 +256,7 @@ int process_options(int argc, char *argv[]) {
 					if (cc_options.force == 0) {
 						FILE* f = fopen(cc_options.ir_file, "wx");
 						if (!f) {
-							fprintf(stderr,
-							      "ERROR: IR File could not be created. Because it already exists. \n");
+							fprintf(stderr, "ERROR: IR File could not be created. Because it already exists. \n");
 							ret = 1;
 						}
 						fprintf_head(f);
@@ -283,8 +282,7 @@ int process_options(int argc, char *argv[]) {
 			} else if (cc_options.force == 0) {
 				FILE* f = fopen(cc_options.dbg, "wx");
 				if (!f) {
-					fprintf(stderr,
-					      "ERROR: Debug Log File could not be created. Because it already exists. \n");
+					fprintf(stderr, "ERROR: Debug Log File could not be created. Because it already exists. \n");
 					ret = 1;
 				}
 				fprintf_head(f);
@@ -366,7 +364,7 @@ int main(int argc, char *argv[]) {
 
 	printf("Syntax correct!\n");
 
-	if (cc_options.print_ir == 1){
+	if (cc_options.print_ir == 1) {
 		printSymTable(cc_options.ir_file);
 		printIrCode(cc_options.ir_file);
 	}

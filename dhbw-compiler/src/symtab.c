@@ -99,8 +99,7 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
 
 	sym_union* function = searchGlobal(funcName);
 
-	if (function != NULL
-	      && function->symbolType == symFunction&& searchLocal(symName, funcName) == NULL) {
+	if (function != NULL && function->symbolType == symFunction && searchLocal(symName, funcName) == NULL) {
 		sym_union* new_entry;
 		new_entry = (sym_union *) malloc(sizeof(sym_union));
 		if (new_entry == NULL)
@@ -196,7 +195,7 @@ int printSymTable(char* filename) {
 //			if(act->vof.symFunction.interCode != NULL) {
 //				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode)
 //			}
-			if(act->vof.symFunction.local_variables != NULL) { // really need this one?
+			if (act->vof.symFunction.local_variables != NULL) { // really need this one?
 				for (subvar = act->vof.symFunction.local_variables; subvar != NULL; subvar = subvar->hh.next) {
 					fprintf(datei, "-----------------------------------\n");
 
@@ -206,17 +205,17 @@ int printSymTable(char* filename) {
 						} else {
 							fprintf(datei, "Variablen Name: %s \n", act->name);
 						}
-			//			if(act->vof.symVariable.varType == intType) {
-			//				fprintf(datei, "Typ: int \n");
-			//			} else if (act->vof.symVariable.varType == intArrayType) {
-			//				fprintf(datei, "Typ: int-Array, Größe: %i \n",
-			//						act->vof.symVariable.size);
-			//			} else if (act->vof.symVariable.varType == ArrayType) {
-			//				fprintf(datei, "Typ: Array WTF MORITZ!!!, Größe: %i \n",
-			//						act->vof.symVariable.size);
-			//			}
-			//			fprintf(datei, "Offset Adresse: %i \n",
-			//					act->vof.symVariable.offsetAddress);
+						//			if(act->vof.symVariable.varType == intType) {
+						//				fprintf(datei, "Typ: int \n");
+						//			} else if (act->vof.symVariable.varType == intArrayType) {
+						//				fprintf(datei, "Typ: int-Array, Größe: %i \n",
+						//						act->vof.symVariable.size);
+						//			} else if (act->vof.symVariable.varType == ArrayType) {
+						//				fprintf(datei, "Typ: Array WTF MORITZ!!!, Größe: %i \n",
+						//						act->vof.symVariable.size);
+						//			}
+						//			fprintf(datei, "Offset Adresse: %i \n",
+						//					act->vof.symVariable.offsetAddress);
 					}
 				}
 			}

@@ -16,7 +16,7 @@ typedef struct cc_options {
 	char *ir_file; /**< The name of the IR file */
 
 	int force; /**< Flag indicating if that any file should be overwritten if it alerady exists */
-	char *dbg;  /**< Name of debug log  */
+	char *dbg; /**< Name of debug log  */
 
 	char *input_file; /**< The name of the input file */
 	char *output_file; /**< The name of the output file */
@@ -25,8 +25,8 @@ typedef struct cc_options {
 extern cc_options_t cc_options;
 
 enum boolean {
-	false = 0,
-	true
+false = 0,
+true
 };
 
 void debug(char *string, ...);
