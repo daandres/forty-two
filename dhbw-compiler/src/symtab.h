@@ -8,6 +8,7 @@
 #ifndef SYMTAB_H_
 #define SYMTAB_H_
 
+#include "main.h"
 #include "uthash.h"
 #include "utlist.h"
 #include <stdio.h>

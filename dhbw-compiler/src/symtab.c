@@ -164,58 +164,64 @@ int printSymTable(char* filename) {
 			} else {
 				fprintf(datei, "Variablen Name: %s \n", act->name);
 			}
-//			if(act->vof.symVariable.varType == intType) {
-//				fprintf(datei, "Typ: int \n");
-//			} else if (act->vof.symVariable.varType == intArrayType) {
-//				fprintf(datei, "Typ: int-Array, Größe: %i \n",
-//						act->vof.symVariable.size);
-//			} else if (act->vof.symVariable.varType == ArrayType) {
-//				fprintf(datei, "Typ: Array WTF MORITZ!!!, Größe: %i \n",
-//						act->vof.symVariable.size);
-//			}
-//			fprintf(datei, "Offset Adresse: %i \n",
-//					act->vof.symVariable.offsetAddress);
+			switch (act->vof.symVariable.varType) {
+				case intType:
+					fprintf(datei, "Typ: int \n");
+					break;
+				case intArrayType:
+					fprintf(datei, "Typ: int-Array, Größe: %i \n", act->vof.symVariable.size);
+					break;
+				case ArrayType:
+					fprintf(datei, "Typ: Array WTF MORITZ!!!, Größe: %i \n", act->vof.symVariable.size);
+					break;
+			}
+			fprintf(datei, "Offset Adresse: %i \n", act->vof.symVariable.offsetAddress);
 		}
 
 		else if (act->symbolType == symFunction) {
 			if (act->name == NULL) {
-				fprintf(datei, "Function Name = null");
+				fprintf(datei, "Function Name = null\n");
 			} else {
 				fprintf(datei, "Function name: %s \n", act->name);
 			}
-//			if(act->vof.symFunction.returnType == voidType) {
-//				fprintf(datei, "Rückgabewert: void");
-//			}
-//			else if(act->vof.symFunction.returnType == intType) {
-//				fprintf(datei, "Rückgabewert: int");
-//			}
-//			else if(act->vof.symFunction.returnType == intArrayType) {
-//				fprintf(datei, "Rückgabewert: int-Array");
-//			}
-//			if(act->vof.symFunction.interCode != NULL) {
-//				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode)
-//			}
+			switch (act->vof.symFunction.returnType) {
+				case voidType:
+					fprintf(datei, "Rückgabewert: void\n");
+					break;
+				case intType:
+					fprintf(datei, "Rückgabewert: int\n");
+					break;
+				case intArrayType:
+					fprintf(datei, "Rückgabewert: int-Array\n");
+					break;
+			}
+
+			if (act->vof.symFunction.interCode != NULL) {
+				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode);
+			}
 			if (act->vof.symFunction.local_variables != NULL) { // really need this one?
 				for (subvar = act->vof.symFunction.local_variables; subvar != NULL; subvar = subvar->hh.next) {
-					fprintf(datei, "-----------------------------------\n");
+					fprintf(datei, "\t-----------------------------------\n");
 
 					if (act->symbolType == symVariable) {
 						if (act->name == NULL) {
-							fprintf(datei, "Variable Name = null");
+							fprintf(datei, "\tVariable Name = null\n");
 						} else {
-							fprintf(datei, "Variablen Name: %s \n", act->name);
+							fprintf(datei, "\tVariablen Name: %s \n", act->name);
 						}
-						//			if(act->vof.symVariable.varType == intType) {
-						//				fprintf(datei, "Typ: int \n");
-						//			} else if (act->vof.symVariable.varType == intArrayType) {
-						//				fprintf(datei, "Typ: int-Array, Größe: %i \n",
-						//						act->vof.symVariable.size);
-						//			} else if (act->vof.symVariable.varType == ArrayType) {
-						//				fprintf(datei, "Typ: Array WTF MORITZ!!!, Größe: %i \n",
-						//						act->vof.symVariable.size);
-						//			}
-						//			fprintf(datei, "Offset Adresse: %i \n",
-						//					act->vof.symVariable.offsetAddress);
+						switch (act->vof.symVariable.varType) {
+							case intType:
+								fprintf(datei, "\tTyp: int \n");
+								break;
+							case intArrayType:
+								fprintf(datei, "\tTyp: int-Array, Größe: %i \n", act->vof.symVariable.size);
+								break;
+							case ArrayType:
+								fprintf(datei, "\tTyp: Array WTF MORITZ!!!, Größe: %i \n", act->vof.symVariable.size);
+								break;
+						}
+
+						fprintf(datei, "\tOffset Adresse: %i \n", act->vof.symVariable.offsetAddress);
 					}
 				}
 			}
