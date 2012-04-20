@@ -7,7 +7,7 @@ void exit (int i);
 
 int func (int arr[10], int len, int threshold) {
   int i, sum;
-  i = 0;
+  //i = 0;
   sum = 0;
   while (i < len) {
     if (arr[i] <= threshold) sum = sum + 1;

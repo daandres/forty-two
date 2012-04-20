@@ -88,7 +88,7 @@ function_def
 						
 						if(insertFuncGlobal(function_context, func) == 1){
 							
-							printf("WARNING: Function %s was used before it was declared. Adding declaration automatically. \n", function_context);
+							warning("Function %s was used before it was declared. Adding declaration automatically.", function_context);
 							
 						 }else{
 							 
@@ -145,7 +145,7 @@ variable_declaration //TODO: Check if all the variables have the same Type;
     	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 	 } else {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
-    	 	 	 	 	 	 	 	 		 exit(1);
+    	 	 	 	 	 	 	 	 		 //exit(1);
     	 	 	 	 	 	 	 	 	 }
      	 	 	 	 	 	 	 	 } else {
      	 	 	 	 	 	 	 		 var.vof.symVariable.varType = $1.vof.symVariable.varType;
@@ -164,7 +164,7 @@ variable_declaration //TODO: Check if all the variables have the same Type;
     	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 		 } else {
     	 	 	 	 	 	 	 	 			 yyerror("Error: Only Integer arrays are valid.");
-    	 	 	 	 	 	 	 	 			 exit(1);
+    	 	 	 	 	 	 	 	 			 //exit(1);
     	 	 	 	 	 	 	 	 		 }
      	 	 	 	 	 	 	 		 } else {
      	 	 	 	 	 	 	 			 var.vof.symVariable.varType = $1;
@@ -283,7 +283,7 @@ function_parameter
     	 	 	 	 	 	 	 	 	 else
     	 	 	 	 	 	 	 	 	 {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
-    	 	 	 	 	 	 	 	 		 exit(1);
+    	 	 	 	 	 	 	 	 		 //exit(1);
     	 	 	 	 	 	 	 	 	 };
      	 	 	 	 	 	 	 	 }else{
      	 	 	 	 	 	 	 		 var.vof.symVariable.varType = $1;
@@ -371,11 +371,11 @@ expression
 			}
      | MINUS expression %prec UNARY_MINUS
 		{
-			genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
+			//genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
 		}
      | PLUS expression %prec UNARY_PLUS
 		{
-			genStmt(OP_ADD, $2.idName, 0, NULL, 2);
+			//genStmt(OP_ADD, $2.idName, 0, NULL, 2);
 		}
      | ID BRACKET_OPEN primary BRACKET_CLOSE
      | PARA_OPEN expression PARA_CLOSE
@@ -385,20 +385,20 @@ expression
 
 primary
      : NUM	{
-			$$.idName = sprintf("%i", $1);
+			 //sprintf($$.idName, "%i", $1);
 				}
      | ID	{
     	 	 	 if(function_context != NULL)
     	 	 	 {
     	 	 		 if(searchBoth($1, function_context) == NULL){
     	 	 			 yyerror("Identifier %s has not been defined.",$1);
-    	 	 			 exit(1);
+    	 	 			 //exit(1);
     	 	 		 }
     	 	 	 }
     	 	 	 else
     	 	 	 {
     	 	 		 yyerror("Identifiers can only be used within function context.");
-    	 	 		 exit(1);
+    	 	 		 //exit(1);
     	 	 	 }
     	 	 	 
     	 	 	 $$.idName = $1;
@@ -418,6 +418,7 @@ function_call_parameters
 %%
  
 void yyerror(char *s, ...){
+  if(cc_options.silent == 0){
   va_list ap;
   va_start(ap, s);
 
@@ -426,4 +427,5 @@ void yyerror(char *s, ...){
 	    yylloc.last_line, yylloc.last_column);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
+  }
 }
