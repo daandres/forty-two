@@ -10,7 +10,7 @@
 #include <string.h>
 
 int nextquad = START;		// addresse of TAC
-IRC* code; 						// Code Blocks of TAC
+IRCODE_t* code; 				// Code Blocks of TAC
 int size = 0; 					// size of dynamic code array
 static int tmpCount = 1;	// temp identifier code number
 
@@ -96,7 +96,7 @@ void backpatch(int* list, int nquad) {
  */
 void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount) {
 	size++;
-	code = (IRC *) realloc(code, size * sizeof(IRC));
+	code = (IRCODE_t *) realloc(code, size * sizeof(IRCODE_t));
 	if (code == NULL) {
 		warning("could not allocate memory");
 		return;

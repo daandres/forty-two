@@ -24,17 +24,17 @@
 %}
 %code requires{
 #include "symtab.h"
- extern sym_union *sym_table;
- extern function_param *param_list;
+ extern sym_union_t *sym_table;
+ extern function_param_t *param_list;
 }
 
 %union {
   int i;
   char *lexem;
-  IRT airt; //for TAC generation
-  typeEnum etyp;
-  sym_union sunion;
-  sym_function sfun;
+  IRTYPE_t airt; //for TAC generation
+  typeEnum_t etyp;
+  sym_union_t sunion;
+  sym_function_t sfun;
 }
  
 %debug
@@ -83,7 +83,7 @@
 
 /*****Epsilonproductions******/
 function_def
-	:  /* empty */  {  sym_function func; //The returntypeis left blank for now. will be added in the definition
+	:  /* empty */  {  sym_function_t func; //The returntypeis left blank for now. will be added in the definition
 						func.protOrNot = no;
 						
 						if(insertFuncGlobal(function_context, func) == 1){
@@ -95,7 +95,7 @@ function_def
 						 };
 						
 						if(param_list != NULL){
-							 function_param *fparam;
+							 function_param_t *fparam;
 																						 
 							 DL_FOREACH(param_list,fparam) debug("Variable: %s of Type:%d", fparam->name, fparam->varType);
 							 
@@ -139,13 +139,13 @@ type
 
 variable_declaration //TODO: Check if all the variables have the same Type;
      : variable_declaration COMMA identifier_declaration	{	
-									sym_union var;
+									sym_union_t var;
 									if($3.vof.symVariable.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1.vof.symVariable.varType == intType) {
     	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 	 } else {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
-    	 	 	 	 	 	 	 	 		 //exit(1);
+    	 	 	 	 	 	 	 	 		 ////exit(1);
     	 	 	 	 	 	 	 	 	 }
      	 	 	 	 	 	 	 	 } else {
      	 	 	 	 	 	 	 		 var.vof.symVariable.varType = $1.vof.symVariable.varType;
@@ -158,13 +158,13 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 										insertVarLocal(var.name, function_context, var.vof.symVariable, 0);
 									}
 								}
-     | type identifier_declaration	{	sym_union var;
+     | type identifier_declaration	{	sym_union_t var;
      									if($2.vof.symVariable.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType) {
     	 	 	 	 	 	 	 	 		 var.vof.symVariable.varType = intArrayType;
     	 	 	 	 	 	 	 	 		 } else {
     	 	 	 	 	 	 	 	 			 yyerror("Error: Only Integer arrays are valid.");
-    	 	 	 	 	 	 	 	 			 //exit(1);
+    	 	 	 	 	 	 	 	 			 ////exit(1);
     	 	 	 	 	 	 	 	 		 }
      	 	 	 	 	 	 	 		 } else {
      	 	 	 	 	 	 	 			 var.vof.symVariable.varType = $1;
@@ -182,26 +182,26 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 
 
 identifier_declaration
-     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_union var;
+     : ID BRACKET_OPEN NUM BRACKET_CLOSE	{ sym_union_t var;
      	 	 	 	 	 	 	 	 	 	 var.name = $1;
      	 	 	 	 	 	 	 	 	 	 var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
      	 	 	 	 	 	 	 	 	 	 $$ = var;
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
-     | ID	{sym_union var;
+     | ID	{sym_union_t var;
 	 	 	 var.name = $1;
 	 	 	 $$ = var;
      	 	 	 	 	 	 }
      ;
 
 function_definition
-     : function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    sym_union* function = searchGlobal($1.name);
+     : function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    sym_union_t* function = searchGlobal($1.name);
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 param_list = NULL;
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 function_context = NULL;
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
-     | function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	sym_union* function = searchGlobal($1.name);
+     | function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	sym_union_t* function = searchGlobal($1.name);
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
     	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 param_list = NULL;
@@ -211,13 +211,13 @@ function_definition
 
 function_declaration
      : function_header PARA_CLOSE	{ 	 
-    	 	 	 	 	 	 	 	 sym_function func;
+    	 	 	 	 	 	 	 	 sym_function_t func;
     	 	 	 	 	 	 	 	 func.returnType = $1.vof.symVariable.varType;
      	 	 	 	 	 	 	 	 func.protOrNot = proto; 
      	 	 	 	 	 	 	 	 
      	 	 	 	 	 	 	 	 if(insertFuncGlobal($1.name, func) != 1){
      	 	 	 	 	 	 	 	     yyerror("Error while declaring function %s. Function was already declared.", $1.name);
-										 exit(1);
+										 //exit(1);
 									 }else{
 										 debug("Function %s declared. \n", $1.name);
 									 };
@@ -226,19 +226,19 @@ function_declaration
 									 function_context = NULL;
      	 	 	 	 	 	 	 	 	 	 	 	 	 } 
      | function_header function_parameter_list PARA_CLOSE { 
-    	 	 	 	 	 	 	 	 	 	 	 	 	 	 sym_function func;
+    	 	 	 	 	 	 	 	 	 	 	 	 	 	 sym_function_t func;
 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 func.returnType = $1.vof.symVariable.varType;
 															 func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
 															 
 															 if(insertFuncGlobal($1.name, func) != 1){
 																 yyerror("Error while declaring function %s. Function was already declared.", $1.name);
-																 exit(1);
+																 //exit(1);
 															 }else{
 																 debug("Function %s declared. \n", $1.name);
 															 };
 															 
 						     	 	 	 	 	 	 	 	 
-															 function_param *fparam;
+															 function_param_t *fparam;
 															 
 						     	 	 	 	 	 	 	 	 DL_FOREACH(param_list,fparam) debug("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
 															 
@@ -259,19 +259,21 @@ function_header
 	;
 	
 function_parameter_list
-     : function_parameter { function_param* param = (function_param*)malloc(sizeof(function_param));
+     : function_parameter { function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
 							if(param == NULL){
      warning("could not allocate memory");
-     	 	 	 	 	 	 	exit(1); }
+     	 	 	 	 	 	 	//exit(1); 
+}
      	 	 	 	 	 	 param->name = $1.name;
      	 	 	 	 	 	 param->varType = $1.vof.symVariable.varType;
      	 	 	 	 	 	 
      	 	 	 	 	 	 DL_APPEND(param_list,param);
      	 	 	 	 	 	 	 	 	 	 	 	 }
-     | function_parameter_list COMMA function_parameter {  function_param* param = (function_param*)malloc(sizeof(function_param));
+     | function_parameter_list COMMA function_parameter {  function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
      if(param == NULL){
      warning("could not allocate memory");
-     	 	 	 	 	 	 	exit(1); }
+     	 	 	 	 	 	 	//exit(1); 
+}
 															 param->name = $3.name;
 															 param->varType = $3.vof.symVariable.varType;
 															 
@@ -282,7 +284,7 @@ function_parameter_list
      ;
 	
 function_parameter
-     : type identifier_declaration { sym_union var;
+     : type identifier_declaration { sym_union_t var;
      
 									if($2.vof.symVariable.varType == ArrayType){
     	 	 	 	 	 	 	 	 	 if($1 == intType)
@@ -292,7 +294,7 @@ function_parameter
     	 	 	 	 	 	 	 	 	 else
     	 	 	 	 	 	 	 	 	 {
     	 	 	 	 	 	 	 	 		 yyerror("Error: Only Integer arrays are valid.");
-    	 	 	 	 	 	 	 	 		 //exit(1);
+    	 	 	 	 	 	 	 	 		 ////exit(1);
     	 	 	 	 	 	 	 	 	 };
      	 	 	 	 	 	 	 	 }else{
      	 	 	 	 	 	 	 		 var.vof.symVariable.varType = $1;
@@ -401,13 +403,13 @@ primary
     	 	 	 {
     	 	 		 if(searchBoth($1, function_context) == NULL){
     	 	 			 yyerror("Identifier %s has not been defined.",$1);
-    	 	 			 //exit(1);
+    	 	 			 ////exit(1);
     	 	 		 }
     	 	 	 }
     	 	 	 else
     	 	 	 {
     	 	 		 yyerror("Identifiers can only be used within function context.");
-    	 	 		 //exit(1);
+    	 	 		 ////exit(1);
     	 	 	 }
     	 	 	 
     	 	 	 $$.idName = $1;

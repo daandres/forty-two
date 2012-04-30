@@ -7,13 +7,13 @@
 
 #include "symtab.h"
 
-sym_union *sym_table = NULL;
-function_param *param_list = NULL;
+sym_union_t *sym_table = NULL;
+function_param_t *param_list = NULL;
 
-sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
+sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
 	debug("SymTab: searchGlobal startet for %s.", symName);
-	sym_union* found_entry = NULL;
-	found_entry = malloc(sizeof(sym_union));
+	sym_union_t* found_entry = NULL;
+	found_entry = malloc(sizeof(sym_union_t));
 	if (found_entry == NULL) {
 		warning("could not allocate memory");
 		return NULL;
@@ -23,35 +23,35 @@ sym_union* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückli
 	return found_entry;
 }
 
-sym_union* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
+sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
 	debug("SymTab: searchLocal %s in %s startet.", symName, funcName);
 
-	sym_union* function = searchGlobal(funcName);
+	sym_union_t* function = searchGlobal(funcName);
 	if (function == NULL || function->symbolType != symFunction) {
 		return NULL;
 	}
 	if (function->vof.symFunction.local_variables == NULL) {
 		return NULL;
 	}
-	sym_union* found_variable;
+	sym_union_t* found_variable;
 	HASH_FIND_STR(function->vof.symFunction.local_variables, symName, found_variable);
 	return found_variable;
 }
 
-sym_union* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zurückliefern */
+sym_union_t* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zurückliefern */
 	debug("SymTab: searchBoth %s in %s startet.", symName, funcName);
-	sym_union* found_entry = searchLocal(symName, funcName);
+	sym_union_t* found_entry = searchLocal(symName, funcName);
 	if (found_entry == NULL) {
 		found_entry = searchGlobal(symName);
 	}
 	return found_entry;
 }
 
-int insertFuncGlobal(char* symName, sym_function func) {
+int insertFuncGlobal(char* symName, sym_function_t func) {
 	debug("SymTab: New Function %s in global.", symName);
 	if (searchGlobal(symName) == NULL) {
-		sym_union* new_entry;
-		new_entry = (sym_union *) malloc(sizeof(sym_union));
+		sym_union_t* new_entry;
+		new_entry = (sym_union_t *) malloc(sizeof(sym_union_t));
 		if (new_entry == NULL)
 			return 1;
 		new_entry->symbolType = symFunction;
@@ -66,8 +66,8 @@ int insertFuncGlobal(char* symName, sym_function func) {
 }
 
 //Noch nicht ausführlich getestet!!!
-int alterFuncGlobal(char* symName, sym_function func) {
-	sym_union* entry = searchGlobal(symName);
+int alterFuncGlobal(char* symName, sym_function_t func) {
+	sym_union_t* entry = searchGlobal(symName);
 	if (entry != NULL) {
 		entry->vof.symFunction = func;
 		return 0;
@@ -75,11 +75,11 @@ int alterFuncGlobal(char* symName, sym_function func) {
 	return 1;
 }
 
-int insertVarGlobal(char* symName, sym_variable var) {
+int insertVarGlobal(char* symName, sym_variable_t var) {
 	debug("SymTab: New Variable %s in global.", symName); //Moritz: Habe 'or Function' rausgenommen
 	if (searchGlobal(symName) == NULL) {
-		sym_union* new_entry;
-		new_entry = (sym_union *) malloc(sizeof(sym_union));
+		sym_union_t* new_entry;
+		new_entry = (sym_union_t *) malloc(sizeof(sym_union_t));
 		if (new_entry == NULL)
 			return 1;
 		new_entry->symbolType = symVariable;
@@ -92,8 +92,8 @@ int insertVarGlobal(char* symName, sym_variable var) {
 }
 
 //Noch nicht ausführlich getestet!!!
-int alterVarGlobal(char* symName, sym_variable var) {
-	sym_union* entry = searchGlobal(symName);
+int alterVarGlobal(char* symName, sym_variable_t var) {
+	sym_union_t* entry = searchGlobal(symName);
 	if (entry != NULL) {
 		entry->vof.symVariable = var;
 		return 0;
@@ -101,14 +101,14 @@ int alterVarGlobal(char* symName, sym_variable var) {
 	return 1;
 }
 
-int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
+int insertVarLocal(char* symName, char* funcName, sym_variable_t var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
 	debug("SymTab: New Variable %s local in %s.", symName, funcName);
 
-	sym_union* function = searchGlobal(funcName);
+	sym_union_t* function = searchGlobal(funcName);
 
 	if (function != NULL && function->symbolType == symFunction && searchLocal(symName, funcName) == NULL) {
-		sym_union* new_entry;
-		new_entry = (sym_union *) malloc(sizeof(sym_union));
+		sym_union_t* new_entry;
+		new_entry = (sym_union_t *) malloc(sizeof(sym_union_t));
 		if (new_entry == NULL)
 			return 1;
 		new_entry->symbolType = symVariable;
@@ -126,10 +126,10 @@ int insertVarLocal(char* symName, char* funcName, sym_variable var, int varCall)
  * Own method for inserting call parameter definitions. As this happens during declaration,
  * there is no need for checking the local sym-table for occurence.
  */
-int insertCallVarLocal(char* funcName, function_param* parm) {
+int insertCallVarLocal(char* funcName, function_param_t* parm) {
 	debug("SymTab: New Call-Parameter-list in %s.", funcName);
 
-	sym_union* function = searchGlobal(funcName);
+	sym_union_t* function = searchGlobal(funcName);
 
 	if (function != NULL && function->symbolType == symFunction) {
 		function->vof.symFunction.callVar = parm;
@@ -139,8 +139,8 @@ int insertCallVarLocal(char* funcName, function_param* parm) {
 }
 
 //Noch nicht ausführlich getestet!!!
-int alterVarLocal(char* symName, char* funcName, sym_variable var) {
-	sym_union* entry = searchLocal(symName, funcName);
+int alterVarLocal(char* symName, char* funcName, sym_variable_t var) {
+	sym_union_t* entry = searchLocal(symName, funcName);
 	if (entry != NULL) {
 		entry->vof.symVariable = var;
 		return 0;
