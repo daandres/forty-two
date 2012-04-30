@@ -10,12 +10,22 @@
 	#include "parser.h"	
 	#include <stdio.h>
 	/* handle locations */
-	//int yycolumn = 1;
+	int yycolumn = 0;
 
-	//#define YY_USER_ACTION yylloc.first_line = yyloc.last_line = yylineno; \
-    //yylloc.first_column = yycolumn; yylloc.last_column = yycolumn+yyleng-1; \
-    //yycolumn += yyleng;
-	
+	#define YY_USER_ACTION \
+		yylloc.first_line = yylineno;			\
+		yylloc.last_line = yylineno; 			\
+    	yylloc.first_column = yycolumn + 1;		\
+    	yylloc.last_column = yycolumn + yyleng;	\
+    	if (yyleng == 1 && yytext[0]=='\n') {	\
+      		yylloc.first_column = 0;			\
+      		yylloc.last_column = 0;				\
+      		yycolumn = 0;                       \
+    	} else {								\
+     		 yycolumn += yyleng;                \
+    	}											
+  	
+  
 %}
 
 /* 
