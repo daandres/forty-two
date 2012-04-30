@@ -260,16 +260,25 @@ function_header
 	
 function_parameter_list
      : function_parameter { function_param* param = (function_param*)malloc(sizeof(function_param));
+							if(param == NULL){
+     warning("could not allocate memory");
+     	 	 	 	 	 	 	exit(1); }
      	 	 	 	 	 	 param->name = $1.name;
      	 	 	 	 	 	 param->varType = $1.vof.symVariable.varType;
      	 	 	 	 	 	 
-     	 	 	 	 	 	 DL_APPEND(param_list,param); 
+     	 	 	 	 	 	 DL_APPEND(param_list,param);
      	 	 	 	 	 	 	 	 	 	 	 	 }
      | function_parameter_list COMMA function_parameter {  function_param* param = (function_param*)malloc(sizeof(function_param));
+     if(param == NULL){
+     warning("could not allocate memory");
+     	 	 	 	 	 	 	exit(1); }
 															 param->name = $3.name;
 															 param->varType = $3.vof.symVariable.varType;
 															 
-															 DL_APPEND(param_list,param); }
+															 DL_APPEND(param_list,param);
+     	 	 	 	 	 	 	
+															 
+															 }
      ;
 	
 function_parameter

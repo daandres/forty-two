@@ -19,6 +19,11 @@ static int tmpCount = 1;	// temp identifier code number
  */
 char* newtemp() {
 	char* tmp = (char*) malloc(sizeof(char) * 5);
+	if (tmp == NULL) {
+		warning("could not allocate memory");
+		//FIXME
+		return (char*) 1;
+	}
 	sprintf(tmp, ".t%0d", tmpCount++);
 	return tmp;
 }
@@ -27,6 +32,11 @@ char* newtemp() {
  */
 int* makelist(int nquad) {
 	int* list = (int*) malloc(sizeof(int) * 15);
+	if (list == NULL) {
+		warning("could not allocate memory");
+		//FIXME
+		return (int*) 1;
+	}
 	list[0] = nquad;
 	list[1] = 0;
 	return list;
@@ -54,17 +64,17 @@ int* merge(int* list1, int* list2) {
  */
 void setMissingParm(int index, char* value) {
 	switch (code[index].paramcount) {
-	case 3:
-		code[index].op_three = value;
-		break;
-	case 2:
-		code[index].op_two = value;
-		break;
-	case 1:
-		code[index].op_one = value;
-		break;
-	case 0:
-		break;
+		case 3:
+			code[index].op_three = value;
+			break;
+		case 2:
+			code[index].op_two = value;
+			break;
+		case 1:
+			code[index].op_one = value;
+			break;
+		case 0:
+			break;
 	}
 }
 
@@ -87,6 +97,10 @@ void backpatch(int* list, int nquad) {
 void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount) {
 	size++;
 	code = (IRC *) realloc(code, size * sizeof(IRC));
+	if (code == NULL) {
+		warning("could not allocate memory");
+		return;
+	}
 	(code + size - 1)->quad = nextquad;
 	(code + size - 1)->op = op;
 	strcpy((code + size - 1)->op_one, op_one);
@@ -99,66 +113,66 @@ void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int par
 char* formatIrCode(int i) {
 	char * s = "";
 	switch (code[i].op) {
-	case OP_ASSIGN:
-		sprintf(s, "%d\t%s = %s", code[i].quad, code[i].op_one, code[i].op_two);
-		break;
-	case OP_ADD:
-		sprintf(s, "%d\t%s = %s + %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_SUB:
-		sprintf(s, "%d\t%s = %s - %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_MUL:
-		sprintf(s, "%d\t%s = %s * %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_DIV:
-		sprintf(s, "%d\t%s = %s / %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_MOD:
-		sprintf(s, "%d\t%s = %s %s %s", code[i].quad, code[i].op_one, code[i].op_two, "%", code[i].op_three);
-		break;
-	case OP_MIN:
-		sprintf(s, "%d\t%s = - %s", code[i].quad, code[i].op_one, code[i].op_two);
-		break;
-	case OP_IFEQ:
-		sprintf(s, "%d\tIF %s == %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_IFNE:
-		sprintf(s, "%d\tIF %s != %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_IFGT:
-		sprintf(s, "%d\tIF %s > %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_IFGE:
-		sprintf(s, "%d\tIF %s >= %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_IFLT:
-		sprintf(s, "%d\tIF %s < %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_IFLE:
-		sprintf(s, "%d\tIF %s <= %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_GOTO:
-		sprintf(s, "%d\tGOTO %s", code[i].quad, code[i].op_one);
-		break;
-	case OP_RETURN_VOID:
-		sprintf(s, "%d\tRETURN", code[i].quad);
-		break;
-	case OP_RETURN_VAL:
-		sprintf(s, "%d\tRETURN %s", code[i].quad, code[i].op_one);
-		break;
-	case OP_CALL_VOID:
-		sprintf(s, "%d\tCALL %s, (%s)", code[i].quad, code[i].op_one, code[i].op_two);
-		break;
-	case OP_CALL_RET:
-		sprintf(s, "%d\t%s = CALL %s, (%s)", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_ARRAY_LOAD:
-		sprintf(s, "%d\t%s = %s[%s]", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
-	case OP_ARRAY_STORE:
-		sprintf(s, "%d\t%s[%s] = %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
-		break;
+		case OP_ASSIGN:
+			sprintf(s, "%d\t%s = %s", code[i].quad, code[i].op_one, code[i].op_two);
+			break;
+		case OP_ADD:
+			sprintf(s, "%d\t%s = %s + %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_SUB:
+			sprintf(s, "%d\t%s = %s - %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_MUL:
+			sprintf(s, "%d\t%s = %s * %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_DIV:
+			sprintf(s, "%d\t%s = %s / %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_MOD:
+			sprintf(s, "%d\t%s = %s %s %s", code[i].quad, code[i].op_one, code[i].op_two, "%", code[i].op_three);
+			break;
+		case OP_MIN:
+			sprintf(s, "%d\t%s = - %s", code[i].quad, code[i].op_one, code[i].op_two);
+			break;
+		case OP_IFEQ:
+			sprintf(s, "%d\tIF %s == %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_IFNE:
+			sprintf(s, "%d\tIF %s != %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_IFGT:
+			sprintf(s, "%d\tIF %s > %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_IFGE:
+			sprintf(s, "%d\tIF %s >= %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_IFLT:
+			sprintf(s, "%d\tIF %s < %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_IFLE:
+			sprintf(s, "%d\tIF %s <= %s GOTO %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_GOTO:
+			sprintf(s, "%d\tGOTO %s", code[i].quad, code[i].op_one);
+			break;
+		case OP_RETURN_VOID:
+			sprintf(s, "%d\tRETURN", code[i].quad);
+			break;
+		case OP_RETURN_VAL:
+			sprintf(s, "%d\tRETURN %s", code[i].quad, code[i].op_one);
+			break;
+		case OP_CALL_VOID:
+			sprintf(s, "%d\tCALL %s, (%s)", code[i].quad, code[i].op_one, code[i].op_two);
+			break;
+		case OP_CALL_RET:
+			sprintf(s, "%d\t%s = CALL %s, (%s)", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_ARRAY_LOAD:
+			sprintf(s, "%d\t%s = %s[%s]", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
+		case OP_ARRAY_STORE:
+			sprintf(s, "%d\t%s[%s] = %s", code[i].quad, code[i].op_one, code[i].op_two, code[i].op_three);
+			break;
 	}
 	return s;
 }
