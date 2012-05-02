@@ -16,6 +16,8 @@
   
   char* function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
   
+  //Flag to indicate if the code is syntacitcal correct. 1 means correct, else not; Assume the code is correct, when not change this value
+  int correct = 1;
 %}
 %code requires{
 	#include "symtab.h"
@@ -88,7 +90,8 @@ function_def
 		}
 		if(param_list != NULL){
 			function_param_t *fparam;
-			DL_FOREACH(param_list,fparam) debug("Variable: %s of Type:%d", fparam->name, fparam->varType);
+			DL_FOREACH(param_list,fparam)
+				debug("Variable: %s of Type:%d", fparam->name, fparam->varType);
 			insertCallVarLocal(function_context, param_list);
 			param_list = NULL;
 		}
@@ -110,7 +113,12 @@ M_nextAndsv
 /****************************/
 
 program
-	: program_element_list
+	: program_element_list {
+		if(correct == 1)
+			info("\nSyntax correct!\n");
+		else 
+			warning("Syntax not correct! See Log for more information\n");
+	}
 	;
 
 program_element_list
@@ -211,7 +219,7 @@ function_declaration
 		sym_function_t func;
 		func.returnType = $1.vof.symVariable.varType;
 		func.protOrNot = proto; 
-		if(insertFuncGlobal($1.name, func) != 1){
+		if(insertFuncGlobal($1.name, func) != 0){
 			yyerror("Error while declaring function %s. Function was already declared.", $1.name);
 			//exit(1);
 		}else{
@@ -224,14 +232,15 @@ function_declaration
     	sym_function_t func;
 	 	func.returnType = $1.vof.symVariable.varType;
 		func.protOrNot = proto; //An welcher stelle muss 'no' gesetzt werden???
-		if(insertFuncGlobal($1.name, func) != 1){
+		if(insertFuncGlobal($1.name, func) != 0){
 			yyerror("Error while declaring function %s. Function was already declared.", $1.name);
 			//exit(1);
 		}else{
 			debug("Function %s declared. \n", $1.name);
 		}
 		function_param_t *fparam;
- 	 	DL_FOREACH(param_list,fparam) debug("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
+ 	 	DL_FOREACH(param_list,fparam) 
+ 	 		debug("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
 		insertCallVarLocal(function_context, param_list);
 		param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
 		function_context = NULL;
@@ -325,7 +334,7 @@ expression
 	| expression LOGICAL_AND expression
 	| LOGICAL_NOT expression
 	| expression EQ expression {
-			//genStmt(OP_IFEQ, $1.idName, $3.idname, NULL, 3);
+			//genStmt(OP_IFEQ, $1.idName, $3.idName, NULL, 3);
 	}
 	| expression NE expression {
 			//genStmt(OP_IFNE, $1.idName, $3.idName, NULL, 3);
@@ -344,8 +353,8 @@ expression
 			//genStmt(OP_IFGE, temp, $1.idName, $3.idName, 3);
 	}
 	| expression PLUS expression {
-			//strcpy($$.idName, newtemp());
-			//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+			strcpy($$.idName, newtemp());
+			genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
 	}
 	| expression MINUS expression {
 			//strcpy($$.idName, newtemp());
@@ -400,6 +409,7 @@ function_call_parameters
 %%
  
 void yyerror(char *s, ...){
+	correct = 0;
 	if(cc_options.silent == 0){
 	va_list ap;
 	va_start(ap, s);

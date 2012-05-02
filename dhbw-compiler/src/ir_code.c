@@ -98,14 +98,17 @@ void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int par
 	size++;
 	code = (IRCODE_t *) realloc(code, size * sizeof(IRCODE_t));
 	if (code == NULL) {
-		warning("could not allocate memory");
+		warning("could not reallocate memory");
 		return;
 	}
 	(code + size - 1)->quad = nextquad;
 	(code + size - 1)->op = op;
-	strcpy((code + size - 1)->op_one, op_one);
-	strcpy((code + size - 1)->op_two, op_two);
-	strcpy((code + size - 1)->op_three, op_three);
+//	strcpy((code + size - 1)->op_one, op_one);
+//	strcpy((code + size - 1)->op_two, op_two);
+//	strcpy((code + size - 1)->op_three, op_three);
+	(code + size - 1)->op_one = op_one;
+	(code + size - 1)->op_two = op_two;
+	(code + size - 1)->op_three = op_three;
 	(code + size - 1)->paramcount = paramcount;
 	nextquad++;
 }

@@ -404,7 +404,6 @@ int main(int argc, char *argv[]) {
 	yyparse();
 	fclose(yyin);
 
-	info("Syntax correct!");
 
 	if (cc_options.print_ir == 1) {
 		printSymTable(cc_options.ir_file);
