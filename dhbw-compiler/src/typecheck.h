@@ -10,6 +10,10 @@
 
 typedef enum typesForCheck {
 	voidType = 0, intg = 1, intArrayEntry = 2, intArray = 3, num = 4
-} typeEnum_t;
+} typesForCheck_t;
+
+int checkAssignment(int initTypeOne, int initTypeTwo);
+int checkFunctionCall(int one, int two);
+int checkOperation(int initTypeOne, int initTypeTwo, int* returnValue);
 
 #endif /* TYPECHECK_H_ */
