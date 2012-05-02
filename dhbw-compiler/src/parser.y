@@ -27,7 +27,7 @@
 	int i;
 	char *lexem;
 	IRTYPE_t airt; //for TAC generation
-	typeEnum_t etyp;
+	types_t etyp;
 	sym_union_t sunion;
 	sym_function_t sfun;
 }
@@ -405,8 +405,8 @@ void yyerror(char *s, ...){
 	va_start(ap, s);
 
 	if(yylloc.first_line)
-		fprintf(stderr, "%d.%d: ", yylloc.first_line, yylloc.first_column);
-		//fprintf(stderr, "%d.%d-%d.%d: ", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column);
+		//fprintf(stderr, "%d.%d: ", yylloc.first_line, yylloc.first_column);
+		fprintf(stderr, "%d.%d-%d.%d: ", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column);
 	vfprintf(stderr, s, ap);
 	fprintf(stderr, "\n");
 	}
