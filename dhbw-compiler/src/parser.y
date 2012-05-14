@@ -207,6 +207,9 @@ function_definition
 		function_context = NULL;
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
+		//sym_union_t* function = (sym_union_t *) malloc(sizeof(sym_union_t));
+		//if (function == NULL)
+		//	yyerror("could not allocate memory");		
 		sym_union_t* function = searchGlobal($1.name);
 		function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 		param_list = NULL;
@@ -256,6 +259,7 @@ function_header
 	}
 	;
 	
+	
 function_parameter_list
 	: function_parameter { 
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
@@ -299,6 +303,7 @@ function_parameter
 									
 stmt_list
 	: /* empty: epsilon */
+
 	| stmt_list stmt
 	;
 
@@ -353,8 +358,8 @@ expression
 			//genStmt(OP_IFGE, temp, $1.idName, $3.idName, 3);
 	}
 	| expression PLUS expression {
-			strcpy($$.idName, newtemp());
-			genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+			//$$.idName = newtemp();
+			//genStmt(OP_MUL, newtemp(), $1.idName, $3.idName, 3);
 	}
 	| expression MINUS expression {
 			//strcpy($$.idName, newtemp());

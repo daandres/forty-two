@@ -12,7 +12,7 @@
 int nextquad = START;		// addresse of TAC
 IRCODE_t* code; 				// Code Blocks of TAC
 int size = 0; 					// size of dynamic code array
-static int tmpCount = 1;	// temp identifier code number
+int tmpCount = 1;	// temp identifier code number
 
 /*
  * This fuction generats a new temp identifier for the TAC. (.t1, .t2)
@@ -34,7 +34,7 @@ int* makelist(int nquad) {
 	int* list = (int*) malloc(sizeof(int) * 15);
 	if (list == NULL) {
 		warning("could not allocate memory");
-		//FIXME
+		//FIXME list hat genau 15 Elemente Platz --> dymanisch mit realloc
 		return (int*) 1;
 	}
 	list[0] = nquad;

@@ -63,7 +63,8 @@ return						{	return RETURN; }
 								yylval.i = atoi(yytext);
 								return NUM; }
 {identifier}				{	//printf("LEX ID - %s\n", strdup(yytext));
-								yylval.lexem = strdup(yytext);
+								//yylval.lexem = strdup(yytext);
+								yylval.lexem = yytext;
 								return ID; }
 
 \=\=						{	return EQ; }

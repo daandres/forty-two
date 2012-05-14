@@ -13,7 +13,7 @@ function_param_t *param_list = NULL;
 sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
 	debug("SymTab: searchGlobal started for '%s'.", symName);
 	sym_union_t* found_entry = NULL;
-	found_entry = malloc(sizeof(sym_union_t));
+	found_entry = (sym_union_t*) malloc(sizeof(sym_union_t));
 	if (found_entry == NULL) {
 		warning("could not allocate memory");
 		return NULL;
@@ -209,9 +209,9 @@ int printSymTable(char* filename) {
 					break;
 			}
 
-			if (act->vof.symFunction.interCode != NULL) {
-				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode);
-			}
+//			if (act->vof.symFunction.interCode != NULL) {
+//				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode);
+//			}
 			if (act->vof.symFunction.local_variables != NULL) {
 				for (subvar = act->vof.symFunction.local_variables; subvar != NULL; subvar = subvar->hh.next) {
 					fprintf(datei, "\t-----------------------------------\n");
