@@ -385,7 +385,7 @@ expression
 
 primary
      : NUM	{
-			$$.idName = sprintf("%i", $1);
+			 sprintf($$.idName,"%i", $1);
 				}
      | ID	{
     	 	 	 if(function_context != NULL)
