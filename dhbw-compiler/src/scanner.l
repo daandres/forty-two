@@ -9,13 +9,24 @@
  
 	#include "parser.h"	
 	#include <stdio.h>
+	#include <string.h>
 	/* handle locations */
-	//int yycolumn = 1;
+	int yycolumn = 0;
 
-	//#define YY_USER_ACTION yylloc.first_line = yyloc.last_line = yylineno; \
-    //yylloc.first_column = yycolumn; yylloc.last_column = yycolumn+yyleng-1; \
-    //yycolumn += yyleng;
-	
+	#define YY_USER_ACTION \
+		yylloc.first_line = yylineno;			\
+		yylloc.last_line = yylineno; 			\
+    	yylloc.first_column = yycolumn;		\
+    	yylloc.last_column = yycolumn + yyleng;	\
+    	if (yyleng == 1 && strcmp(yytext,"\n")==0) {	\
+      		yylloc.first_column = 0;			\
+      		yylloc.last_column = 0;				\
+      		yycolumn = 0;                       \
+    	} else {								\
+     		 yycolumn += yyleng;                \
+    	}											
+  	
+  
 %}
 
 /* 
@@ -52,7 +63,8 @@ return						{	return RETURN; }
 								yylval.i = atoi(yytext);
 								return NUM; }
 {identifier}				{	//printf("LEX ID - %s\n", strdup(yytext));
-								yylval.lexem = strdup(yytext);
+								//yylval.lexem = strdup(yytext);
+								yylval.lexem = yytext;
 								return ID; }
 
 \=\=						{	return EQ; }

@@ -21,7 +21,7 @@ typedef struct IRTYPE {
 	int* next; 		// next exit
 	int quad; 		// number of statement
 	char* idName; 	// variable or temporary variable name
-} IRT;
+} IRTYPE_t;
 
 typedef enum opcode {
 	OP_ASSIGN, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_MIN,
@@ -31,16 +31,16 @@ typedef enum opcode {
 	OP_RETURN_VOID, OP_RETURN_VAL, OP_CALL_VOID, OP_CALL_RET,
 
 	OP_ARRAY_LOAD, OP_ARRAY_STORE
-} opcode;
+} opcode_t;
 
 typedef struct IRCODE {
 	int quad;			// number of statement
-	opcode op; 	// operator
+	opcode_t op; 	// operator
 	char* op_one;			// first or result operand
 	char* op_two; 		// second or left operand
 	char* op_three; 		// third or right operand
 	int paramcount; 	// number of parameters... if an op needs less then three operands
-} IRC;
+} IRCODE_t;
 
 void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount);
 void printIrCode(char* f);

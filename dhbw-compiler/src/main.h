@@ -4,6 +4,7 @@
 #include "diag.h"
 #include "resource_manager.h"
 #include "symtab.h"
+#include "ir_code.h"
 
 /** 
  * \struct cc_options
@@ -16,7 +17,9 @@ typedef struct cc_options {
 	char *ir_file; /**< The name of the IR file */
 
 	int force; /**< Flag indicating if that any file should be overwritten if it alerady exists */
-	char *dbg; /**< Name of debug log  */
+	int dbg; /**< Flag indicating if debug information should be printed */
+	int silent; /**< Flag indicating if no information should be printed */
+	char *log; /**< Name of log: standard: stdout */
 
 	char *input_file; /**< The name of the input file */
 	char *output_file; /**< The name of the output file */
@@ -30,5 +33,7 @@ true
 };
 
 void debug(char *string, ...);
+void info(char *string, ...);
+void warning(char *string, ...);
 
 #endif

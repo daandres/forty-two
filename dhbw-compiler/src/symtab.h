@@ -16,52 +16,58 @@
 //Moritz: Habe types um ArrayType erg�nzt
 typedef enum types {
 	voidType = 0, intType = 1, intArrayType = 2, ArrayType = 3
-} typeEnum;
+} types_t;
 
 typedef enum symbol {
 	symFunction, symVariable
-} symbolEnum;
+} symbol_t;
 
 typedef enum prototype {
 	no = 0, proto = 1
-} prototypeEnum;
+} prototype_t;
 
 typedef struct sym_variable {
-	enum types varType;
+	types_t varType;
 	int offsetAddress;
 	int size; // Größe eines Arrays
-} sym_variable;
+} sym_variable_t;
 
 typedef struct function_param {
 	char *name;
-	enum types varType;
+	types_t varType;
 	struct function_param *prev, *next;
-} function_param;
+} function_param_t;
 
 typedef struct sym_function {
-	enum types returnType;
-	enum prototype protOrNot;
-	function_param *callVar;
+	types_t returnType;
+	prototype_t protOrNot;
+	function_param_t *callVar;
 	struct sym_union* local_variables;
 	char* interCode;
-} sym_function;
+} sym_function_t;
 
-union variable_or_function {
-	sym_variable symVariable;
-	sym_function symFunction;
-};
+typedef union variable_or_function {
+	sym_variable_t symVariable;
+	sym_function_t symFunction;
+} variable_or_function_t;
 
 typedef struct sym_union {
-	enum symbol symbolType; /* 1 -> variable; 0 -> function */
-	union variable_or_function vof;
+	symbol_t symbolType; /* 1 -> variable; 0 -> function */
+	variable_or_function_t vof;
 	UT_hash_handle hh; /* makes this structure hashable */
 	char* name;
-} sym_union;
+} sym_union_t;
 
-sym_union* searchGlobal(); /* Kann Funktion und Variable zur�ckliefern */
-sym_union* searchLocal(); /* Kann nur Variable zur�ckliefern */
-int insertSymGlobal();
-int insertSymLocal();
+sym_union_t* searchGlobal(char* symName); /* Kann Funktion und Variable zur�ckliefern */
+sym_union_t* searchLocal(char* symName, char* funcName); /* Kann nur Variable zur�ckliefern */
+sym_union_t* searchBoth(char* symName, char* funcName);
+int insertFuncGlobal(char* symName, sym_function_t func);
+int alterFuncGlobal(char* symName, sym_function_t func);
+int insertVarGlobal(char* symName, sym_variable_t var);
+int alterVarGlobal(char* symName, sym_variable_t var);
+int insertVarLocal(char* symName, char* funcName, sym_variable_t var, int varCall);
+int insertCallVarLocal(char* funcName, function_param_t* parm);
+int alterVarLocal(char* symName, char* funcName, sym_variable_t var);
 int printSymTable(char* filename);
 
 #endif /* SYMTAB_H_ */
