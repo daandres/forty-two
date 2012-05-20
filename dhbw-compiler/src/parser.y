@@ -13,8 +13,10 @@
 	
   #define YYERROR_VERBOSE
   int yylex(void);
-  
-  char* function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
+  	  
+  	  //Funktionskontext. EnthŠlt den Namen der Funktion, wenn er sich in ihr befindet. Anonsten wird der String '___#nktx&' abgespeichert.
+  	  //Der Kryptische Name wurde gewŠhlt, da es teilweise zu Problemen mit dem NULL-Wert kam.
+  	  char* function_context = '___#nktx&';
   
   //Flag to indicate if the code is syntacitcal correct. 1 means correct, else not; Assume the code is correct, when not change this value
   int correct = 1;
@@ -84,10 +86,15 @@ function_def
 		sym_function_t func; //The returntypeis left blank for now. will be added in the definition
 		func.protOrNot = no;
 		
-		if(insertFuncGlobal(function_context, func) == 1){
-			warning("Function %s was used before it was declared. Adding declaration automatically.", function_context);
+		//Feature wurde entfernt, da es doch mšglich ist, funktionen zu definieren ohne sie zu deklarieren
+		/*if(insertFuncGlobal(function_context, func) == 1){
+			
+			//warning("Function %s was used before it was declared. Adding declaration automatically.", function_context);
 		}else{
-		}
+		}*/
+		
+		insertFuncGlobal(function_context, func); 
+		
 		if(param_list != NULL){
 			function_param_t *fparam;
 			DL_FOREACH(param_list,fparam)
@@ -155,7 +162,7 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		}
 		$$.vof.symVariable.varType = $1.vof.symVariable.varType;
 		var.name = $3.name;
-		if(function_context == NULL){
+		if(function_context == '___#nktx&'){
 			insertVarGlobal(var.name, var.vof.symVariable);
 		} else {
 			insertVarLocal(var.name, function_context, var.vof.symVariable, 0);
@@ -175,7 +182,7 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		}
 		$$.vof.symVariable.varType = var.vof.symVariable.varType;
 		var.name = $2.name;	
-		if(function_context == NULL){
+		if(function_context == '___#nktx&'){
 			insertVarGlobal(var.name, var.vof.symVariable);
 		} else {
 			insertVarLocal(var.name, function_context, var.vof.symVariable, 0);
@@ -192,19 +199,22 @@ identifier_declaration
 		var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
 		$$ = var;
 	}
-	| ID	{
+	| ID	{ 
 		sym_union_t var;
 	 	var.name = $1;
 	  	$$ = var;
 	}
 	;
-
+/*
+ * Provides the Definition of a function. Contains the function-identifier, the parameterlist and the actual
+ * body.
+ */
 function_definition
 	: function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    
 		sym_union_t* function = searchGlobal($1.name);
 		function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
-		param_list = NULL;
-		function_context = NULL;
+		
+		function_context = '___#nktx&';
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
 		//sym_union_t* function = (sym_union_t *) malloc(sizeof(sym_union_t));
@@ -212,8 +222,13 @@ function_definition
 		//	yyerror("could not allocate memory");		
 		sym_union_t* function = searchGlobal($1.name);
 		function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
-		param_list = NULL;
-		function_context = NULL;
+		
+		if(param_list == NULL){
+			warning("Param is Null. That shouldn't happen.");
+		}
+		
+		
+		function_context = '___#nktx&';
 	}
 	;
 
@@ -228,8 +243,8 @@ function_declaration
 		}else{
 			debug("Function %s declared. \n", $1.name);
 		}
-		param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
-		function_context = NULL;
+		
+		function_context = '___#nktx&';
 	} 
 	| function_header function_parameter_list PARA_CLOSE { 
     	sym_function_t func;
@@ -245,8 +260,9 @@ function_declaration
  	 	DL_FOREACH(param_list,fparam) 
  	 		debug("Variable: %s of Type:%d\n", fparam->name, fparam->varType);
 		insertCallVarLocal(function_context, param_list);
-		param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
-		function_context = NULL;
+		
+		
+		function_context = '___#nktx&';
 	}
 	;
 
@@ -256,6 +272,7 @@ function_header
 		$$.vof.symFunction.returnType= $1;
 		$$.name = $2;
 		function_context = $2;
+		param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
 	}
 	;
 	
@@ -387,8 +404,8 @@ primary
 	: NUM {
 		//sprintf($$.idName, "%i", $1);
 	}
-	| ID {
-    	if(function_context != NULL){
+	| ID { 
+    	if(function_context != '___#nktx&'){
     		if(searchBoth($1, function_context) == NULL){
     	 	 	yyerror("Identifier %s has not been defined.",$1);
     	 	 	//exit(1);

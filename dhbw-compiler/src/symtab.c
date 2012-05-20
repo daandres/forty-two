@@ -8,7 +8,7 @@
 #include "symtab.h"
 
 sym_union_t *sym_table = NULL;
-function_param_t *param_list = NULL;
+function_param_t *param_list = NULL; //Speichert die Parameterlisten für Funktionsdefinitionen und Funcktionsaufrufe
 
 sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zur√ºckliefern */
 	debug("SymTab: searchGlobal started for '%s'.", symName);
