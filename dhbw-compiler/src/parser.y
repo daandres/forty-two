@@ -10,11 +10,19 @@
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
+  #include <string.h>
 	
   #define YYERROR_VERBOSE
   int yylex(void);
   
-  char* function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
+  // allocate memory for a char pointer where the memory is stored.
+  char* function_context = malloc(sizeof(char*));
+  if(function_context == NULL){
+  	warning("Could not allocate memory for function_context variable pointer");
+  	}
+  function_context = NULL;  //!=NULL wenn wir in einem Funktionscontext sind. Die Zeichenkette entspricht dann dem Namen der Funktion
+  
+  
   
   //Flag to indicate if the code is syntacitcal correct. 1 means correct, else not; Assume the code is correct, when not change this value
   int correct = 1;
@@ -137,21 +145,25 @@ type
 	: INT {
 		$$ = intType; /*Using typedefinitions from symtab.h instead of lexems for types*/
 	} 
-	| VOID {$$ = voidType;}
+	| VOID {
+		$$ = voidType;
+	}
 	;
 
 variable_declaration //TODO: Check if all the variables have the same Type;
 	: variable_declaration COMMA identifier_declaration	{	
 		sym_union_t var;
 		if($3.vof.symVariable.varType == ArrayType) {
-			if($1.vof.symVariable.varType == intType) {
+			if($1.vof.symVariable.varType == intType || $1.vof.symVariable.varType == intArrayType) {
 				var.vof.symVariable.varType = intArrayType;
+				var.vof.symVariable.size = 4;
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
 				//exit(1);
 			}
 		} else {
 			var.vof.symVariable.varType = $1.vof.symVariable.varType;
+			var.vof.symVariable.size = $1.vof.symVariable.size;
 		}
 		$$.vof.symVariable.varType = $1.vof.symVariable.varType;
 		var.name = $3.name;
@@ -166,14 +178,17 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		if($2.vof.symVariable.varType == ArrayType){
 			if($1 == intType) {
 				var.vof.symVariable.varType = intArrayType;
+				var.vof.symVariable.size = 4;
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
     	 	 	//exit(1);
     	 	}
     	} else {
     		var.vof.symVariable.varType = $1;
+    		var.vof.symVariable.size = 4;
 		}
 		$$.vof.symVariable.varType = var.vof.symVariable.varType;
+		$$.vof.symVariable.size = var.vof.symVariable.size;
 		var.name = $2.name;	
 		if(function_context == NULL){
 			insertVarGlobal(var.name, var.vof.symVariable);
@@ -207,10 +222,10 @@ function_definition
 		function_context = NULL;
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
-		//sym_union_t* function = (sym_union_t *) malloc(sizeof(sym_union_t));
-		//if (function == NULL)
-		//	yyerror("could not allocate memory");		
-		sym_union_t* function = searchGlobal($1.name);
+		sym_union_t* function = (sym_union_t *) malloc(sizeof(sym_union_t));
+		if (function == NULL)
+			yyerror("could not allocate memory");		
+		function = searchGlobal($1.name);
 		function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 		param_list = NULL;
 		function_context = NULL;
@@ -379,7 +394,7 @@ expression
 	| PARA_OPEN expression PARA_CLOSE
 	| function_call
 	| primary { 
-		$$.idName = $1.idName;
+		//$$.idName = $1.idName;
 	}
 	;
 
