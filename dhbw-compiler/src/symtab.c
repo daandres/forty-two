@@ -6,9 +6,10 @@
  */
 
 #include "symtab.h"
+#include <string.h>
 
 sym_union_t *sym_table = NULL;
-function_param_t *param_list = NULL;
+function_param_t *param_list = NULL; //Speichert die Parameterlisten f�r Funktionsdefinitionen und Funcktionsaufrufe
 
 sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
 	debug("SymTab: searchGlobal started for '%s'.", symName);
@@ -20,26 +21,61 @@ sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zurück
 	}
 
 	HASH_FIND_STR(sym_table, symName, found_entry);
+
+
 	return found_entry;
 }
 
+/**
+ * Search inside the local-symboltable (for the function-name given) if the given variable
+ * exists or not. The Procedure automatically checks wether the variable is inside the
+ * parameter-list or inside the global table.
+ */
 sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
 	debug("SymTab: searchLocal '%s' in '%s' started.", symName, funcName);
 
 	sym_union_t* function = searchGlobal(funcName);
+
+
 	if (function == NULL || function->symbolType != symFunction) {
 		return NULL;
 	}
-	if (function->vof.symFunction.local_variables == NULL) {
+	if (function->vof.symFunction.local_variables == NULL && function->vof.symFunction.callVar == NULL) {
 		return NULL;
 	}
-	sym_union_t* found_variable;
-	HASH_FIND_STR(function->vof.symFunction.local_variables, symName, found_variable);
+
+	function_param_t *fparam;
+	sym_union_t* found_variable = NULL;
+
+	//Check wether the symbol is in the parameter-list. If the list is Null,
+	//the block is skipped automatically
+	DL_FOREACH(param_list,fparam){
+		if(strcmp(fparam->name, symName)==0){
+			found_variable = (sym_union_t *) malloc(sizeof(sym_union_t));
+
+			found_variable->vof.symVariable.varType = fparam->varType;
+			found_variable->name = fparam->name;
+			found_variable->symbolType = symVariable;
+		}
+	}
+
+	/*
+	 * It is absolutely sufficient to check wether the found_variable is not equal to NULL
+	 * because it is not possible that there is the same variable in both the parameter_list
+	 * and the local variable-list. This is caused by the fact, that the procedure returns a
+	 * value unequal to NULL when the variable was found.
+	 */
+
+	if(found_variable == NULL)
+	{
+		HASH_FIND_STR(function->vof.symFunction.local_variables, symName, found_variable);
+	}
+
 	return found_variable;
 }
 
 sym_union_t* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zurückliefern */
-	debug("SymTab: searchBoth '%s' in '%s' started.", symName, funcName);
+	debug("SymTab: searchBoth '%s' in '%s' started.\n", symName, funcName);
 	sym_union_t* found_entry = searchLocal(symName, funcName);
 	if (found_entry == NULL) {
 		found_entry = searchGlobal(symName);
@@ -127,16 +163,76 @@ int insertVarLocal(char* symName, char* funcName, sym_variable_t var, int varCal
  * there is no need for checking the local sym-table for occurence.
  */
 int insertCallVarLocal(char* funcName, function_param_t* parm) {
-	debug("SymTab: New Call-Parameter-list in '%s'.", funcName);
+	debug("SymTab: New Call-Parameter-list in '%s'.\n", funcName);
 
 	sym_union_t* function = searchGlobal(funcName);
+	//No need to check for local variables, as the local part does not exist yet.
 
 	if (function != NULL && function->symbolType == symFunction) {
 		function->vof.symFunction.callVar = parm;
 		return 0;
+	}else
+	{
+		debug("No param inserted in %s. But Why???\n", funcName);
 	}
 	return 1;
 }
+
+/**
+ * Compares two linked parameter-lists
+ *
+ * @parm first first list of parameters
+ * @parm second second list of parameters
+ */
+int validateParameter(function_param_t* first, function_param_t* second){
+
+	if(first == NULL && second == NULL){
+		return 0;
+	}
+	else if(first == NULL || second == NULL){ //termination-condition for rekursion
+		return 1;
+	}else{
+		if(first->varType == second->varType){
+			return (validateParameter(first->next,second->next));
+		}else{
+			return 1; //unequal types
+		}
+
+	}
+}
+
+/**
+ * Check wether the definition of a function is compliant with its declaration.
+ *
+ * @parm params parameters of the definition
+ * @parm funcName Name of the current function-context
+ */
+int checkFunctionDefinition(function_param_t* params, char* funcName){
+
+	//1) Get Function entry to obtain the current parameter-list
+	sym_union_t* function = searchGlobal(funcName);
+
+	//2) Compare parameter-lists
+	if (function != NULL && function->symbolType == symFunction) {
+
+		if(function->vof.symFunction.callVar != NULL){
+			if(params == NULL){
+				return 1; //there is a declaration but the definition remains empty
+			}
+			else{
+				//As both the definition and the declaration are not empty, we need to checkt the parametertypes
+				return validateParameter(function->vof.symFunction.callVar, params);
+			}
+		}
+
+		return 0;
+	}
+	else{
+		return 1;
+	}
+}
+
+
 
 //Noch nicht ausführlich getestet!!!
 int alterVarLocal(char* symName, char* funcName, sym_variable_t var) {
@@ -144,6 +240,9 @@ int alterVarLocal(char* symName, char* funcName, sym_variable_t var) {
 	if (entry != NULL) {
 		entry->vof.symVariable = var;
 		return 0;
+	}else
+	{
+		debug("No param inserted in %s. But Why???\n", funcName);
 	}
 	return 1;
 }
