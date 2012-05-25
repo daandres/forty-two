@@ -59,4 +59,6 @@ IRLIST_t* makelist(IRCODE_t* nquad);
 IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2);
 void backpatch(IRLIST_t* list);
 
+
+extern int nextquad;
 #endif /* IR_CODE_H_ */

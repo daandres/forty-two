@@ -210,8 +210,6 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 	}
 	;
 	
-
-
 identifier_declaration
 	: ID BRACKET_OPEN NUM BRACKET_CLOSE	{ 
 		sym_union_t var;
@@ -386,7 +384,7 @@ stmt_loop
 	| DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON
 	;
 									
-expression
+expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was drin steht*/
 	: expression ASSIGN expression {
 		$$.true = NULL; 
 		$$.false = NULL;
@@ -409,9 +407,9 @@ expression
 		$$.idName = NULL;
 	}
 	| LOGICAL_NOT expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
+		$$.true = $2.false; 
+		$$.false = $2.true;
+		$$.next = $2.next; 
 		$$.quad = NULL;
 		$$.idName = NULL;
 	}
@@ -495,31 +493,31 @@ expression
 		
 		//strcpy($$.idName, newtemp());
 		//$$.idName = "x";
-		genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+		//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
 	}
 	| MINUS expression %prec UNARY_MINUS {
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
-		$$.quad = NULL;
+		$$.quad = nextquad;
 		$$.idName = $2.idName;
-		genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
+		//genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
 	}
 	| PLUS expression %prec UNARY_PLUS {
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
-		$$.quad = NULL;
+		$$.quad = nextquad;
 		$$.idName = newtemp();
-		genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
+		//genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
 	}
 	| ID BRACKET_OPEN primary BRACKET_CLOSE {
 		$$.true = NULL; 
 		$$.false = NULL; 
 		$$.next = NULL; 
-		$$.quad = NULL;
+		$$.quad = nextquad;
 		$$.idName = newtemp();
-		genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3);
+		//genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3);
 	}
 	| PARA_OPEN expression PARA_CLOSE {
 		$$.true = $2.true; 
@@ -536,7 +534,7 @@ expression
 		$$.idName = NULL;
 	}
 	| primary { 
-		$$.true = NULL; //Hier werde nicht genutzt Werte NULL gesetzt, damit klar ist was drin steht
+		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
 		$$.quad = NULL;
