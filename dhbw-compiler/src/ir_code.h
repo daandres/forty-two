@@ -40,14 +40,23 @@ typedef struct IRCODE {
 	char* op_two; 		// second or left operand
 	char* op_three; 		// third or right operand
 	int paramcount; 	// number of parameters... if an op needs less then three operands
+	struct IRCODE* previous;		// Pointer to previous quadrupel
+	struct IRCODE* self;			// Pointer to itself
+	struct IRCODE* next;			// Pointer to next quadrupel
 } IRCODE_t;
+
+typedef struct IRLIST {
+	struct IRLIST* self;			// Pointer to itself
+	struct IRLIST* next;			// Pointer to next quadrupel
+	IRCODE_t* item;			// Pointer to Quadrupel, which is element of this list
+} IRLIST_t;
 
 void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount);
 void printIrCode(char* f);
 
 char* newtemp();
-int* makelist(int nquad);
-int* merge(int* list1, int* list2);
-void backpatch(int* list, int nquad);
+IRLIST_t* makelist(IRCODE_t* nquad);
+IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2);
+void backpatch(IRLIST_t* list);
 
 #endif /* IR_CODE_H_ */
