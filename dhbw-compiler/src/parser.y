@@ -236,20 +236,14 @@ function_definition
 		function_context = '___#nktx&';
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
-<<<<<<< HEAD
-		sym_union_t* function = (sym_union_t *) malloc(sizeof(sym_union_t));
-		if (function == NULL)
-			yyerror("could not allocate memory");		
-		function = searchGlobal($1.name);
-=======
+
 		//sym_union_t* function = (sym_union_t *) malloc(sizeof(sym_union_t));
 		//if (function == NULL)
 		//	yyerror("could not allocate memory");		
 		sym_union_t* function = searchGlobal($1.name);
-			if (function == NULL)
-				yyerror("could not allocate memory");	
+		if (function == NULL)
+			yyerror("could not allocate memory");	
 			
->>>>>>> branch 'master' of https://code.google.com/p/forty-two/
 		function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 		
 		
