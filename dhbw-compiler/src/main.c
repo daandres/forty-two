@@ -316,8 +316,6 @@ int process_options(int argc, char *argv[]) {
 	return ret;
 }
 
-
-
 void debug(char *string, ...) {
 	if (cc_options.dbg == 1 && cc_options.silent == 0) {
 		FILE* f;
@@ -377,6 +375,7 @@ void warning(char *string, ...) {
  * \param argv The input parameters.
  */
 int main(int argc, char *argv[]) {
+	int parser_return;
 	/* the resource manager must be initialized before any
 	 * further actions are implemented */
 	rm_init(&resource_mgr);
@@ -401,15 +400,18 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "couldn't open input file for reading\n");
 		exit(1);
 	}
-	yyparse();
+	parser_return = yyparse();
 	fclose(yyin);
 
-
-	if (cc_options.print_ir == 1) {
-		printSymTable(cc_options.ir_file);
-		printIrCode(cc_options.ir_file);
+	if (parser_return == 0) {
+		if (cc_options.print_ir == 1) {
+			printSymTable(cc_options.ir_file);
+			printIrCode(cc_options.ir_file);
+		}
+		info("Compiling ended successfull.");
+	} else{
+		info("Compiling failed.");
 	}
-	info("Compiling ended.");
 
 	rm_cleanup_resources(&resource_mgr);
 	return 0;
