@@ -134,8 +134,10 @@ program
 	: program_element_list {
 		if(correct == 1)
 			info("\nSyntax correct!\n");
-		else 
+		else {
 			warning("Syntax not correct! See Log for more information\n");
+		//exit(1);
+		}
 	}
 	;
 
@@ -385,58 +387,167 @@ stmt_loop
 	;
 									
 expression
-	: expression ASSIGN expression		
-	| expression LOGICAL_OR expression
-	| expression LOGICAL_AND expression
-	| LOGICAL_NOT expression
+	: expression ASSIGN expression {
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| expression LOGICAL_OR expression {
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| expression LOGICAL_AND expression {
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| LOGICAL_NOT expression {
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
 	| expression EQ expression {
-			//genStmt(OP_IFEQ, $1.idName, $3.idName, NULL, 3);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+		//genStmt(OP_IFEQ, $1.idName, $3.idName, NULL, 3);
 	}
 	| expression NE expression {
-			//genStmt(OP_IFNE, $1.idName, $3.idName, NULL, 3);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+		//genStmt(OP_IFNE, $1.idName, $3.idName, NULL, 3);
 	}
 	| expression LS expression {
-			//genStmt(OP_IFLT, $1.idName, $3.idName, NULL, 3);
+
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+		//genStmt(OP_IFLT, $1.idName, $3.idName, NULL, 3);
 	} 
 	| expression LSEQ expression {
-			//genStmt(OP_IFLE, $1.idName, $3.idName, NULL, 3);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+
+		//genStmt(OP_IFLE, $1.idName, $3.idName, NULL, 3);
 	} 
 	| expression GTEQ expression {
-			//genStmt(OP_IFGT, $1.idName, $3.idName, NULL, 3);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+		//genStmt(OP_IFGT, $1.idName, $3.idName, NULL, 3);
 	} 
 	| expression GT expression {
-			//char* temp = newtemp();
-			//genStmt(OP_IFGE, temp, $1.idName, $3.idName, 3);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+		//char* temp = newtemp();
+		//genStmt(OP_IFGE, temp, $1.idName, $3.idName, 3);
 	}
 	| expression PLUS expression {
-			//$$.idName = newtemp();
-			//genStmt(OP_MUL, newtemp(), $1.idName, $3.idName, 3);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+		
+		//$$.idName = newtemp();
+		//genStmt(OP_ADD, newtemp(), $1.idName, $3.idName, 3);
 	}
 	| expression MINUS expression {
-			//strcpy($$.idName, newtemp());
-			//genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+
+		//strcpy($$.idName, newtemp());
+		//genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
 	}
 	| expression MUL expression {
-			//strcpy($$.idName, newtemp());
-			//genStmt(OP_ADD, $$.idName, $1.idName, $3.idName, 3);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+		
+		//strcpy($$.idName, newtemp());
+		//$$.idName = "x";
+		genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
 	}
 	| MINUS expression %prec UNARY_MINUS {
-			//genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = $2.idName;
+		genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
 	}
 	| PLUS expression %prec UNARY_PLUS {
-			//genStmt(OP_ADD, $2.idName, 0, NULL, 2);
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = newtemp();
+		genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
 	}
-	| ID BRACKET_OPEN primary BRACKET_CLOSE
-	| PARA_OPEN expression PARA_CLOSE
-	| function_call
+	| ID BRACKET_OPEN primary BRACKET_CLOSE {
+		$$.true = NULL; 
+		$$.false = NULL; 
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = newtemp();
+		genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3);
+	}
+	| PARA_OPEN expression PARA_CLOSE {
+		$$.true = $2.true; 
+		$$.false = $2.false;
+		$$.next = $2.next; 
+		$$.quad = $2.quad;
+		$$.idName = $2.idName;
+	}
+	| function_call {
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
 	| primary { 
-		//$$.idName = $1.idName;
+		$$.true = NULL; //Hier werde nicht genutzt Werte NULL gesetzt, damit klar ist was drin steht
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = $1.idName;
 	}
 	;
 
 primary
 	: NUM {
 		//sprintf($$.idName, "%i", $1);
+    	 $$.idName = $1;
 	}
 	| ID { 
     	if(function_context != '___#nktx&'){
