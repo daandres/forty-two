@@ -468,13 +468,13 @@ function_call_parameters
 void yyerror(char *s, ...){
 	correct = 0;
 	if(cc_options.silent == 0){
-	va_list ap;
-	va_start(ap, s);
-
-	if(yylloc.first_line)
-		//fprintf(stderr, "%d.%d: ", yylloc.first_line, yylloc.first_column);
-		fprintf(stderr, "%d.%d-%d.%d: ", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column);
-	vfprintf(stderr, s, ap);
-	fprintf(stderr, "\n");
+		va_list ap;
+		va_start(ap, s);
+		
+		if(yylloc.first_line)
+			//fprintf(stderr, "%d.%d: ", yylloc.first_line, yylloc.first_column);
+			fprintf(stderr, "%d.%d-%d.%d: ", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column);
+		vfprintf(stderr, s, ap);
+		fprintf(stderr, "\n");
 	}
 }
