@@ -15,14 +15,14 @@ int checkAssignment(int initTypeOne, int initTypeTwo) {
 	typesForCheck_t typeTwo = initTypeTwo;
 	if (typeOne == intg || typeOne == intArrayEntry) {
 		if (typeTwo == intg || typeTwo == intArrayEntry || typeTwo == num) {
-			return 1;
+			return 0;
 		}
 	} else if (typeOne == intArray) {
 		if (typeTwo == intArray) {
-			return 1;
+			return 0;
 		}
 	}
-	return 0;
+	return 1;
 }
 
 int checkFunctionCall(int one, int two) {
@@ -36,13 +36,13 @@ int checkOperation(int initTypeOne, int initTypeTwo, int* returnValue) {
 	if (typeOne == intg || typeOne == intArrayEntry) {
 		if (typeTwo == intg || typeTwo == intArrayEntry || typeTwo == num) {
 			returnValue = intg;
-			return 1;
+			return 0;
 		}
 	} else if (typeOne == intArray) {
 		if (typeTwo == intArray) {
 			returnValue = intArray;
-			return 1;
+			return 0;
 		}
 	}
-	return 0;
+	return 1;
 }
