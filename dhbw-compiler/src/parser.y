@@ -115,6 +115,7 @@ function_def
 		}
 	} 
 
+
 M_svQuad
 	: /* empty */ { 
 		$$.quad = nextquad;
@@ -353,185 +354,309 @@ function_parameter
 	;
 									
 stmt_list
-	: /* empty: epsilon */
+	: /* empty: epsilon */{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
 
-	| stmt_list stmt
+	| stmt_list stmt{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
 	;
 
 //TODO: OPTIONAL:Detect returnstatement when it is called and unreachable code is detected.	
 stmt
-	: stmt_block
-	| variable_declaration SEMICOLON
-	| expression SEMICOLON
-	| stmt_conditional
-	| stmt_loop
-	| RETURN expression SEMICOLON
-	| RETURN SEMICOLON
-	| SEMICOLON /* empty statement */
+	: stmt_block{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| variable_declaration SEMICOLON{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| expression SEMICOLON{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| stmt_conditional{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| stmt_loop{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| RETURN expression SEMICOLON{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| RETURN SEMICOLON{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| SEMICOLON /* empty statement */{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
 	;
 
 stmt_block
-	: BRACE_OPEN stmt_list BRACE_CLOSE
+	: BRACE_OPEN stmt_list BRACE_CLOSE{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
 	;
 	
 stmt_conditional
-	: IF PARA_OPEN expression PARA_CLOSE stmt
-	| IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt
+	: IF PARA_OPEN expression PARA_CLOSE stmt{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
 	;
 									
 stmt_loop
-	: WHILE PARA_OPEN expression PARA_CLOSE stmt
-	| DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON
+	: WHILE PARA_OPEN expression PARA_CLOSE stmt{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
+	| DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON{
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = NULL;
+		$$.idName = NULL;
+	}
 	;
 									
 expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was drin steht*/
 	: expression ASSIGN expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
+		if (/* TODO check types */1) {		
+			$$.true = NULL; 
+			$$.false = NULL;
+			$$.next = NULL; 
+			$$.quad = NULL;
+			$$.type = NULL;
+			$$.idName = NULL;
+		}
 	}
-	| expression LOGICAL_OR expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
+	| expression LOGICAL_OR M_svQuad expression {
+		if (/* TODO check types */1) {
+			backpatch($1.false, $3.quad); // False Ausgang von $1 springt zu $4
+			$$.true = merge($1.true, $4.true); // True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat
+			$$.false = $4.false; // wenn auch noch $4 false ist, dann ist $$ auch false
+			$$.next = NULL; 
+			$$.quad = NULL;
+			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
+			$$.idName = NULL;
+		}
 	}
-	| expression LOGICAL_AND expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
+	| expression LOGICAL_AND M_svQuad expression {
+		if (/* TODO check types */1) {
+			backpatch($1.true, $3.quad); // True Ausgang von $1 springt zu $4
+			$$.false = merge($1.false, $4.false); // False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat
+			$$.true = $4.true; // wenn auch noch $4 true ist, dann ist $$ auch true
+			$$.next = NULL; 
+			$$.quad = NULL;
+			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
+			$$.idName = NULL;
+		}
 	}
 	| LOGICAL_NOT expression {
 		$$.true = $2.false; 
 		$$.false = $2.true;
 		$$.next = $2.next; 
 		$$.quad = NULL;
+		$$.type = $2.type;
 		$$.idName = NULL;
 	}
 	| expression EQ expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		//genStmt(OP_IFEQ, $1.idName, $3.idName, NULL, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
+			$$.idName = NULL;
+			$$.true = makelist(genStmt(OP_IFEQ, $1.idName, $3.idName, NULL, 3)); // Generiere If Equal und erzeuge mit dem neuen quadrupel die TrueList.
+			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+		}
 	}
 	| expression NE expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		//genStmt(OP_IFNE, $1.idName, $3.idName, NULL, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
+			$$.idName = NULL;
+			$$.true = makelist(genStmt(OP_IFNE, $1.idName, $3.idName, NULL, 3)); // Generiere If NOT Equal und erzeuge mit dem neuen quadrupel die TrueList.
+			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+		}
 	}
 	| expression LS expression {
-
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		//genStmt(OP_IFLT, $1.idName, $3.idName, NULL, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
+			$$.idName = NULL;
+			$$.true = makelist(genStmt(OP_IFLT, $1.idName, $3.idName, NULL, 3)); // Generiere If less then und erzeuge mit dem neuen quadrupel die TrueList.
+			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+		}
 	} 
 	| expression LSEQ expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-
-		//genStmt(OP_IFLE, $1.idName, $3.idName, NULL, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
+			$$.idName = NULL;
+			$$.true = makelist(genStmt(OP_IFLE, $1.idName, $3.idName, NULL, 3)); // Generiere If less or Equal und erzeuge mit dem neuen quadrupel die TrueList.
+			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+		}
 	} 
 	| expression GTEQ expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		//genStmt(OP_IFGT, $1.idName, $3.idName, NULL, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
+			$$.idName = NULL;
+			$$.true = makelist(genStmt(OP_IFGE, $1.idName, $3.idName, NULL, 3)); // Generiere If greater or Equal und erzeuge mit dem neuen quadrupel die TrueList.
+			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+		}
 	} 
 	| expression GT expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		//char* temp = newtemp();
-		//genStmt(OP_IFGE, temp, $1.idName, $3.idName, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
+			$$.idName = NULL;
+			$$.true = makelist(genStmt(OP_IFGT, $1.idName, $3.idName, NULL, 3)); // Generiere If greater then und erzeuge mit dem neuen quadrupel die TrueList.
+			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+		}
 	}
 	| expression PLUS expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		
-		//$$.idName = newtemp();
-		//genStmt(OP_ADD, newtemp(), $1.idName, $3.idName, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
+			$$.idName = newtemp();
+			$$.true = NULL;
+			$$.false = NULL;
+			genStmt(OP_ADD, $$.idName, $1.idName, $3.idName, 3);
+		}
 	}
 	| expression MINUS expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-
-		//strcpy($$.idName, newtemp());
-		//genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
+			$$.idName = newtemp();
+			$$.true = NULL;
+			$$.false = NULL;
+			genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
+		}
 	}
 	| expression MUL expression {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		
-		//strcpy($$.idName, newtemp());
-		//$$.idName = "x";
-		//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+		if (/* TODO check types */1) {
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
+			$$.idName = newtemp();
+			$$.true = NULL;
+			$$.false = NULL;
+			genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+		}
 	}
 	| MINUS expression %prec UNARY_MINUS {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = nextquad;
-		$$.idName = $2.idName;
-		//genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
+		if (/* TODO check types */1) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
+			$$.true = NULL; 
+			$$.false = NULL;
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = $2.type;
+			$$.idName = $2.idName;
+			genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
+		}
 	}
 	| PLUS expression %prec UNARY_PLUS {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = nextquad;
-		$$.idName = newtemp();
-		//genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
+		if (/* TODO check types */1) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
+			$$.true = NULL; 
+			$$.false = NULL;
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = $2.type;
+			$$.idName = newtemp();
+			//genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
+		}
 	}
 	| ID BRACKET_OPEN primary BRACKET_CLOSE {
-		$$.true = NULL; 
-		$$.false = NULL; 
-		$$.next = NULL; 
-		$$.quad = nextquad;
-		$$.idName = newtemp();
-		//genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3);
+		if (/* TODO check types */1) { 
+			$$.true = NULL; 
+			$$.false = NULL; 
+			$$.next = NULL; 
+			$$.quad = nextquad;
+			$$.type = $3.type;
+			$$.idName = newtemp();
+			//genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3);
+		}
 	}
 	| PARA_OPEN expression PARA_CLOSE {
 		$$.true = $2.true; 
 		$$.false = $2.false;
 		$$.next = $2.next; 
 		$$.quad = $2.quad;
+		$$.type = $2.type;
 		$$.idName = $2.idName;
 	}
 	| function_call {
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
+		$$.true = $1.true; 
+		$$.false = $1.false;
+		$$.next = $1.next; 
+		$$.quad = $1.quad;
+		$$.idName = $1.idName;
+		$$.type = $1.type;
 	}
 	| primary { 
 		$$.true = NULL; 
@@ -539,26 +664,33 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = $1.idName;
+		$$.type = $1.type;
 	}
 	;
 
 primary
 	: NUM {
 		//sprintf($$.idName, "%i", $1);
-    	 $$.idName = $1;
+    	$$.idName = $1;
+		$$.type = intType;
 	}
 	| ID { 
     	if(function_context != '___#nktx&'){
-    		if(searchBoth($1, function_context) == NULL){
+    		sym_union_t* found_entry = searchBoth($1, function_context);
+    		if(found_entry == NULL){
     	 	 	yyerror("'%s' undeclared (first use in this function)",$1);
     	 	 	//exit(1);
-    	 	 }
+    	 	} else {
+				//TODO: it is probably necessary to pass the actual symbol-table entry up.
+    			 $$.idName = $1;
+// FIXME passt das hier mit dem & Operator
+    			 $$.type = &found_entry->vof.symVariable.varType;
+    	 	}
     	 } else {
     	 	yyerror("Identifiers can only be used within function context.");
     	 	//exit(1);
     	 }
-    	//TODO: it is probably necessary to pass the actual symbol-table entry up.
-    	 $$.idName = $1;
+    	
 	}
 	;
 

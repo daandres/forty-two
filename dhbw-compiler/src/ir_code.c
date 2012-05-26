@@ -10,11 +10,11 @@
 #include <string.h>
 
 int nextquad = START;		// addresse of TAC
-//IRCODE_t* code; 				// Code Blocks of TAC
+//IRCODE_t* code; 			// Code Blocks of TAC
 IRCODE_t* code_quad; 		// Pointer to current TAC quadrupel
 IRCODE_t* first_code_quad; // First Quadrupel
 int size = 0; 					// size of dynamic code array
-int tmpCount = 1;				// temp identifier code number
+int tmpCount = TMP;			// temp identifier code number
 
 /*
  * This fuction generats a new temp identifier for the TAC. (.t1, .t2, ...)
@@ -101,11 +101,9 @@ void setMissingParm(IRCODE_t* code, char* value) {
 /*
  * This function backpatches temp identifiers with its addresses...
  */
-// TODO Da zum backpatchen das aktuelle nextquad verwendet wird und dieses im parser auch gar nicht bekannt ist, wird diese Funktion nur mit einer Liste aufgerufen
-//void backpatch(IRLIST_t* list, int nquad) {
-void backpatch(IRLIST_t* list) {
+void backpatch(IRLIST_t* list, int nquad) {
 	char* addr = "";
-	sprintf(addr, "%d", nextquad);
+	sprintf(addr, "%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
 	while (list->next != NULL) {
 		setMissingParm(list->item, addr);
@@ -116,7 +114,7 @@ void backpatch(IRLIST_t* list) {
 /*
  * This function generates a new entry in code array and the next instruction number.
  */
-void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount) {
+IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount) {
 	size++;
 	IRCODE_t* prev_code_quad;
 	// Wenn das nicht das erste Quadrupel ist, speichere die Adresse in prev_code_quad, ansonsten setze das NULL
@@ -129,7 +127,7 @@ void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int par
 	code_quad = (IRCODE_t *) malloc(sizeof(IRCODE_t));
 	if (code_quad == NULL) {
 		warning("could not allocate memory for code_quad");
-		return;
+		return NULL;
 	}
 	//	(code + size - 1)->quad = nextquad;
 	//	(code + size - 1)->op = op;
@@ -157,6 +155,7 @@ void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int par
 
 	//erhöhe Statement Zähler
 	nextquad++;
+	return code_quad;
 }
 
 char* formatIrCode(IRCODE_t* i) {

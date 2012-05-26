@@ -10,7 +10,9 @@
 
 #include <stdio.h>
 #include "main.h"
+#include "symtab.h"
 #define START 100
+#define TMP 100 // Counter für Temp Variables Names
 
 /*
  * This struct is for Expressions.
@@ -20,6 +22,7 @@ typedef struct IRTYPE {
 	int* false;		// false exit
 	int* next; 		// next exit
 	int quad; 		// number of statement
+	types_t* type;	// type of terminal / non-terminal
 	char* idName; 	// variable or temporary variable name
 } IRTYPE_t;
 
@@ -34,31 +37,31 @@ typedef enum opcode {
 } opcode_t;
 
 typedef struct IRCODE {
-	int quad;			// number of statement
-	opcode_t op; 	// operator
-	char* op_one;			// first or result operand
-	char* op_two; 		// second or left operand
-	char* op_three; 		// third or right operand
-	int paramcount; 	// number of parameters... if an op needs less then three operands
-	struct IRCODE* previous;		// Pointer to previous quadrupel
-	struct IRCODE* self;			// Pointer to itself
-	struct IRCODE* next;			// Pointer to next quadrupel
+	int quad;					// number of statement
+	opcode_t op; 				// operator
+	char* op_one;				// first or result operand
+	char* op_two; 				// second or left operand
+	char* op_three; 			// third or right operand
+	int paramcount; 			// number of parameters... if an op needs less then three operands
+	struct IRCODE* previous;// Pointer to previous quadrupel
+	struct IRCODE* self;		// Pointer to itself
+	struct IRCODE* next;		// Pointer to next quadrupel
 } IRCODE_t;
 
 typedef struct IRLIST {
-	struct IRLIST* self;			// Pointer to itself
-	struct IRLIST* next;			// Pointer to next quadrupel
+	struct IRLIST* self;		// Pointer to itself
+	struct IRLIST* next;		// Pointer to next quadrupel
 	IRCODE_t* item;			// Pointer to Quadrupel, which is element of this list
 } IRLIST_t;
 
-void genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount);
+IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount);
 void printIrCode(char* f);
 
 char* newtemp();
 IRLIST_t* makelist(IRCODE_t* nquad);
 IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2);
-void backpatch(IRLIST_t* list);
+void backpatch(IRLIST_t* list, int nquad);
 
 
-extern int nextquad;
+extern int nextquad; // Number of next quadrupel, amrked as extern, so that it is known in parser.y
 #endif /* IR_CODE_H_ */
