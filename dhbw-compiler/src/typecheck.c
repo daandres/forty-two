@@ -15,24 +15,30 @@
 
 
 /**
- * 
+ * checks whether the return type of a function and the type of the returned value match or not
+ * @param functionReturnType the return type of the function as defined in the definition
+ * @param returnedType the type of the value which should be returned
+ * @return returns 0 for true (types match) or 1 for false (type mismatch)
  */
 //=>STATUS: könnte funktionieren ;)
-int CheckFunctionReturnTyp(types_t initTypeOne, types_t initTypeTwo) {
-	if (initTypeOne == intType && initTypeTwo == intType) {
+int CheckFunctionReturnTyp(types_t functionReturnType, types_t returnedType) {
+	if (functionReturnType == intType && returnedType == intType) {
 		return 0;
 	}
-	else if (initTypeOne == intArrayType && initTypeTwo == intArrayType) {
+	else if (functionReturnType == intArrayType && returnedType == intArrayType) {
 		return 0;
 	}
-	else if (initTypeOne == voidType && initTypeTwo == voidType) {
+	else if (functionReturnType == voidType && returnedType == voidType) {
 		return 0;
 	}
 	return 1;
 }
 
 /**
- * 
+ * checks whether the type of a value matches the type of the variable the value should be assigned to
+ * @param assignmentTarger the type of the variable to which the value is assigned
+ * @param toAssign	the type of the value which should be assigned
+ * @return returns 0 for true (types match) or 1 for false (type mismatch)
  */
 //=>STATUS: könnte funktionieren ;)
 int CheckAssignment(types_t assignmentTarger, types_t toAssign) {
@@ -43,20 +49,11 @@ int CheckAssignment(types_t assignmentTarger, types_t toAssign) {
 /**
  * 
  */
-//=>STATUS: kein Plan
-int CheckArithmeticalExpression(int initTypeOne, int initTypeTwo, int* returnValue) {
-	types_t typeOne = initTypeOne;
-	types_t typeTwo = initTypeTwo;
-	if (typeOne == intType || typeOne == intType) {
-		if (typeTwo == intType || typeTwo == intType) {
-			returnValue = intType;
-			return 0;
-		}
-	} else if (typeOne == intArrayType) {
-		if (typeTwo == intArrayType) {
-			returnValue = intArrayType;
-			return 0;
-		}
+//=>STATUS: könnte funktionieren ;)
+int CheckArithmeticalExpression(types_t initTypeOne, types_t initTypeTwo, types_t* returnValue) {
+	if (initTypeOne == intType && initTypeTwo == intType) {
+		returnValue = intType;
+		return 0;
 	}
 	return 1;
 }
@@ -64,8 +61,8 @@ int CheckArithmeticalExpression(int initTypeOne, int initTypeTwo, int* returnVal
 /**
  * Check wether the definition of a function is compliant with its declaration.
  *
- * @parm params parameters of the definition
- * @parm funcName Name of the current function-context
+ * @param params parameters of the definition
+ * @param funcName Name of the current function-context
  */
 int checkFunctionDefinition(function_param_t* params, char* funcName){
 
