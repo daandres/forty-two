@@ -8,9 +8,6 @@ int scan ();
 int func();
 void exit (int i);
 
-int argh();
-int argh();
-int argh(int p);
 
 int func (int arr[10], int len, int threshold) {
   int i, sum,func;
