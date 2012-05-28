@@ -3,6 +3,7 @@ int b;
 void print (int gerd, int urban);
 
 int scan ();
+int func(int a);
 void exit (int i);
 
 int func (int arr[10], int len, int threshold) {
@@ -20,7 +21,6 @@ int func (int arr[10], int len, int threshold) {
 int main () {
   global = 1;
   return func(a,5+5,5);
-
   print(scan());
 
   exit(0);

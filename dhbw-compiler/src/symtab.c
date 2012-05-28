@@ -326,7 +326,8 @@ int printSymTable(char* filename) {
 
 //*************!!!Wird später in typecheck.h ausgelagert!!*****************
 /**
- * Check wether the definition of a function is compliant with its declaration.
+ * Check wether the definition of a function is compliant with its declaration
+ * concerning the given parameter-list.
  *
  * @parm params parameters of the definition
  * @parm funcName Name of the current function-context

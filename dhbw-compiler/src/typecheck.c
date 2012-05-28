@@ -11,8 +11,6 @@
 //function_param_t *param_list_call = NULL;
 //function_param_t *param_list_func = NULL;
 
-int checkFunctionDefinition(function_param_t* params, char* funcName);
-
 int CheckFunctionReturnTyp(int initTypeOne, int initTypeTwo) {
 	types_t typeOne = initTypeOne;
 	types_t typeTwo = initTypeTwo;

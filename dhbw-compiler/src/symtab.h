@@ -13,9 +13,9 @@
 #include "utlist.h"
 #include <stdio.h>
 
-//Moritz: Habe types um ArrayType erg�nzt
+//The typ None is used during parsing to mark unresolved returntypes (like during the function-definition)
 typedef enum types {
-	voidType = 0, intType = 1, intArrayType = 2, ArrayType = 3, num = 4
+	voidType = 0, intType = 1, intArrayType = 2, ArrayType = 3, None = 4
 } types_t;
 
 typedef enum symbol {
