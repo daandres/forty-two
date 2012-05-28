@@ -157,10 +157,27 @@ int insertVarLocal(char* symName, char* funcName, sym_variable_t var, int varCal
 	}
 	return 1;
 }
+/**
+ * Purges(removes) all elements of the given doubly-linked list using uthash.
+ *
+ * @parm params list of parameters
+ */
+void PurgeParameters(function_param_t* params){
 
-/* Moritz:
+	function_param_t* element; //Pointer to the current element in the iteration
+	function_param_t* temp; //tmp pointer to the iteration algorithm
+
+	DL_FOREACH_SAFE(params, element, temp){
+		DL_DELETE(params, element);
+	}
+
+}
+
+/**
  * Own method for inserting call parameter definitions. As this happens during declaration,
  * there is no need for checking the local sym-table for occurence.
+ * @parm funcName name of the function to insert the parameters in
+ * @parm parm actual list of the parameters
  */
 int insertCallVarLocal(char* funcName, function_param_t* parm) {
 	debug("SymTab: New Call-Parameter-list in '%s'.\n", funcName);
@@ -169,6 +186,9 @@ int insertCallVarLocal(char* funcName, function_param_t* parm) {
 	//No need to check for local variables, as the local part does not exist yet.
 
 	if (function != NULL && function->symbolType == symFunction) {
+		//Purge the old list, if any
+		PurgeParameters(function->vof.symFunction.callVar);
+
 		function->vof.symFunction.callVar = parm;
 		return 0;
 	}else
@@ -178,28 +198,7 @@ int insertCallVarLocal(char* funcName, function_param_t* parm) {
 	return 1;
 }
 
-/**
- * Compares two linked parameter-lists
- *
- * @parm first first list of parameters
- * @parm second second list of parameters
- */
-int validateParameter(function_param_t* first, function_param_t* second){
 
-	if(first == NULL && second == NULL){
-		return 0;
-	}
-	else if(first == NULL || second == NULL){ //termination-condition for rekursion
-		return 1;
-	}else{
-		if(first->varType == second->varType){
-			return (validateParameter(first->next,second->next));
-		}else{
-			return 1; //unequal types
-		}
-
-	}
-}
 
 
 
@@ -252,8 +251,10 @@ int printSymTable(char* filename) {
 					fprintf(datei, "Typ: int-Array, Größe: %i \n", act->vof.symVariable.size);
 					break;
 				case ArrayType:
-					fprintf(datei, "Typ: Array WTF MORITZ!!!, Größe: %i \n", act->vof.symVariable.size);
+					fprintf(datei, "Typ: Array, Größe: %i \n", act->vof.symVariable.size);
 					break;
+				case None:
+				break;
 			}
 			fprintf(datei, "Offset Adresse: %i \n", act->vof.symVariable.offsetAddress);
 		}
@@ -275,9 +276,36 @@ int printSymTable(char* filename) {
 					fprintf(datei, "Rückgabewert: int-Array\n");
 					break;
 				case ArrayType:
-					fprintf(datei, "Rückgabewert: Array WTF MORITZ!!!\n");
+					fprintf(datei, "Rückgabewert: Array\n");
 					break;
+				case None:
+				break;
 			}
+
+			fprintf(datei, "Parameter: ");
+			function_param_t* element;
+
+			DL_FOREACH(act->vof.symFunction.callVar, element){
+				switch (element->varType) {
+					case voidType:
+						fprintf(datei, "void->");
+						break;
+					case intType:
+						fprintf(datei, "int->");
+						break;
+					case intArrayType:
+						fprintf(datei, "int-Array->");
+						break;
+					case ArrayType:
+						fprintf(datei, "Array->");
+						break;
+					case None:
+					break;
+				}
+				fprintf(datei,"%s, ",element->name);
+			}
+
+			fprintf(datei,"\n");
 
 //			if (act->vof.symFunction.interCode != NULL) {
 //				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode);
@@ -304,6 +332,8 @@ int printSymTable(char* filename) {
 							case ArrayType:
 								fprintf(datei, "\tTyp: Array WTF MORITZ!!!, Größe: %i \n", subvar->vof.symVariable.size);
 								break;
+							case None:
+							break;
 						}
 
 						fprintf(datei, "\tOffset Adresse: %i \n", subvar->vof.symVariable.offsetAddress);
@@ -324,7 +354,31 @@ int printSymTable(char* filename) {
 
 
 
-//*************!!!Wird sp�ter in typecheck.h ausgelagert!!*****************
+
+//*************!!!Wird sp�ter in typecheck.h ausgelagert!!!*****************//
+/**
+ * Compares two linked parameter-lists
+ *
+ * @parm first first list of parameters
+ * @parm second second list of parameters
+ */
+int validateParameter(function_param_t* first, function_param_t* second){
+
+	if(first == NULL && second == NULL){
+		return 0;
+	}
+	else if(first == NULL || second == NULL){ //termination-conditions for rekursion
+		return 1;
+	}else{
+		if(first->varType == second->varType){
+			return (validateParameter(first->next,second->next));
+		}else{
+			return 1; //unequal types
+		}
+
+	}
+}
+
 /**
  * Check wether the definition of a function is compliant with its declaration
  * concerning the given parameter-list.
@@ -355,4 +409,13 @@ int checkFunctionDefinition(function_param_t* params, char* funcName){
 	else{
 		return 1;
 	}
+}
+/**
+ * Check if to types are the same
+ * @parm assignmentTarger
+ * @param toAssign
+ */
+int CheckAssignment(types_t assignmentTarger, types_t toAssign) {
+	if(assignmentTarger == toAssign) return 0;
+	return 1;
 }

@@ -73,9 +73,9 @@
 
 %type <airt> program_element_list program_element 
 %type <airt>  function_definition function_declaration
-%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call function_call_parameters
+%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call 
 %type <etyp> type
-%type <sunion> function_parameter identifier_declaration variable_declaration function_header
+%type <sunion> function_parameter identifier_declaration variable_declaration function_header function_call_parameters
 %type <lexem> function_def
 %type <airt> M_svQuad M_NextListAndNewIRCLine M_nextAndsv primary
 %%
@@ -91,7 +91,7 @@ function_def
 	:  /* empty */  {  
 		sym_function_t func; //The returntype is left blank for now. will be added in the definition
 		func.returnType = None;
-		func.protOrNot = no;
+		func.protOrNot = proto;
 		
 		//Feature wurde entfernt, da es doch m�glich ist, funktionen zu definieren ohne sie zu deklarieren
 		/*if(insertFuncGlobal(function_context, func) == 1){
@@ -100,7 +100,7 @@ function_def
 		}else{
 		}*/
 		
-		if(insertFuncGlobal(function_context, func)==1) //Does the function allready exist?
+		if(insertFuncGlobal(function_context, func)==1) //Does the function allready exist? Otherwise it will be inserted
 		{
 			//if the function allready exists, check if there is a parameter-missmatch
 			if(checkFunctionDefinition(param_list, function_context) != 0)
@@ -110,6 +110,7 @@ function_def
 		}
 		
 		if(param_list != NULL){ //the new parameter-list overrides the one in the declaration. During declaration no intermediate code is created.
+			
 			insertCallVarLocal(function_context, param_list);
 			//param_list = NULL;
 		}
@@ -233,6 +234,8 @@ function_definition
 	: function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    
 		sym_union_t* function = searchGlobal($1.name);
 		
+		//The type None is set in the function_def in the case, that the function was defined before it was declared.
+				//As the type is not known in function_def, it will be set after parsing the function_definition.
 		if(function->vof.symFunction.returnType == None){
 			function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 		}
@@ -240,16 +243,18 @@ function_definition
 		if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
 			yyerror("Type-missmatch. The returntype does not fit its declaration");
 		}
+		
+		//Declare the entry of the function to be no prototype anymore
+		function->vof.symFunction.protOrNot = no;
 		
 		function_context = '___#nktx&';
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
-
-			
 		sym_union_t* function = searchGlobal($1.name);
-		function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 		
-		if(function->vof.symFunction.returnType == None){
+		//The type None is set in the function_def in the case, that the function was defined before it was declared.
+		//As the type is not known in function_def, it will be set after parsing the function_definition.
+		if(function->vof.symFunction.returnType == None){ 
 			function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 		}
 		
@@ -257,6 +262,9 @@ function_definition
 			yyerror("Type-missmatch. The returntype does not fit its declaration");
 		}
 		
+		//Declare the entry of the function to be no prototype anymore
+		function->vof.symFunction.protOrNot = no;
+				
 		function_context = '___#nktx&';
 	}
 	;
@@ -268,7 +276,7 @@ function_definition
 function_declaration
 	: function_header PARA_CLOSE	{
 		sym_function_t func;
-		func.returnType = $1.vof.symVariable.varType;
+		func.returnType = $1.vof.symFunction.returnType;
 		func.protOrNot = proto; 
 		if(insertFuncGlobal($1.name, func) != 0){
 			yyerror("Error while declaring function %s. Function was already declared.", $1.name);
@@ -281,8 +289,8 @@ function_declaration
 	} 
 	| function_header function_parameter_list PARA_CLOSE { 
     	sym_function_t func;
-	 	func.returnType = $1.vof.symVariable.varType;
-		func.protOrNot = proto; //TODO: An welcher stelle muss 'no' f�r protOrNot gesetzt werden???
+	 	func.returnType = $1.vof.symFunction.returnType;
+		func.protOrNot = proto; 
 		
 		if(insertFuncGlobal($1.name, func) != 0){
 			yyerror("Error while declaring function %s. Function was already declared.", $1.name);
@@ -293,8 +301,8 @@ function_declaration
 		
 		function_param_t *fparam;
 		
- 	 	DL_FOREACH(param_list,fparam) 
- 	 		debug("Variable: %s of Type:%d in function %s\n", fparam->name, fparam->varType, function_context);
+ 	 	//DL_FOREACH(param_list,fparam) 
+ 	 		//debug("Variable: %s of Type:%d in function %s\n", fparam->name, fparam->varType, function_context);
  	 	
 		insertCallVarLocal(function_context, param_list);
 		
@@ -310,7 +318,8 @@ function_header
 		$$.vof.symFunction.returnType= $1;
 		$$.name = $2;
 		function_context = $2;
-		param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
+		PurgeParameters(param_list);//param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
+		param_list = NULL;
 	}
 	;
 	
@@ -666,6 +675,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.quad = $1.quad;
 		$$.idName = $1.idName;
 		$$.type = $1.type;
+		//printf("Function-Type: %d\n", $1.type);
 	}
 	| primary { 
 		$$.true = NULL; 
@@ -674,6 +684,8 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.quad = NULL;
 		$$.idName = $1.idName;
 		$$.type = $1.type;
+		
+		//printf("Type: %d\n", $1.type);
 	}
 	;
 
@@ -687,7 +699,7 @@ primary
     	if(function_context != '___#nktx&'){
     		sym_union_t* found_entry = searchBoth($1, function_context);
     		if(found_entry == NULL){
-    	 	 	yyerror("'%s' undeclared (first use in this function)",$1);
+    	 	 	yyerror("'%s' undeclared (first use in '%s')",$1, function_context);
     	 	 	//exit(1);
     	 	} else {
 				//TODO: it is probably necessary to pass the actual symbol-table entry up.
@@ -704,13 +716,91 @@ primary
 	;
 
 function_call
-	 : ID PARA_OPEN PARA_CLOSE
-	 | ID PARA_OPEN function_call_parameters PARA_CLOSE
+	 : ID PARA_OPEN PARA_CLOSE{
+		 //Check if the function was defined in symbol table
+		 sym_union_t* entry = searchGlobal($1);
+		 if(function_context != '___#nktx&'){
+			 if(entry != NULL){
+				 //Check if the function was defined
+				 if(entry->vof.symFunction.protOrNot != no){
+					 //yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
+				 }else{
+					 //Check if there is 'no' parameter-list, as there shouldn't be any.
+					 if(entry->vof.symFunction.callVar != NULL){
+						 yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
+					 }else{ 
+						 //TODO: Intermediate-Code for function-call
+					 }
+					 
+					 //Set the return-value
+					 $$.type = &entry->vof.symFunction.returnType;
+				 }
+			 }else{
+				 yyerror("Undefined symbol %s in function '%s'", $1,function_context);
+			 }
+		 }else{
+			 yyerror("Function-call %s can only be used within a function-context", $1);
+		 }
+	 }
+	 | ID PARA_OPEN function_call_parameters PARA_CLOSE {
+		 //Check if the function was defined in symbol table
+		 sym_union_t* entry = searchGlobal($1);
+		 if(function_context != '___#nktx&'){
+			 if(entry != NULL){
+				 //Check if the function was defined
+				 if(entry->vof.symFunction.protOrNot != no){
+					 //TODO: what to do if the definition of a function follows afterwards but it was declared???
+					 //yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
+				 }else{
+					 //Check if the parameter-list is available and correct (type)
+					 if(checkFunctionDefinition(param_list, function_context) == 1){
+						 yyerror("Function %s in '%s': parameter-missmatch");
+					 }else{
+						 //TODO: Intermediate-Code for function-call
+					 }
+
+					 //Set the return-value
+					 $$.type = &entry->vof.symFunction.returnType;
+				 }
+			 }else{
+				 yyerror("Undefined symbol %s in function '%s'", $1,function_context);
+			 }
+		 }else{
+			 yyerror("Function-call %s can only be used within a function-context", $1);
+		 }
+		 
+		 //Clear the current param_list
+		 PurgeParameters(param_list);
+		 param_list = NULL;
+	 }
 	 ;
 
+	 //We can reuse the param_list global-variable for the call_parameter-list, as it is will be overwritten after the call
 function_call_parameters
-	: function_call_parameters COMMA expression
-	| expression
+	: function_call_parameters COMMA expression{
+		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
+		if(param == NULL){
+			yyerror("could not allocate memory");
+			//exit(1); 
+		}
+		param->name = $3.idName; //Generate a temporary name
+		//param->varType = *$3.type; //obtain type from expression
+		DL_APPEND(param_list,param);
+	}
+	| expression {
+		
+		
+		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
+		if(param == NULL){
+			yyerror("could not allocate memory");
+				//exit(1); 
+		}
+		
+		param->name = $1.idName; //Obtain the temporary-name
+		//TODO: Why is IR-Type a pointer? Is it supposed to have several types?
+		//param->varType = $1.type; //obtain type from expression
+		DL_APPEND(param_list,param);
+}
 	;
 
 %%

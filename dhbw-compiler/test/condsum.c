@@ -1,8 +1,10 @@
 int global, a[10];
 int b;
-void print (int gerd, int urban);
+
+void print (int gerd);
 
 int scan ();
+int func();
 void exit (int i);
 
 int func (int arr[10], int len, int threshold) {
@@ -17,8 +19,21 @@ int func (int arr[10], int len, int threshold) {
   return sum;
 }
 
+int scan(){
+
+}
+
+void exit(int i){
+
+}
+
+void print(int gerd){
+
+}
+
 int main () {
   global = 1;
+
   return func(a,5+5,5);
   print(scan());
 

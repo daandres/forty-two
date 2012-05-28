@@ -413,7 +413,7 @@ int main(int argc, char *argv[]) {
 	} else{
 		info("Compiling failed.");
 	}
-
+	printSymTable("Symtable.txt");
 	rm_cleanup_resources(&resource_mgr);
 	return 0;
 }
