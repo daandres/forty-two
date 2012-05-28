@@ -20,7 +20,7 @@
 typedef struct IRTYPE {
 	int* true; 		// true exit
 	int* false;		// false exit
-	int* next; 		// next exit
+	int* next; 		// next exi
 	int quad; 		// number of statement
 	types_t* type;	// type of terminal / non-terminal
 	char* idName; 	// variable or temporary variable name

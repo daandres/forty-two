@@ -14,6 +14,7 @@ static const char *IR_EXT = ".ir";
 static const char *OUTPUT_EXT = ".asm";
 extern FILE *yyin;
 extern int yyparse(void);
+extern int correct;
 
 cc_options_t cc_options = { .print_ir = 0, .ir_file = NULL, .force = 0, .dbg = 0, .silent = 0, .log = "stdout",
       .input_file = NULL, .output_file = NULL };
@@ -403,7 +404,7 @@ int main(int argc, char *argv[]) {
 	parser_return = yyparse();
 	fclose(yyin);
 
-	if (parser_return == 0) {
+	if (parser_return == 0 && correct == 1) {
 		if (cc_options.print_ir == 1) {
 			printSymTable(cc_options.ir_file);
 			printIrCode(cc_options.ir_file);

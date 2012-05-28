@@ -201,36 +201,7 @@ int validateParameter(function_param_t* first, function_param_t* second){
 	}
 }
 
-/**
- * Check wether the definition of a function is compliant with its declaration.
- *
- * @parm params parameters of the definition
- * @parm funcName Name of the current function-context
- */
-int checkFunctionDefinition(function_param_t* params, char* funcName){
 
-	//1) Get Function entry to obtain the current parameter-list
-	sym_union_t* function = searchGlobal(funcName);
-
-	//2) Compare parameter-lists
-	if (function != NULL && function->symbolType == symFunction) {
-
-		if(function->vof.symFunction.callVar != NULL){
-			if(params == NULL){
-				return 1; //there is a declaration but the definition remains empty
-			}
-			else{
-				//As both the definition and the declaration are not empty, we need to checkt the parametertypes
-				return validateParameter(function->vof.symFunction.callVar, params);
-			}
-		}
-
-		return 0;
-	}
-	else{
-		return 1;
-	}
-}
 
 
 
@@ -349,4 +320,38 @@ int printSymTable(char* filename) {
 	debug("Symbol Table printed.\n");
 
 	return 0;
+}
+
+
+
+//*************!!!Wird spŠter in typecheck.h ausgelagert!!*****************
+/**
+ * Check wether the definition of a function is compliant with its declaration.
+ *
+ * @parm params parameters of the definition
+ * @parm funcName Name of the current function-context
+ */
+int checkFunctionDefinition(function_param_t* params, char* funcName){
+
+	//1) Get Function entry to obtain the current parameter-list
+	sym_union_t* function = searchGlobal(funcName);
+
+	//2) Compare parameter-lists
+	if (function != NULL && function->symbolType == symFunction) {
+
+		if(function->vof.symFunction.callVar != NULL){
+			if(params == NULL){
+				return 1; //there is a declaration but the definition remains empty
+			}
+			else{
+				//As both the definition and the declaration are not empty, we need to checkt the parametertypes
+				return validateParameter(function->vof.symFunction.callVar, params);
+			}
+		}
+
+		return 0;
+	}
+	else{
+		return 1;
+	}
 }

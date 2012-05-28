@@ -8,14 +8,14 @@
 #ifndef SYMTAB_H_
 #define SYMTAB_H_
 
-#include "main.h"
+//#include "main.h"
 #include "uthash.h"
 #include "utlist.h"
 #include <stdio.h>
 
 //Moritz: Habe types um ArrayType erg�nzt
 typedef enum types {
-	voidType = 0, intType = 1, intArrayType = 2, ArrayType = 3
+	voidType = 0, intType = 1, intArrayType = 2, ArrayType = 3, num = 4
 } types_t;
 
 typedef enum symbol {
