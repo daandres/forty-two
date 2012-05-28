@@ -11,7 +11,6 @@
 //function_param_t *param_list_call = NULL;
 //function_param_t *param_list_func = NULL;
 
-int checkFunctionDefinition(function_param_t* params, char* funcName);
 
 
 
@@ -49,7 +48,7 @@ int CheckArithmeticalExpression(int initTypeOne, int initTypeTwo, int* returnVal
 	types_t typeOne = initTypeOne;
 	types_t typeTwo = initTypeTwo;
 	if (typeOne == intType || typeOne == intType) {
-		if (typeTwo == intType || typeTwo == intType || typeTwo == num) {
+		if (typeTwo == intType || typeTwo == intType) {
 			returnValue = intType;
 			return 0;
 		}

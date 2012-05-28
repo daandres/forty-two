@@ -84,12 +84,12 @@
 
 /**
  * Special epsilon-production to prepare the parameterlist for the subsequent statement-block.
- * Therfor the semantic-ruleset inserts the function-context into the symbol-table and appends the 
+ * Thus the semantic-ruleset inserts the function-context into the symbol-table and appends the 
  * parameter-list.
  */
 function_def
 	:  /* empty */  {  
-		sym_function_t func; //The returntypeis left blank for now. will be added in the definition
+		sym_function_t func; //The returntype is left blank for now. will be added in the definition
 		func.protOrNot = no;
 		
 		//Feature wurde entfernt, da es doch m�glich ist, funktionen zu definieren ohne sie zu deklarieren
@@ -231,21 +231,30 @@ identifier_declaration
 function_definition
 	: function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    
 		sym_union_t* function = searchGlobal($1.name);
-		function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+		
+		if(function->vof.symFunction.returnType == None){
+			function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+		}
+		
+		if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
+			yyerror("Type-missmatch. The returntype does not fit its declaration");
+		}
 		
 		function_context = '___#nktx&';
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
 
-		//sym_union_t* function = (sym_union_t *) malloc(sizeof(sym_union_t));
-		//if (function == NULL)
-		//	yyerror("could not allocate memory");		
-		sym_union_t* function = searchGlobal($1.name);
-		if (function == NULL)
-			yyerror("could not allocate memory");	
 			
+		sym_union_t* function = searchGlobal($1.name);
 		function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 		
+		if(function->vof.symFunction.returnType == None){
+			function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+		}
+		
+		if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
+			yyerror("Type-missmatch. The returntype does not fit its declaration");
+		}
 		
 		function_context = '___#nktx&';
 	}
