@@ -9,8 +9,13 @@
 #include <string.h>
 
 sym_union_t *sym_table = NULL;
-function_param_t *param_list = NULL; //Speichert die Parameterlisten f�r Funktionsdefinitionen und Funcktionsaufrufe
+function_param_t *param_list = NULL; //Speichert die Parameterlisten f�r Funktionsdefinitionen und Funcktionsaufrufe
 
+/**
+ * looks in the global symbol table for an entry with the given name
+ * @param symName the name which shall be looked for
+ * @return returns a pointer to the symbol table entry of the variable if there is one with the given name or else NULL if no match was found
+ */
 sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
 	debug("SymTab: searchGlobal started for '%s'.", symName);
 	sym_union_t* found_entry = NULL;
@@ -27,9 +32,12 @@ sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zurück
 }
 
 /**
- * Search inside the local-symboltable (for the function-name given) if the given variable
- * exists or not. The Procedure automatically checks wether the variable is inside the
+ * Search inside the local-symbol table (for the function-name given) if the given variable
+ * exists or not. The Procedure automatically checks whether the variable is inside the
  * parameter-list or inside the global table.
+ * @param symName the name which shall be looked for
+ * @param funcName the name of the function in which scope the search shall take place
+ * @return returns a pointer to the entry of the variable if there is one with the given name or else NULL if no match was found
  */
 sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable zur�ckliefern */
 	debug("SymTab: searchLocal '%s' in '%s' started.", symName, funcName);
@@ -60,7 +68,7 @@ sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable z
 	}
 
 	/*
-	 * It is absolutely sufficient to check wether the found_variable is not equal to NULL
+	 * It is absolutely sufficient to check whether the found_variable is not equal to NULL
 	 * because it is not possible that there is the same variable in both the parameter_list
 	 * and the local variable-list. This is caused by the fact, that the procedure returns a
 	 * value unequal to NULL when the variable was found.
@@ -74,6 +82,12 @@ sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable z
 	return found_variable;
 }
 
+/**
+ * first starts to look for a variable in local scope and if the search was not successful continues the search in the global symbol table
+ * @param symName the name which shall be looked for
+ * @param funcName the name of the function in which scope the search shall begin
+ * @return returns a pointer to the entry of the variable if there is one with the given name or else NULL if no match was found 
+ */
 sym_union_t* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zurückliefern */
 	debug("SymTab: searchBoth '%s' in '%s' started.\n", symName, funcName);
 	sym_union_t* found_entry = searchLocal(symName, funcName);
@@ -83,6 +97,12 @@ sym_union_t* searchBoth(char* symName, char* funcName) { /* Kann nur Variable zu
 	return found_entry;
 }
 
+/**
+ * inserts a function into the symbol table
+ * @param symName name of the function and therefore name(index) of the entry in the symbol table
+ * @param func the "object" with the needed information about the function
+ * @return returns 0 if creating a new symbol was successful or 1 if there is already a symbol with the given name(index)
+ */
 int insertFuncGlobal(char* symName, sym_function_t func) {
 	debug("SymTab: New Function '%s' in global.", symName);
 	if (searchGlobal(symName) == NULL) {
@@ -102,6 +122,12 @@ int insertFuncGlobal(char* symName, sym_function_t func) {
 }
 
 //Noch nicht ausführlich getestet!!!
+/**
+ * alters the entered information of an already in the symbol table entered function
+ * @param symName name of the function which shall be altered
+ * @param func the "object" with the new/altered information about the function
+ * @return returns 0 if change was successful or 1 if there is no entry in the symbol table with the given name
+ */
 int alterFuncGlobal(char* symName, sym_function_t func) {
 	sym_union_t* entry = searchGlobal(symName);
 	if (entry != NULL) {
@@ -111,6 +137,12 @@ int alterFuncGlobal(char* symName, sym_function_t func) {
 	return 1;
 }
 
+/**
+ * inserts a variable of global scope into the symbol table
+ * @param symName name of the variable and therefore name(index) of the entry in the symbol table
+ * @param var the "object" with the needed information about the variable
+ * @return returns 0 if creating a new symbol was successful or 1 if there is already a symbol with the given name(index)
+ */
 int insertVarGlobal(char* symName, sym_variable_t var) {
 	debug("SymTab: New Variable '%s' in global.", symName); //Moritz: Habe 'or Function' rausgenommen
 	if (searchGlobal(symName) == NULL) {
@@ -128,6 +160,12 @@ int insertVarGlobal(char* symName, sym_variable_t var) {
 }
 
 //Noch nicht ausführlich getestet!!!
+/**
+ * alters the entered information of an already in the global symbol table entered variable
+ * @param symName name of the variable which shall be altered
+ * @param var the "object" with the new/altered information about the variable
+ * @return returns 0 if change was successful or 1 if there is no entry in the symbol table with the given name
+ */
 int alterVarGlobal(char* symName, sym_variable_t var) {
 	sym_union_t* entry = searchGlobal(symName);
 	if (entry != NULL) {
@@ -137,6 +175,14 @@ int alterVarGlobal(char* symName, sym_variable_t var) {
 	return 1;
 }
 
+/**
+ * inserts a variable of local scope into the symbol table or the table of call variables of the given function
+ * @param symName name of the variable and therefore name(index) of the entry in the symbol table or call variable table
+ * @param the name of the function in which scope the entry of the variable shall take place
+ * @param var the "object" with the needed information about the variable
+ * @param varCall defines whether the variabal shall be defined in the local symbol table (0) or in the call variables (1) of the function
+ * @return returns 0 if creating a new symbol was successful or 1 if there is already a symbol either in the local symbol table or the call variable table with the given name(index)
+ */
 int insertVarLocal(char* symName, char* funcName, sym_variable_t var, int varCall) { //varCall: 0 => lokale Variable, 1=> call Variable
 	debug("SymTab: New Variable '%s' local in '%s'.", symName, funcName);
 
@@ -206,6 +252,13 @@ int validateParameter(function_param_t* first, function_param_t* second){
 
 
 //Noch nicht ausführlich getestet!!!
+/**
+ * alters the entered information of an already in either a local symbol table or call variable table entered variable
+ * @param symName name of the variable which shall be altered
+ * @param funcName name of the function in which scope the variable is defined
+ * @param var the "object" with the new/altered information about the variable
+ * @return returns 0 if change was successful or 1 if there is no entry in the symbol table with the given name
+ */
 int alterVarLocal(char* symName, char* funcName, sym_variable_t var) {
 	sym_union_t* entry = searchLocal(symName, funcName);
 	if (entry != NULL) {
@@ -218,6 +271,10 @@ int alterVarLocal(char* symName, char* funcName, sym_variable_t var) {
 	return 1;
 }
 
+/**
+ * prints out the finite symbol table
+ * @param filename the name of the file in which the symbol table shall be printed out
+ */
 int printSymTable(char* filename) {
 	FILE *datei;
 	datei = fopen(filename, "a");
@@ -278,10 +335,6 @@ int printSymTable(char* filename) {
 					fprintf(datei, "Rückgabewert: Array WTF MORITZ!!!\n");
 					break;
 			}
-
-//			if (act->vof.symFunction.interCode != NULL) {
-//				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode);
-//			}
 			if (act->vof.symFunction.local_variables != NULL) {
 				for (subvar = act->vof.symFunction.local_variables; subvar != NULL; subvar = subvar->hh.next) {
 					fprintf(datei, "\t-----------------------------------\n");
@@ -324,7 +377,7 @@ int printSymTable(char* filename) {
 
 
 
-//*************!!!Wird sp�ter in typecheck.h ausgelagert!!*****************
+//*************!!!Wird sp�ter in typecheck.h ausgelagert!!*****************
 /**
  * Check wether the definition of a function is compliant with its declaration
  * concerning the given parameter-list.
