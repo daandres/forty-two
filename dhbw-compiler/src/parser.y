@@ -105,7 +105,7 @@ function_def
 			//if the function allready exists, check if there is a parameter-missmatch
 			if(checkFunctionDefinition(param_list, function_context) != 0)
 			{
-				yyerror("Conflicting types for %s",function_context);
+				yyerror("Conflicting parameter-types for function-definition '%s'",function_context);
 			}
 		}
 		
@@ -182,9 +182,13 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		$$.vof.symVariable.varType = $1.vof.symVariable.varType;
 		var.name = $3.name;
 		if(function_context == '___#nktx&'){
-			insertVarGlobal(var.name, var.vof.symVariable);
+			if(insertVarGlobal(var.name, var.vof.symVariable) == 1){
+				yyerror("Identifier %s has already been defined.", var.name);
+			}
 		} else {
-			insertVarLocal(var.name, function_context, var.vof.symVariable, 0);
+			if(insertVarLocal(var.name, function_context, var.vof.symVariable, 0) == 1){
+				yyerror("Identifier %s has already been defined in function %s.", var.name, function_context);
+			}
 		}
 	}
 	| type identifier_declaration	{
@@ -205,9 +209,13 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		$$.vof.symVariable.size = var.vof.symVariable.size;
 		var.name = $2.name;	
 		if(function_context == '___#nktx&'){
-			insertVarGlobal(var.name, var.vof.symVariable);
+			if(insertVarGlobal(var.name, var.vof.symVariable) == 1){
+				yyerror("Identifier %s has already been defined.", var.name);
+			}
 		} else {
-			insertVarLocal(var.name, function_context, var.vof.symVariable, 0);
+			if(insertVarLocal(var.name, function_context, var.vof.symVariable, 0) == 1){
+				yyerror("Identifier %s has already been defined in function %s.", var.name, function_context);
+			}
 		}
 	}
 	;
@@ -234,37 +242,43 @@ function_definition
 	: function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    
 		sym_union_t* function = searchGlobal($1.name);
 		
-		//The type None is set in the function_def in the case, that the function was defined before it was declared.
-				//As the type is not known in function_def, it will be set after parsing the function_definition.
-		if(function->vof.symFunction.returnType == None){
-			function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+		if(function->vof.symFunction.protOrNot == proto){
+			//The type None is set in the function_def in the case, that the function was defined before it was declared.
+					//As the type is not known in function_def, it will be set after parsing the function_definition.
+			if(function->vof.symFunction.returnType == None){
+				function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+			}
+			
+			if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
+				yyerror("Type-missmatch. The returntype does not fit its declaration");
+			}
+			
+			//Declare the entry of the function to be no prototype anymore
+			function->vof.symFunction.protOrNot = no;
+		}else{
+			yyerror("Duplicate implementation for function %s",function_context);
 		}
-		
-		if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
-			yyerror("Type-missmatch. The returntype does not fit its declaration");
-		}
-		
-		//Declare the entry of the function to be no prototype anymore
-		function->vof.symFunction.protOrNot = no;
 		
 		function_context = '___#nktx&';
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
 		sym_union_t* function = searchGlobal($1.name);
-		
-		//The type None is set in the function_def in the case, that the function was defined before it was declared.
-		//As the type is not known in function_def, it will be set after parsing the function_definition.
-		if(function->vof.symFunction.returnType == None){ 
-			function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+		if(function->vof.symFunction.protOrNot == proto){
+			//The type None is set in the function_def in the case, that the function was defined before it was declared.
+			//As the type is not known in function_def, it will be set after parsing the function_definition.
+			if(function->vof.symFunction.returnType == None){ 
+				function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
+			}
+			
+			if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
+				yyerror("Type-missmatch. The returntype does not fit its declaration");
+			}
+			
+			//Declare the entry of the function to be no prototype anymore
+			function->vof.symFunction.protOrNot = no;
+		}else{
+			yyerror("Duplicate implementation for function %s",function_context);
 		}
-		
-		if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
-			yyerror("Type-missmatch. The returntype does not fit its declaration");
-		}
-		
-		//Declare the entry of the function to be no prototype anymore
-		function->vof.symFunction.protOrNot = no;
-				
 		function_context = '___#nktx&';
 	}
 	;
@@ -279,7 +293,12 @@ function_declaration
 		func.returnType = $1.vof.symFunction.returnType;
 		func.protOrNot = proto; 
 		if(insertFuncGlobal($1.name, func) != 0){
-			yyerror("Error while declaring function %s. Function was already declared.", $1.name);
+			
+			sym_union_t* entry = searchGlobal($1.name);
+			
+			if(entry != NULL && entry->vof.symFunction.callVar != NULL){
+				yyerror("Error while declaring function %s. Function-parameter missmatch", $1.name);
+			}
 			//exit(1);
 		}else{
 			debug("Function %s declared. \n", $1.name);
@@ -293,10 +312,15 @@ function_declaration
 		func.protOrNot = proto; 
 		
 		if(insertFuncGlobal($1.name, func) != 0){
-			yyerror("Error while declaring function %s. Function was already declared.", $1.name);
+			//sym_union_t* entry = searchGlobal($1.name);
+						
+			if(checkFunctionDefinition(param_list, function_context)==1 ){
+				yyerror("Error while declaring function %s. Function-parameter missmatch", $1.name);
+			}
 			//exit(1);
 		}else{
 			debug("Function %s declared. \n", $1.name);
+			insertCallVarLocal(function_context, param_list);
 		}
 		
 		function_param_t *fparam;
@@ -304,7 +328,7 @@ function_declaration
  	 	//DL_FOREACH(param_list,fparam) 
  	 		//debug("Variable: %s of Type:%d in function %s\n", fparam->name, fparam->varType, function_context);
  	 	
-		insertCallVarLocal(function_context, param_list);
+		//insertCallVarLocal(function_context, param_list);
 		
 		function_context = '___#nktx&';
 	}
@@ -785,6 +809,7 @@ function_call_parameters
 		}
 		param->name = $3.idName; //Generate a temporary name
 		//param->varType = *$3.type; //obtain type from expression
+		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
 	}
 	| expression {
@@ -799,6 +824,7 @@ function_call_parameters
 		param->name = $1.idName; //Obtain the temporary-name
 		//TODO: Why is IR-Type a pointer? Is it supposed to have several types?
 		//param->varType = $1.type; //obtain type from expression
+		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
 }
 	;

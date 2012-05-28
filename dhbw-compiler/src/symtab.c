@@ -10,6 +10,7 @@
 
 sym_union_t *sym_table = NULL;
 function_param_t *param_list = NULL; //Speichert die Parameterlisten f�r Funktionsdefinitionen und Funcktionsaufrufe
+int guenter = 2;
 
 /**
  * looks in the global symbol table for an entry with the given name
@@ -19,10 +20,11 @@ function_param_t *param_list = NULL; //Speichert die Parameterlisten f�r Funkt
 sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zurückliefern */
 	debug("SymTab: searchGlobal started for '%s'.", symName);
 	sym_union_t* found_entry = NULL;
-	found_entry = (sym_union_t*) malloc(sizeof(sym_union_t));
+	//found_entry = (sym_union_t*) malloc(sizeof(sym_union_t));
+
 	if (found_entry == NULL) {
-		warning("could not allocate memory");
-		return NULL;
+		//warning("could not allocate memory");
+		//return NULL;
 	}
 
 	HASH_FIND_STR(sym_table, symName, found_entry);
