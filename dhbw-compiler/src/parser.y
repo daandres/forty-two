@@ -90,6 +90,7 @@
 function_def
 	:  /* empty */  {  
 		sym_function_t func; //The returntype is left blank for now. will be added in the definition
+		func.returnType = None;
 		func.protOrNot = no;
 		
 		//Feature wurde entfernt, da es doch m�glich ist, funktionen zu definieren ohne sie zu deklarieren
