@@ -13,26 +13,38 @@
 
 int checkFunctionDefinition(function_param_t* params, char* funcName);
 
-int CheckFunctionReturnTyp(int initTypeOne, int initTypeTwo) {
-	types_t typeOne = initTypeOne;
-	types_t typeTwo = initTypeTwo;
-	if (typeOne == intType || typeOne == intType) {
-		if (typeTwo == intType || typeTwo == intType || typeTwo == num) {
-			return 0;
-		}
-	} else if (typeOne == intArrayType) {
-		if (typeTwo == intArrayType) {
-			return 0;
-		}
+
+
+/**
+ * 
+ */
+//=>STATUS: könnte funktionieren ;)
+int CheckFunctionReturnTyp(types_t initTypeOne, types_t initTypeTwo) {
+	if (initTypeOne == intType && initTypeTwo == intType) {
+		return 0;
+	}
+	else if (initTypeOne == intArrayType && initTypeTwo == intArrayType) {
+		return 0;
+	}
+	else if (initTypeOne == voidType && initTypeTwo == voidType) {
+		return 0;
 	}
 	return 1;
 }
 
-int CheckAssignment(int one, int two) {
-	//Abgleich der Typen der Variablen
-	return 0;
+/**
+ * 
+ */
+//=>STATUS: könnte funktionieren ;)
+int CheckAssignment(types_t assignmentTarger, types_t toAssign) {
+	if(assignmentTarger == toAssign) return 0;
+	return 1;
 }
 
+/**
+ * 
+ */
+//=>STATUS: kein Plan
 int CheckArithmeticalExpression(int initTypeOne, int initTypeTwo, int* returnValue) {
 	types_t typeOne = initTypeOne;
 	types_t typeTwo = initTypeTwo;
