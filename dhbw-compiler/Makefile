@@ -25,16 +25,17 @@ all: compiler
 ###############################################
 # DHBW Compiler                               #
 ###############################################
-DHBWCC_OBJECTS = $(addprefix $(OBJDIR)/, scanner.o parser.o main.o diag.o resource_manager.o symtab.o ir_code.o)
+DHBWCC_OBJECTS = $(addprefix $(OBJDIR)/, scanner.o parser.o main.o diag.o resource_manager.o symtab.o ir_code.o typecheck.o)
 
 ## Convenient targets for DHBW Compiler
-.PHONY: compiler cc_objects parser symtab ir_code scanner
+.PHONY: compiler cc_objects parser symtab typecheck ir_code scanner 
 compiler: $(OBJDIR)/yacp
 cc_objects: $(GENERATED_OBJECTS)
 parser: $(OBJDIR)/parser.c $(OBJDIR)/parser.h
 scanner: $(OBJDIR)/scanner.c
 symtab: $(OBJDIR)/symtab.c
 ir_code: $(OBJDIR)/ir_code.c
+typecheck: $(OBJDIR)/typecheck.c
 
 $(OBJDIR)/yacp: $(DHBWCC_OBJECTS) 
 	$(CC) $(CFLAGS) -o $@ $+
@@ -55,6 +56,9 @@ $(OBJDIR)/symtab.o: $(SRCDIR)/symtab.c
 	$(CC) $(CFLAGS) -c $< -o $@
 	
 $(OBJDIR)/ir_code.o: $(SRCDIR)/ir_code.c 
+	$(CC) $(CFLAGS) -c $< -o $@
+	
+$(OBJDIR)/typecheck.o: $(SRCDIR)/typecheck.c 
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)/parser.o: $(OBJDIR)/parser.c $(OBJDIR)/parser.h

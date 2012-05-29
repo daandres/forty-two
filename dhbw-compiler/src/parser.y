@@ -6,6 +6,7 @@
  
 %{
   #include "ir_code.h"
+  #include "typecheck.h"
   #include <stdio.h>
   #include <stdarg.h>
   #include <stdlib.h>
@@ -116,6 +117,11 @@ function_def
 		}
 	} 
 
+reset_param
+	: /*empty*/ {
+		PurgeParameters(param_list);//param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
+				param_list = NULL;
+}
 
 M_svQuad
 	: /* empty */ { 
@@ -279,7 +285,11 @@ function_definition
 		}else{
 			yyerror("Duplicate implementation for function %s",function_context);
 		}
+		
+							
 		function_context = '___#nktx&';
+		
+		
 	}
 	;
 
@@ -314,8 +324,8 @@ function_declaration
 		if(insertFuncGlobal($1.name, func) != 0){
 			//sym_union_t* entry = searchGlobal($1.name);
 						
-			if(checkFunctionDefinition(param_list, function_context)==1 ){
-				yyerror("Error while declaring function %s. Function-parameter missmatch", $1.name);
+			if(validateDefinition(param_list, function_context)==1 ){
+				yyerror("Error while declaring function %s. Function-parameter missmatch.", $1.name);
 			}
 			//exit(1);
 		}else{
@@ -402,6 +412,7 @@ stmt_list
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 
 	| stmt_list stmt{
@@ -410,6 +421,7 @@ stmt_list
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	;
 
@@ -421,6 +433,7 @@ stmt
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| variable_declaration SEMICOLON{
 		$$.true = NULL; 
@@ -428,6 +441,7 @@ stmt
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| expression SEMICOLON{
 		$$.true = NULL; 
@@ -435,6 +449,7 @@ stmt
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| stmt_conditional{
 		$$.true = NULL; 
@@ -442,6 +457,7 @@ stmt
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| stmt_loop{
 		$$.true = NULL; 
@@ -449,6 +465,7 @@ stmt
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| RETURN expression SEMICOLON{
 		$$.true = NULL; 
@@ -456,6 +473,7 @@ stmt
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| RETURN SEMICOLON{
 		$$.true = NULL; 
@@ -463,6 +481,7 @@ stmt
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| SEMICOLON /* empty statement */{
 		$$.true = NULL; 
@@ -470,6 +489,7 @@ stmt
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	;
 
@@ -480,6 +500,7 @@ stmt_block
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	;
 	
@@ -490,6 +511,7 @@ stmt_conditional
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt{
 		$$.true = NULL; 
@@ -497,6 +519,7 @@ stmt_conditional
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	;
 									
@@ -507,6 +530,7 @@ stmt_loop
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON{
 		$$.true = NULL; 
@@ -514,18 +538,47 @@ stmt_loop
 		$$.next = NULL; 
 		$$.quad = NULL;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	;
 									
 expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was drin steht*/
 	: expression ASSIGN expression {
-		if (/* TODO check types */1) {		
-			$$.true = NULL; 
-			$$.false = NULL;
-			$$.next = NULL; 
-			$$.quad = NULL;
-			$$.type = NULL;
-			$$.idName = NULL;
+				 
+	    if ($1.lval == 1) { //Are the Types equal?
+	   	 	 	if($1.type == intType){
+	   	 	 		//Proceed for int
+	   	 	 		if($3.type == intType){
+	   	 	 			//assign int
+	   	 	 		}else if($3.type == intArrayType){
+	   	 	 			//load array and assign
+	   	 	 		}else
+	   	 	 		{
+	   	 	 			yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
+	   	 	 		}
+	   	 	 			
+	   	 	 	}
+	   	 	 	else if($1.type = intArrayType){
+	   	 	 		//Proceed with array access
+	   	 	 		if($3.type == intType){
+					//assign int
+					}else if($3.type == intArrayType){
+						//load array and assign
+					}else
+					{
+						yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
+					}
+	   	 	 	}
+	   	 	 	else
+	   	 	 	{
+	   	 	 		yyerror("Typemissmatch in function %s. Illegal lefthand-value. Not 'int', 'int-Array' or numeric.", function_context);
+	   	 	 	}
+				$$.true = NULL; 
+				$$.false = NULL;
+				$$.next = NULL; 
+				$$.quad = NULL;
+				$$.idName = NULL;
+				$$.lval = 0;
 		}
 	}
 	| expression LOGICAL_OR M_svQuad expression {
@@ -537,6 +590,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.quad = NULL;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.idName = NULL;
+			$$.lval = 0;
 		}
 	}
 	| expression LOGICAL_AND M_svQuad expression {
@@ -548,6 +602,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.quad = NULL;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.idName = NULL;
+			$$.lval = 0;
 		}
 	}
 	| LOGICAL_NOT expression {
@@ -557,6 +612,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.quad = NULL;
 		$$.type = $2.type;
 		$$.idName = NULL;
+		$$.lval = 0;
 	}
 	| expression EQ expression {
 		if (/* TODO check types */1) {
@@ -566,6 +622,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = NULL;
 			$$.true = makelist(genStmt(OP_IFEQ, $1.idName, $3.idName, NULL, 3)); // Generiere If Equal und erzeuge mit dem neuen quadrupel die TrueList.
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+			$$.lval = 0;
 		}
 	}
 	| expression NE expression {
@@ -576,6 +633,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = NULL;
 			$$.true = makelist(genStmt(OP_IFNE, $1.idName, $3.idName, NULL, 3)); // Generiere If NOT Equal und erzeuge mit dem neuen quadrupel die TrueList.
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+			$$.lval = 0;
 		}
 	}
 	| expression LS expression {
@@ -586,6 +644,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = NULL;
 			$$.true = makelist(genStmt(OP_IFLT, $1.idName, $3.idName, NULL, 3)); // Generiere If less then und erzeuge mit dem neuen quadrupel die TrueList.
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+			$$.lval = 0;
 		}
 	} 
 	| expression LSEQ expression {
@@ -596,6 +655,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = NULL;
 			$$.true = makelist(genStmt(OP_IFLE, $1.idName, $3.idName, NULL, 3)); // Generiere If less or Equal und erzeuge mit dem neuen quadrupel die TrueList.
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+			$$.lval = 0;
 		}
 	} 
 	| expression GTEQ expression {
@@ -606,6 +666,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = NULL;
 			$$.true = makelist(genStmt(OP_IFGE, $1.idName, $3.idName, NULL, 3)); // Generiere If greater or Equal und erzeuge mit dem neuen quadrupel die TrueList.
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+			$$.lval = 0;
 		}
 	} 
 	| expression GT expression {
@@ -616,6 +677,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = NULL;
 			$$.true = makelist(genStmt(OP_IFGT, $1.idName, $3.idName, NULL, 3)); // Generiere If greater then und erzeuge mit dem neuen quadrupel die TrueList.
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
+			$$.lval = 0;
 		}
 	}
 	| expression PLUS expression {
@@ -627,6 +689,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = NULL;
 			$$.false = NULL;
 			genStmt(OP_ADD, $$.idName, $1.idName, $3.idName, 3);
+			$$.lval = 0;
 		}
 	}
 	| expression MINUS expression {
@@ -638,6 +701,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = NULL;
 			$$.false = NULL;
 			genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
+			$$.lval = 0;
 		}
 	}
 	| expression MUL expression {
@@ -649,6 +713,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = NULL;
 			$$.false = NULL;
 			genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+			$$.lval = 0;
 		}
 	}
 	| MINUS expression %prec UNARY_MINUS {
@@ -660,6 +725,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.type = $2.type;
 			$$.idName = $2.idName;
 			genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
+			$$.lval = 0;
 		}
 	}
 	| PLUS expression %prec UNARY_PLUS {
@@ -671,6 +737,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.type = $2.type;
 			$$.idName = newtemp();
 			//genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
+			$$.lval = 0;
 		}
 	}
 	| ID BRACKET_OPEN primary BRACKET_CLOSE {
@@ -682,6 +749,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.type = $3.type;
 			$$.idName = newtemp();
 			//genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3);
+			$$.lval = 1;
 		}
 	}
 	| PARA_OPEN expression PARA_CLOSE {
@@ -691,6 +759,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.quad = $2.quad;
 		$$.type = $2.type;
 		$$.idName = $2.idName;
+		$$.lval = 0;
 	}
 	| function_call {
 		$$.true = $1.true; 
@@ -700,6 +769,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.idName = $1.idName;
 		$$.type = $1.type;
 		//printf("Function-Type: %d\n", $1.type);
+		$$.lval = 0;
 	}
 	| primary { 
 		$$.true = NULL; 
@@ -708,7 +778,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.quad = NULL;
 		$$.idName = $1.idName;
 		$$.type = $1.type;
-		
+		$$.lval = $1.lval;
 		//printf("Type: %d\n", $1.type);
 	}
 	;
@@ -718,6 +788,7 @@ primary
 		//sprintf($$.idName, "%i", $1);
     	$$.idName = $1;
 		$$.type = intType;
+		$$.lval = 0;
 	}
 	| ID { 
     	if(function_context != '___#nktx&'){
@@ -728,8 +799,9 @@ primary
     	 	} else {
 				//TODO: it is probably necessary to pass the actual symbol-table entry up.
     			 $$.idName = $1;
-// FIXME passt das hier mit dem & Operator
-    			 $$.type = &found_entry->vof.symVariable.varType;
+    			 
+    			 $$.type = found_entry->vof.symVariable.varType;
+ 				$$.lval = 1;
     	 	}
     	 } else {
     	 	yyerror("Identifiers can only be used within function context.");
@@ -757,7 +829,7 @@ function_call
 					 }
 					 
 					 //Set the return-value
-					 $$.type = &entry->vof.symFunction.returnType;
+					 $$.type = entry->vof.symFunction.returnType;
 				 }
 			 }else{
 				 yyerror("Undefined symbol %s in function '%s'", $1,function_context);
@@ -766,7 +838,7 @@ function_call
 			 yyerror("Function-call %s can only be used within a function-context", $1);
 		 }
 	 }
-	 | ID PARA_OPEN function_call_parameters PARA_CLOSE {
+	 | ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
 		 //Check if the function was defined in symbol table
 		 sym_union_t* entry = searchGlobal($1);
 		 if(function_context != '___#nktx&'){
@@ -777,14 +849,14 @@ function_call
 					 //yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 				 }else{
 					 //Check if the parameter-list is available and correct (type)
-					 if(checkFunctionDefinition(param_list, function_context) == 1){
-						 yyerror("Function %s in '%s': parameter-missmatch");
+					 if(validateDefinition(param_list, function_context) == 1){
+						 yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
 					 }else{
 						 //TODO: Intermediate-Code for function-call
 					 }
 
 					 //Set the return-value
-					 $$.type = &entry->vof.symFunction.returnType;
+					 $$.type = entry->vof.symFunction.returnType;
 				 }
 			 }else{
 				 yyerror("Undefined symbol %s in function '%s'", $1,function_context);
@@ -808,7 +880,7 @@ function_call_parameters
 			//exit(1); 
 		}
 		param->name = $3.idName; //Generate a temporary name
-		//param->varType = *$3.type; //obtain type from expression
+		param->varType = $3.type; //obtain type from expression
 		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
 	}
@@ -823,7 +895,7 @@ function_call_parameters
 		
 		param->name = $1.idName; //Obtain the temporary-name
 		//TODO: Why is IR-Type a pointer? Is it supposed to have several types?
-		//param->varType = $1.type; //obtain type from expression
+		param->varType = $1.type; //obtain type from expression
 		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
 }

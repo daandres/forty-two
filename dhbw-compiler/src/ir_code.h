@@ -22,8 +22,9 @@ typedef struct IRTYPE {
 	int* false;		// false exit
 	int* next; 		// next exit
 	int quad; 		// number of statement
-	types_t* type;	// type of terminal / non-terminal
+	types_t type;	// type of terminal / non-terminal
 	char* idName; 	// variable or temporary variable name
+	int lval; //0=not a valid lvalv, 1=valid lval
 } IRTYPE_t;
 
 typedef enum opcode {

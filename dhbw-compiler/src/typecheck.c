@@ -52,17 +52,41 @@ int CheckAssignment(types_t assignmentTarger, types_t toAssign) {
 //=>STATUS: könnte funktionieren ;)
 int CheckArithmeticalExpression(types_t initTypeOne, types_t initTypeTwo, types_t* returnValue) {
 	if (initTypeOne == intType && initTypeTwo == intType) {
-		returnValue = intType;
+		//returnValue = intType;
 		return 0;
 	}
 	return 1;
 }
 
 /**
- * Check wether the definition of a function is compliant with its declaration.
+ * Compares two linked parameter-lists
  *
- * @param params parameters of the definition
- * @param funcName Name of the current function-context
+ * @parm first first list of parameters
+ * @parm second second list of parameters
+ */
+int validateParameter(function_param_t* first, function_param_t* second){
+
+	if(first == NULL && second == NULL){
+		return 0;
+	}
+	else if(first == NULL || second == NULL){ //termination-conditions for rekursion
+		return 1;
+	}else{
+		if(first->varType == second->varType){
+			return (validateParameter(first->next,second->next));
+		}else{
+			return 1; //unequal types
+		}
+
+	}
+}
+
+/**
+ * Check wether the definition of a function is compliant with its declaration
+ * concerning the given parameter-list.
+ *
+ * @parm params parameters of the definition
+ * @parm funcName Name of the current function-context
  */
 int checkFunctionDefinition(function_param_t* params, char* funcName){
 
@@ -88,3 +112,39 @@ int checkFunctionDefinition(function_param_t* params, char* funcName){
 		return 1;
 	}
 }
+
+/**
+ * Check wether the definition of a function is compliant with its declaration
+ * concerning the given parameter-list.
+ *
+ * @parm params parameters of the definition
+ * @parm funcName Name of the current function-context
+ */
+int validateDefinition(function_param_t* params, char* funcName){
+
+	//1) Get Function entry to obtain the current parameter-list
+	sym_union_t* function = searchGlobal(funcName);
+
+	//2) Compare parameter-lists
+	if (function != NULL && function->symbolType == symFunction) {
+
+		if(function->vof.symFunction.callVar != NULL){
+			if(params == NULL){
+				return 1; //there is a declaration but the definition remains empty
+			}
+			else{
+				//As both the definition and the declaration are not empty, we need to checkt the parametertypes
+				return validateParameter(function->vof.symFunction.callVar, params);
+			}
+		}else
+		{
+			return 1;
+		}
+
+	}
+	else{
+		return 1;
+	}
+}
+
+
