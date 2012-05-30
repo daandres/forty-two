@@ -75,12 +75,12 @@
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
-%type <airt> program_element_list program_element 
-%type <airt>  function_definition function_declaration
-%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call 
 %type <etyp> type
 %type <sunion> function_parameter identifier_declaration variable_declaration function_header function_call_parameters
 %type <lexem> function_def
+%type <airt> program_element_list program_element 
+%type <airt>  function_definition function_declaration
+%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call 
 %type <airt> M_svQuad M_NextListAndGOTO primary
 %%
 
@@ -628,7 +628,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = merge($1.true, $4.true); // True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat
 			$$.false = $4.false; // wenn auch noch $4 false ist, dann ist $$ auch false
 			$$.next = NULL; 
-			$$.quad = NULL;
+			$$.quad = nextquad;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.idName = NULL;
 			$$.lval = 0;
@@ -640,7 +640,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = merge($1.false, $4.false); // False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat
 			$$.true = $4.true; // wenn auch noch $4 true ist, dann ist $$ auch true
 			$$.next = NULL; 
-			$$.quad = NULL;
+			$$.quad = nextquad;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.idName = NULL;
 			$$.lval = 0;
@@ -650,7 +650,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.true = $2.false; 
 		$$.false = $2.true;
 		$$.next = $2.next; 
-		$$.quad = NULL;
+		$$.quad = nextquad;
 		$$.type = $2.type;
 		$$.idName = NULL;
 		$$.lval = 0;
@@ -817,7 +817,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
-		$$.quad = NULL;
+		$$.quad = nextquad;
 		$$.idName = $1.idName;
 		$$.type = $1.type;
 		$$.lval = $1.lval;
@@ -855,7 +855,7 @@ primary
 
 function_call
 	 : ID PARA_OPEN PARA_CLOSE{
-		 //Check if the function was defined in symbol table
+	  //Check if the function was defined in symbol table
 		 sym_union_t* entry = searchGlobal($1);
 		 if(function_context != '___#nktx&'){
 			 if(entry != NULL){
@@ -869,6 +869,12 @@ function_call
 						 yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
 					 }else{ 
 						 //TODO: Intermediate-Code for function-call
+						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
+							genStmt(OP_CALL_VOID, $1, "", NULL, 2); 
+						else {
+							$$.idName = newtemp();
+							genStmt(OP_CALL_RET, $$.idName, $1, "", 3); 
+					 	}
 					 }
 					 
 					 //Set the return-value
@@ -896,6 +902,12 @@ function_call
 						 yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
 					 }else{
 						 //TODO: Intermediate-Code for function-call
+						 if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
+							genStmt(OP_CALL_VOID, $1, $4.name, NULL, 2); 
+						else {
+							$$.idName = newtemp();
+							genStmt(OP_CALL_RET, $$.idName, $1, $4.name, 3); 
+					 	}
 					 }
 
 					 //Set the return-value
