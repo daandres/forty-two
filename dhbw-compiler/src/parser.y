@@ -81,7 +81,7 @@
 %type <etyp> type
 %type <sunion> function_parameter identifier_declaration variable_declaration function_header function_call_parameters
 %type <lexem> function_def
-%type <airt> M_svQuad M_NextListAndGOTO M_nextAndsv primary
+%type <airt> M_svQuad M_NextListAndGOTO primary
 %%
 
 
@@ -137,10 +137,6 @@ M_svQuad
 M_NextListAndGOTO /*creates an empty goto statement and a nextlist*/
 	: /* empty */ { 
 		$$.next = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1));
-	}
-M_nextAndsv
-	: M_NextListAndGOTO M_svQuad { 
-		$$.quad = $2.quad;
 	}
 /****************************************************************************
 *								Program										*

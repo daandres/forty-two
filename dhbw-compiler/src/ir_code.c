@@ -20,7 +20,7 @@ int tmpCount = TMP;			// temp identifier code number
  * This fuction generats a new temp identifier for the TAC. (.t1, .t2, ...)
  */
 char* newtemp() {
-	char* tmp = malloc(sizeof(char) * 6); // don't forget End of STring symbol during the malloc
+	char* tmp = (char *) malloc(sizeof(char) * 6); // don't forget End of STring symbol during the malloc
 	if (tmp == NULL) {
 		warning("could not allocate memory");
 		//FIXME
@@ -102,7 +102,11 @@ void setMissingParm(IRCODE_t* code, char* value) {
  * This function backpatches temp identifiers with its addresses...
  */
 void backpatch(IRLIST_t* list, int nquad) {
-	char* addr = "";
+	char* addr = (char *) malloc(sizeof(char) * 10); // don't forget End of STring symbol during the malloc
+	if (addr == NULL) {
+		warning("could not allocate memory");
+		//FIXME
+	}
 	sprintf(addr, "%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
 	while (list->next != NULL) {
