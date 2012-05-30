@@ -212,8 +212,8 @@ int insertVarLocal(char* symName, char* funcName, sym_variable_t var, int varCal
  */
 void PurgeParameters(function_param_t* params){
 
-	function_param_t* element; //Pointer to the current element in the iteration
-	function_param_t* temp; //tmp pointer to the iteration algorithm
+	function_param_t* element = NULL; //Pointer to the current element in the iteration
+	function_param_t* temp = NULL; //tmp pointer to the iteration algorithm
 
 	DL_FOREACH_SAFE(params, element, temp){
 		DL_DELETE(params, element);
@@ -412,4 +412,4 @@ int printSymTable(char* filename) {
 	return 0;
 }
 
-//*************!!!Wird spŠter in typecheck.h ausgelagert!!!*****************//
+//*************!!!Wird spï¿½ter in typecheck.h ausgelagert!!!*****************//

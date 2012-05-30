@@ -20,13 +20,13 @@ int tmpCount = TMP;			// temp identifier code number
  * This fuction generats a new temp identifier for the TAC. (.t1, .t2, ...)
  */
 char* newtemp() {
-	char* tmp = (char*) malloc(sizeof(char) * 5);
+	char* tmp = malloc(sizeof(char) * 6); // don't forget End of STring symbol during the malloc
 	if (tmp == NULL) {
 		warning("could not allocate memory");
 		//FIXME
-		return (char*) 1;
+		return NULL;
 	}
-	sprintf(tmp, ".t%0d", tmpCount++);
+	sprintf(tmp, ".t%d", tmpCount++);
 	return tmp;
 }
 /*
