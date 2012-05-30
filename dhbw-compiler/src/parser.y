@@ -554,7 +554,7 @@ stmt_conditional
 stmt_loop
 	: WHILE PARA_OPEN M_svQuad expression PARA_CLOSE M_svQuad stmt{
 		backpatch($4.true, $6.quad); // backpatche true ausgang mit begin des schleifen bodys
-		genStmt(OP_GOTO, $3.quad, NULL, NULL, 1); //springe am Ende der Schleife immer wieder zum Kopf zurück		
+		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $3.quad); //springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
 		backpatch($4.false, nextquad); // backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
 		
 		$$.true = NULL; 
