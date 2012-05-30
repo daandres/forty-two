@@ -84,7 +84,11 @@
 %type <airt> M_svQuad M_NextListAndNewIRCLine M_nextAndsv primary
 %%
 
-/*****Epsilonproductions******/
+
+/****************************************************************************
+*							Epsilonproductions								*
+*																			*
+****************************************************************************/
 
 /**
  * Special epsilon-production to prepare the parameterlist for the subsequent statement-block.
@@ -130,16 +134,18 @@ M_svQuad
 	: /* empty */ { 
 		$$.quad = nextquad;
 	}
-M_NextListAndNewIRCLine
+M_NextListAndGOTO /*creates an empty goto statement and a nextlist*/
 	: /* empty */ { 
-		$$.next = makelist(nextquad);
-		genStmt(OP_GOTO, nextquad, nextquad);
+		$$.next = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1));
 	}
 M_nextAndsv
 	: M_NextListAndNewIRCLine M_svQuad { 
 		$$.quad = $2.quad;
 	}
-/****************************/
+/****************************************************************************
+*								Program										*
+*																			*
+****************************************************************************/
 
 program
 	: program_element_list {
@@ -151,7 +157,11 @@ program
 		}
 	}
 	;
-
+	
+/****************************************************************************
+*							Symbol Table Part								*
+*																			*
+****************************************************************************/
 program_element_list
 	: program_element_list program_element 
 	| program_element 
@@ -407,7 +417,13 @@ function_parameter
 		$$=var;
     }
 	;
-									
+			
+			
+/****************************************************************************
+*					Intermediate Code Generation Part						*
+*																			*
+****************************************************************************/	
+								
 stmt_list
 	: /* empty: epsilon */{
 		$$.true = NULL; 
@@ -471,20 +487,27 @@ stmt
 		$$.lval = 0;
 	}
 	| RETURN expression SEMICOLON{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
+		if(/*check types, return type of function and the real one*/1){
+			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
+
+			$$.true = NULL; 
+			$$.false = NULL;
+			$$.next = NULL; 
+			$$.quad = NULL;
+			$$.idName = NULL;
+			$$.lval = 0;
+		}
 	}
 	| RETURN SEMICOLON{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
+		if(/*check types, return type of function and the real one*/1){
+			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
+			$$.true = NULL; 
+			$$.false = NULL;
+			$$.next = NULL; 
+			$$.quad = NULL;
+			$$.idName = NULL;
+			$$.lval = 0;
+		}
 	}
 	| SEMICOLON /* empty statement */{
 		$$.true = NULL; 
@@ -497,18 +520,21 @@ stmt
 	;
 
 stmt_block
-	: BRACE_OPEN stmt_list BRACE_CLOSE{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
+	: BRACE_OPEN stmt_list BRACE_CLOSE {
+		$$.true = $2.true; 
+		$$.false = $2.false;
+		$$.next = $2.next; 
+		$$.quad = $2.quad;
+		$$.idName = $2.idName;
 		$$.lval = 0;
 	}
 	;
 	
 stmt_conditional
-	: IF PARA_OPEN expression PARA_CLOSE stmt{
+	: IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt {
+		backpatch($3.true, $5.quad); //backpatche den true Ausgang zum Statement der if Anweisung
+		backpatch($3.false, nextquad); // backpatche den false Ausgang hinter die STatements der if anweisung
+
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
@@ -516,7 +542,11 @@ stmt_conditional
 		$$.idName = NULL;
 		$$.lval = 0;
 	}
-	| IF PARA_OPEN expression PARA_CLOSE stmt ELSE stmt{
+	| IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt M_NextListAndGOTO ELSE M_svQuad stmt {
+		backpatch($3.true, $5.quad); // backpatche true Ausgang mit true stmt block
+		backpatch($3.false, $9.quad); // backpatche false Ausgang mit else stmt block
+		backpatch($7.next, nextquad); // backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
+		
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
@@ -752,7 +782,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = newtemp();
-			//genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
+			genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
 			$$.lval = 0;
 		}
 	}
