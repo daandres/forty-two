@@ -527,7 +527,11 @@ stmt_conditional
 	;
 									
 stmt_loop
-	: WHILE PARA_OPEN expression PARA_CLOSE stmt{
+	: WHILE PARA_OPEN M_svQuad expression PARA_CLOSE M_svQuad stmt{
+		backpatch($4.true, $6.quad); // backpatche true ausgang mit begin des schleifen bodys
+		genStmt(OP_GOTO, $3.quad, NULL, NULL, 1); //springe am Ende der Schleife immer wieder zum Kopf zurück
+		backpatch($4.false, nextquad); // backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
+		
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
@@ -538,6 +542,7 @@ stmt_loop
 	| DO M_svQuad stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON{
 		backpatch($6.true, $2.quad); //backpatche true ausgang mit begin der schleife
 		backpatch($6.false, nextquad); // backpatche fals ausgang mit ende der schleife
+		
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
