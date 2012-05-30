@@ -554,7 +554,7 @@ stmt_conditional
 stmt_loop
 	: WHILE PARA_OPEN M_svQuad expression PARA_CLOSE M_svQuad stmt{
 		backpatch($4.true, $6.quad); // backpatche true ausgang mit begin des schleifen bodys
-		genStmt(OP_GOTO, $3.quad, NULL, NULL, 1); //springe am Ende der Schleife immer wieder zum Kopf zurück
+		genStmt(OP_GOTO, $3.quad, NULL, NULL, 1); //springe am Ende der Schleife immer wieder zum Kopf zurück		
 		backpatch($4.false, nextquad); // backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
 		
 		$$.true = NULL; 
@@ -657,7 +657,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| expression EQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind 
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = NULL;
@@ -668,7 +668,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| expression NE expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next =  merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = NULL;
@@ -679,7 +679,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| expression LS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next =  merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = NULL;
@@ -690,7 +690,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	} 
 	| expression LSEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = NULL;
@@ -701,7 +701,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	} 
 	| expression GTEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = NULL;
@@ -712,7 +712,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	} 
 	| expression GT expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = NULL;
@@ -723,45 +723,45 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| expression PLUS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
-			$$.true = NULL;
-			$$.false = NULL;
+			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
+			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_ADD, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
 		}
 	}
 	| expression MINUS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
-			$$.true = NULL;
-			$$.false = NULL;
+			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
+			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
 		}
 	}
 	| expression MUL expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
-			$$.next = NULL; 
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
-			$$.true = NULL;
-			$$.false = NULL;
+			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
+			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
 		}
 	}
 	| MINUS expression %prec UNARY_MINUS {
 		if ($2.type == intType || $2.type == intArrayType) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
-			$$.true = NULL; 
-			$$.false = NULL;
-			$$.next = NULL; 
+			$$.true = $2.true;
+			$$.false = $2.false;
+			$$.next = $2.next;
 			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = $2.idName;
@@ -771,9 +771,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| PLUS expression %prec UNARY_PLUS {
 		if ($2.type == intType || $2.type == intArrayType) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
-			$$.true = NULL; 
-			$$.false = NULL;
-			$$.next = NULL; 
+			$$.true = $2.true;
+			$$.false = $2.false;
+			$$.next = $2.next;
 			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = newtemp();
@@ -783,9 +783,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| ID BRACKET_OPEN primary BRACKET_CLOSE {
 		if (/* TODO check types */1) { 
-			$$.true = NULL; 
-			$$.false = NULL; 
-			$$.next = NULL; 
+			$$.true = $3.true;
+			$$.false = $3.false;
+			$$.next = $3.next;
 			$$.quad = nextquad;
 			$$.type = intArrayType; // intArrayType da es hier nur int Array geben darf
 			$$.idName = newtemp();

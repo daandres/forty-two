@@ -49,12 +49,12 @@ IRLIST_t* makelist(IRCODE_t* nquad) {
  */
 IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2) {
 
-	// Gehe zum letzten Element der ersten Liste
-	while (list1 != NULL)
-		list1 = list1->next;
-	// Hänge zweite Liste an die erste Liste...
-	list1->next = list2;
-
+	if(list1 != NULL){// Gehe zum letzten Element der ersten Liste
+		while (list1 != NULL)
+			list1 = list1->next;
+		// Hänge zweite Liste an die erste Liste...
+		list1->next = list2;
+	}
 	return list1;
 }
 
@@ -62,6 +62,7 @@ IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2) {
  * This function appends the jump markers to the statements in the codes.
  */
 void setMissingParm(IRCODE_t* code, char* value) {
+	warning("###################setMissingParm: %s", value);
 	switch (code->paramcount) {
 		case 3:
 			code->op_three = value;
@@ -87,8 +88,10 @@ void backpatch(IRLIST_t* list, int nquad) {
 		//FIXME
 	}
 	sprintf(addr, "%d", nquad);
+	fprintf(stderr, "+++++++++++++++BACKPATCH++%s\n", addr);
+
 	// Setze für jedes Listenelement die Adresse nquad
-	while (list->next != NULL) {
+	while (list != NULL) {
 		setMissingParm(list->item, addr);
 		list = list->next;
 	}
@@ -245,7 +248,6 @@ void printIrCode(char* fn) {
 
 	code_quad = first_code_quad; // setze aktuelle code_quad wieder auf erstes...
 	char* tmp = NULL;
-	debug("\n\n");
 	//Iteriere über alle Quadrupel, formatiere und schreibe sie in die Datei
 	while (code_quad != NULL) {
 		tmp = (char *) malloc(210); //sizeof(char) * ((63 * 3) + 6 + 1 + 13) + 1;// 3 mal identifier + quadruperl number + tab + operator signs and spaces + end of string symbol
