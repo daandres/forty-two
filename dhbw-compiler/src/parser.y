@@ -81,7 +81,7 @@
 %type <etyp> type
 %type <sunion> function_parameter identifier_declaration variable_declaration function_header function_call_parameters
 %type <lexem> function_def
-%type <airt> M_svQuad M_NextListAndNewIRCLine M_nextAndsv primary
+%type <airt> M_svQuad M_NextListAndGOTO M_nextAndsv primary
 %%
 
 
@@ -139,7 +139,7 @@ M_NextListAndGOTO /*creates an empty goto statement and a nextlist*/
 		$$.next = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1));
 	}
 M_nextAndsv
-	: M_NextListAndNewIRCLine M_svQuad { 
+	: M_NextListAndGOTO M_svQuad { 
 		$$.quad = $2.quad;
 	}
 /****************************************************************************
@@ -542,10 +542,10 @@ stmt_conditional
 		$$.idName = NULL;
 		$$.lval = 0;
 	}
-	| IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt M_NextListAndGOTO ELSE M_svQuad stmt {
+	| IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
 		backpatch($3.true, $5.quad); // backpatche true Ausgang mit true stmt block
 		backpatch($3.false, $9.quad); // backpatche false Ausgang mit else stmt block
-		backpatch($7.next, nextquad); // backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
+		backpatch($8.next, nextquad); // backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
 		
 		$$.true = NULL; 
 		$$.false = NULL;
@@ -596,7 +596,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						$$.quad = nextquad;
 						$$.idName = $1.idName;
 						$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
-						genStmt(OP_ASSIGN, $1.idName, $2.idName, NULL, 2);
+						genStmt(OP_ASSIGN, $1.idName, $3.idName, NULL, 2);
 	   	 	 		} else {
 	   	 	 			yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
 	   	 	 		}
