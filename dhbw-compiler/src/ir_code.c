@@ -10,7 +10,6 @@
 #include <string.h>
 
 int nextquad = START;		// addresse of TAC
-//IRCODE_t* code; 			// Code Blocks of TAC
 IRCODE_t* code_quad; 		// Pointer to current TAC quadrupel
 IRCODE_t* first_code_quad; // First Quadrupel
 int size = 0; 					// size of dynamic code array
@@ -44,15 +43,6 @@ IRLIST_t* makelist(IRCODE_t* nquad) {
 	list->item = nquad;
 
 	return list;
-	//	int* list = (int*) malloc(sizeof(int) * 15);
-	//	if (list == NULL) {
-	//		warning("could not allocate memory");
-	//		//FIXME list hat genau 15 Elemente Platz --> dymanisch mit realloc
-	//		return (int*) 1;
-	//	}
-	//	list[0] = nquad;
-	//	list[1] = 0;
-	//	return list;
 }
 /*
  * This function merges two lists.
@@ -65,17 +55,6 @@ IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2) {
 	// Hänge zweite Liste an die erste Liste...
 	list1->next = list2;
 
-	//	int* temp = list1, count1 = 0, count2 = 0;
-	//	// Zähle Elemente in Liste 1
-	//	while (list1[count1] != 0)
-	//		count1++;
-	//	// Hänge Liste 2 an das Ende von Liste 1
-	//	// FIXME list hat genau 15 Elemente Platz --> dymanisch mit realloc
-	//	while (list1[count2] != 0) {
-	//		list1[count1] = list2[count2];
-	//		count1++;
-	//		count2++;
-	//	}
 	return list1;
 }
 
@@ -102,7 +81,7 @@ void setMissingParm(IRCODE_t* code, char* value) {
  * This function backpatches temp identifiers with its addresses...
  */
 void backpatch(IRLIST_t* list, int nquad) {
-	char* addr = (char *) malloc(sizeof(char) * 10); // don't forget End of STring symbol during the malloc
+	char* addr = (char *) malloc(sizeof(char) * 10); // don't forget End of String symbol during the malloc
 	if (addr == NULL) {
 		warning("could not allocate memory");
 		//FIXME
@@ -127,18 +106,11 @@ IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, in
 	else
 		prev_code_quad = NULL;
 
-	//code = (IRCODE_t *) realloc(code, size * sizeof(IRCODE_t));
 	code_quad = (IRCODE_t *) malloc(sizeof(IRCODE_t));
 	if (code_quad == NULL) {
 		warning("could not allocate memory for code_quad");
 		return NULL;
 	}
-	//	(code + size - 1)->quad = nextquad;
-	//	(code + size - 1)->op = op;
-	//	(code + size - 1)->op_one = op_one;
-	//	(code + size - 1)->op_two = op_two;
-	//	(code + size - 1)->op_three = op_three;
-	//	(code + size - 1)->paramcount = paramcount;
 
 	// setze vom vorherigen quadrupel das nächste quadrupel auf das neue
 	if (prev_code_quad != NULL)
@@ -190,73 +162,75 @@ void delLastQuad(){
 	nextquad--;
 }
 
-char* formatIrCode(IRCODE_t* i) {
-	char* s = "";
+void formatIrCode(char* code_string, IRCODE_t* i) {
+	if (code_string == NULL) {
+		warning("could not allocate memory");
+		//FIXME
+		return;
+	}
 	//Wähle anhand des Operators aus welcher String in s geschrieben werden soll
 	switch (i->op) {
 		case OP_ASSIGN:
-			sprintf(s, "%d\t%s = %s", i->quad, i->op_one, i->op_two);
+			sprintf(code_string, "%d\t%s = %s", i->quad, i->op_one, i->op_two);
 			break;
 		case OP_ADD:
-			sprintf(s, "%d\t%s = %s + %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\t%s = %s + %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_SUB:
-			sprintf(s, "%d\t%s = %s - %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\t%s = %s - %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_MUL:
-			sprintf(s, "%d\t%s = %s * %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\t%s = %s * %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_DIV:
-			sprintf(s, "%d\t%s = %s / %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\t%s = %s / %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_MOD:
-			sprintf(s, "%d\t%s = %s %s %s", i->quad, i->op_one, i->op_two, "%", i->op_three);
+			sprintf(code_string, "%d\t%s = %s %s %s", i->quad, i->op_one, i->op_two, "%", i->op_three);
 			break;
 		case OP_MIN:
-			sprintf(s, "%d\t%s = - %s", i->quad, i->op_one, i->op_two);
+			sprintf(code_string, "%d\t%s = - %s", i->quad, i->op_one, i->op_two);
 			break;
 		case OP_IFEQ:
-			sprintf(s, "%d\tIF %s == %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\tIF %s == %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFNE:
-			sprintf(s, "%d\tIF %s != %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\tIF %s != %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFGT:
-			sprintf(s, "%d\tIF %s > %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\tIF %s > %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFGE:
-			sprintf(s, "%d\tIF %s >= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\tIF %s >= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFLT:
-			sprintf(s, "%d\tIF %s < %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\tIF %s < %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFLE:
-			sprintf(s, "%d\tIF %s <= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\tIF %s <= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_GOTO:
-			sprintf(s, "%d\tGOTO %s", i->quad, i->op_one);
+			sprintf(code_string, "%d\tGOTO %s", i->quad, i->op_one);
 			break;
 		case OP_RETURN_VOID:
-			sprintf(s, "%d\tRETURN", i->quad);
+			sprintf(code_string, "%d\tRETURN", i->quad);
 			break;
 		case OP_RETURN_VAL:
-			sprintf(s, "%d\tRETURN %s", i->quad, i->op_one);
+			sprintf(code_string, "%d\tRETURN %s", i->quad, i->op_one);
 			break;
 		case OP_CALL_VOID:
-			sprintf(s, "%d\tCALL %s, (%s)", i->quad, i->op_one, i->op_two);
+			sprintf(code_string, "%d\tCALL %s, (%s)", i->quad, i->op_one, i->op_two);
 			break;
 		case OP_CALL_RET:
-			sprintf(s, "%d\t%s = CALL %s, (%s)", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\t%s = CALL %s, (%s)", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_ARRAY_LOAD:
-			sprintf(s, "%d\t%s = %s[%s]", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\t%s = %s[%s]", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_ARRAY_STORE:
-			sprintf(s, "%d\t%s[%s] = %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, "%d\t%s[%s] = %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 	}
-
-	return s;
 }
 
 void printIrCode(char* fn) {
@@ -270,12 +244,21 @@ void printIrCode(char* fn) {
 	fprintf(f, "/* IR code          */\n\n");
 
 	code_quad = first_code_quad; // setze aktuelle code_quad wieder auf erstes...
-	char* tmp;
+	char* tmp = NULL;
+	debug("\n\n");
 	//Iteriere über alle Quadrupel, formatiere und schreibe sie in die Datei
 	while (code_quad != NULL) {
-		tmp = formatIrCode(code_quad);
+		tmp = (char *) malloc(210); //sizeof(char) * ((63 * 3) + 6 + 1 + 13) + 1;// 3 mal identifier + quadruperl number + tab + operator signs and spaces + end of string symbol
+		if (tmp == NULL) {
+				warning("could not allocate memory");
+			}
+		formatIrCode(tmp, code_quad);
 		fprintf(f, "%s\n", tmp);
+		if (cc_options.log != NULL) {
+			debug("%s", tmp);
+		}
 		code_quad = code_quad->next;
+		free(tmp);
 	}
 
 	fprintf(f, "\n/* IR code End      */\n");

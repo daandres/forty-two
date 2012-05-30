@@ -62,7 +62,7 @@
 %token BRACE_OPEN BRACE_CLOSE
 
 %token <lexem> ID
-%token <i> NUM
+%token <lexem> NUM
 
 %right ASSIGN 
 %left  LOGICAL_OR
@@ -110,9 +110,9 @@ function_def
 		
 		if(insertFuncGlobal(function_context, func)==1) //Does the function allready exist? Otherwise it will be inserted
 		{
+			//FIXME vof.symFunction.callVar ist nicht initialisiert			
 			//if the function allready exists, check if there is a parameter-missmatch
-			if(checkFunctionDefinition(param_list, function_context) != 0)
-			{
+			if(checkFunctionDefinition(param_list, function_context) != 0){
 				yyerror("Conflicting parameter-types for function-definition '%s'",function_context);
 			}
 		}
@@ -483,7 +483,7 @@ stmt
 		$$.lval = 0;
 	}
 	| RETURN expression SEMICOLON{
-		if(/*check types, return type of function and the real one*/1){
+		//if(/*check types, return type of function and the real one*/1){
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
 
 			$$.true = NULL; 
@@ -492,10 +492,10 @@ stmt
 			$$.quad = NULL;
 			$$.idName = NULL;
 			$$.lval = 0;
-		}
+		//}
 	}
 	| RETURN SEMICOLON{
-		if(/*check types, return type of function and the real one*/1){
+		//if(/*check types, return type of function and the real one*/1){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
 			$$.true = NULL; 
 			$$.false = NULL;
@@ -503,7 +503,7 @@ stmt
 			$$.quad = NULL;
 			$$.idName = NULL;
 			$$.lval = 0;
-		}
+		//}
 	}
 	| SEMICOLON /* empty statement */{
 		$$.true = NULL; 
@@ -530,7 +530,6 @@ stmt_conditional
 	: IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt {
 		backpatch($3.true, $5.quad); //backpatche den true Ausgang zum Statement der if Anweisung
 		backpatch($3.false, nextquad); // backpatche den false Ausgang hinter die STatements der if anweisung
-
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
@@ -828,7 +827,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 
 primary
 	: NUM {
-		//sprintf($$.idName, "%i", $1);
+		//sprintf($$.idName, "%d", $1);
     	$$.idName = $1;
 		$$.type = intType;
 		$$.lval = 0;
@@ -865,6 +864,7 @@ function_call
 					 //yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 				 }else{
 					 //Check if there is 'no' parameter-list, as there shouldn't be any.
+					// FIXME uninitialised callVar
 					 if(entry->vof.symFunction.callVar != NULL){
 						 yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
 					 }else{ 

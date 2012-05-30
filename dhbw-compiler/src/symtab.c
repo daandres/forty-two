@@ -50,6 +50,8 @@ sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable z
 	if (function == NULL || function->symbolType != symFunction) {
 		return NULL;
 	}
+
+	// FIXME uninitialised callVar
 	if (function->vof.symFunction.local_variables == NULL && function->vof.symFunction.callVar == NULL) {
 		return NULL;
 	}

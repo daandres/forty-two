@@ -60,7 +60,8 @@ return						{	return RETURN; }
 \}							{	return BRACE_CLOSE; }
 
 {number}					{	//printf("LEX NUM - %d\n", atoi(yytext));
-								yylval.i = atoi(yytext);
+								//yylval.i = atoi(yytext);
+								yylval.lexem = strdup(yytext);
 								return NUM; }
 {identifier}				{	//printf("LEX ID - %s\n", strdup(yytext));
 								yylval.lexem = strdup(yytext);
