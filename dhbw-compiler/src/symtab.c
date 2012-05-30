@@ -234,8 +234,9 @@ int insertCallVarLocal(char* funcName, function_param_t* parm) {
 	//No need to check for local variables, as the local part does not exist yet.
 
 	if (function != NULL && function->symbolType == symFunction) {
+		// FIXME Why? es existiret ja noch keine Parm Liste, wieos dann die alte löschen?? das gab schöne memory leaks...
 		//Purge the old list, if any
-		PurgeParameters(function->vof.symFunction.callVar);
+		//PurgeParameters(function->vof.symFunction.callVar);
 
 		function->vof.symFunction.callVar = parm;
 		return 0;
