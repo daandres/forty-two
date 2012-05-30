@@ -21,6 +21,9 @@
   
   //Flag to indicate if the code is syntacitcal correct. 1 means correct, else not; Assume the code is correct, when not change this value
   int correct = 1;
+  
+  // This temporaray IRCODE pointer contains an IR Code for an Array Load. If the Array load was wrong it has to be changed and deleted
+  IRCODE_t* arrayCodeTemp = NULL;
 %}
 %code requires{
 	#include "symtab.h"
@@ -532,7 +535,9 @@ stmt_loop
 		$$.idName = NULL;
 		$$.lval = 0;
 	}
-	| DO stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON{
+	| DO M_svQuad stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON{
+		backpatch($6.true, $2.quad); //backpatche true ausgang mit begin der schleife
+		backpatch($6.false, nextquad); // backpatche fals ausgang mit ende der schleife
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
@@ -548,41 +553,47 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	    if ($1.lval == 1) { //Are the Types equal?
 	   	 	 	if($1.type == intType){
 	   	 	 		//Proceed for int
-	   	 	 		if($3.type == intType){
+	   	 	 		if($3.type == intType || $3.type == intArrayType){
 	   	 	 			//assign int
-	   	 	 		}else if($3.type == intArrayType){
-	   	 	 			//load array and assign
-	   	 	 		}else
-	   	 	 		{
+						$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
+						$$.false = $3.false; 
+						$$.next = $3.next; 
+						$$.quad = nextquad;
+						$$.idName = $1.idName;
+						$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
+						genStmt(OP_ASSIGN, $1.idName, $2.idName, NULL, 2);
+	   	 	 		} else {
 	   	 	 			yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
 	   	 	 		}
 	   	 	 			
-	   	 	 	}
-	   	 	 	else if($1.type = intArrayType){
-	   	 	 		//Proceed with array access
-	   	 	 		if($3.type == intType){
-					//assign int
-					}else if($3.type == intArrayType){
-						//load array and assign
-					}else
-					{
+	   	 	 	} else if($1.type = intArrayType){
+	   	 	 		if($3.type == intType || $3.type == intArrayType){
+					//Proceed with array access
+	   	 	 		IRCODE_t* temp_quad = code_quad; // aktuelles code_quad wird zwischengespeichert
+					
+					delLastQuad(); //Lösche letztes Quadrupel da es eine falsche Array Operation war
+					
+					$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
+					$$.false = $3.false; 
+					$$.next = $3.next; 
+					$$.quad = nextquad;
+					$$.idName = $1.idName;
+					$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
+					
+					genStmt(OP_ARRAY_STORE, code_quad->op_two, code_quad->op_three, $3.idName, 3);
+					free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
+					
+					} else {
 						yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
 					}
-	   	 	 	}
-	   	 	 	else
-	   	 	 	{
+	   	 	 	} else {
 	   	 	 		yyerror("Typemissmatch in function %s. Illegal lefthand-value. Not 'int', 'int-Array' or numeric.", function_context);
 	   	 	 	}
-				$$.true = NULL; 
-				$$.false = NULL;
-				$$.next = NULL; 
-				$$.quad = NULL;
-				$$.idName = NULL;
-				$$.lval = 0;
+				
 		}
 	}
 	| expression LOGICAL_OR M_svQuad expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
 			backpatch($1.false, $3.quad); // False Ausgang von $1 springt zu $4
 			$$.true = merge($1.true, $4.true); // True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat
 			$$.false = $4.false; // wenn auch noch $4 false ist, dann ist $$ auch false
@@ -594,7 +605,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| expression LOGICAL_AND M_svQuad expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
 			backpatch($1.true, $3.quad); // True Ausgang von $1 springt zu $4
 			$$.false = merge($1.false, $4.false); // False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat
 			$$.true = $4.true; // wenn auch noch $4 true ist, dann ist $$ auch true
@@ -615,7 +626,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.lval = 0;
 	}
 	| expression EQ expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
@@ -626,7 +637,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| expression NE expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
@@ -637,7 +648,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| expression LS expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
@@ -648,7 +659,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	} 
 	| expression LSEQ expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
@@ -659,7 +670,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	} 
 	| expression GTEQ expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
@@ -670,7 +681,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	} 
 	| expression GT expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
@@ -681,7 +692,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| expression PLUS expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
@@ -693,7 +704,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| expression MINUS expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
@@ -705,7 +716,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| expression MUL expression {
-		if (/* TODO check types */1) {
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
@@ -717,7 +728,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| MINUS expression %prec UNARY_MINUS {
-		if (/* TODO check types */1) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
+		if ($2.type == intType || $2.type == intArrayType) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
 			$$.true = NULL; 
 			$$.false = NULL;
 			$$.next = NULL; 
@@ -729,7 +740,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| PLUS expression %prec UNARY_PLUS {
-		if (/* TODO check types */1) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
+		if ($2.type == intType || $2.type == intArrayType) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
 			$$.true = NULL; 
 			$$.false = NULL;
 			$$.next = NULL; 
@@ -746,10 +757,11 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = NULL; 
 			$$.next = NULL; 
 			$$.quad = nextquad;
-			$$.type = $3.type;
+			$$.type = intArrayType; // intArrayType da es hier nur int Array geben darf
 			$$.idName = newtemp();
-			//genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3);
 			$$.lval = 1;
+			// ACHTUNG: hier wird angenommen, dass die Array Operation eine Load Operation ist. Ist dies nicht der Fall muss diese Operation gelöscht werden und eine Store Operation später hinzugefügt werden
+			arrayCodeTemp = genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3); 
 		}
 	}
 	| PARA_OPEN expression PARA_CLOSE {
