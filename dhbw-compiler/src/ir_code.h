@@ -62,7 +62,10 @@ char* newtemp();
 IRLIST_t* makelist(IRCODE_t* nquad);
 IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2);
 void backpatch(IRLIST_t* list, int nquad);
+void changeIRCode(IRCODE_t* code_quad, enum opcode newop, char* op_one, char* op_two, char* op_three, int paramcount);
+void delLastQuad();
 
 
-extern int nextquad; // Number of next quadrupel, amrked as extern, so that it is known in parser.y
+extern int nextquad; // Number of next quadrupel, marked as extern, so that it is known in parser.y
+extern IRCODE_t* code_quad;	// currrent code_quadrupel marked as extern, so that it is known in parser.y
 #endif /* IR_CODE_H_ */

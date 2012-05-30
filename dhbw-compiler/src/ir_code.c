@@ -158,6 +158,34 @@ IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, in
 	return code_quad;
 }
 
+/**
+ * Changes an IR Code struct.
+ */
+//void changeIRCode(IRCODE_t* code_quad, enum opcode newop, char* op_one, char* op_two, char* op_three, int paramcount){
+//	if(newop != -1)
+//			code_quad->op = newop;
+//	if(op_one != NULL)
+//			code_quad->op_one = op_one;
+//	if(op_two != NULL)
+//			code_quad->op_two = op_two;
+//	if(op_three != NULL)
+//			code_quad->op_three = op_three;
+//	if(paramcount != -1)
+//			code_quad->paramcount = paramcount;
+//}
+
+//void setIRCodeToLastQuad(IRCODE_t* code) {
+//	IRCODE_t* prev = code->previous;
+//	IRCODE_t* next = code->next;
+//}
+
+void delLastQuad(){
+	IRCODE_t* prev = code_quad->previous;
+	prev->next = NULL;
+	code_quad = prev;
+	nextquad--;
+}
+
 char* formatIrCode(IRCODE_t* i) {
 	char* s = "";
 	//Wähle anhand des Operators aus welcher String in s geschrieben werden soll
@@ -251,3 +279,10 @@ void printIrCode(char* fn) {
 	fclose(f);
 	debug("IR code printed\n");
 }
+
+
+// Free functions
+
+void free_IRCODE_t(IRCODE_t* var){
+//TODO
+	}
