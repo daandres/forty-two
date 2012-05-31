@@ -15,8 +15,8 @@
   #define YYERROR_VERBOSE
   int yylex(void);
   	  
-  	  //Funktionskontext. Enth�lt den Namen der Funktion, wenn er sich in ihr befindet. Anonsten wird der String '___#nktx&' abgespeichert.
-  	  //Der Kryptische Name wurde gew�hlt, da es teilweise zu Problemen mit dem NULL-Wert kam.
+  	  //Funktionskontext. Enthaelt den Namen der Funktion, wenn er sich in ihr befindet. Anonsten wird der String '___#nktx&' abgespeichert.
+  	  //Der Kryptische Name wurde gewaehlt, da es teilweise zu Problemen mit dem NULL-Wert kam.
   	  char* function_context = '___#nktx&';
   
   //Flag to indicate if the code is syntacitcal correct. 1 means correct, else not; Assume the code is correct, when not change this value
@@ -101,7 +101,7 @@ function_def
 		func.returnType = None;
 		func.protOrNot = proto;
 		
-		//Feature wurde entfernt, da es doch m�glich ist, funktionen zu definieren ohne sie zu deklarieren
+		//Feature wurde entfernt, da es doch moeglich ist, funktionen zu definieren ohne sie zu deklarieren
 		/*if(insertFuncGlobal(function_context, func) == 1){
 			
 			//warning("Function %s was used before it was declared. Adding declaration automatically.", function_context);
