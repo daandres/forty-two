@@ -630,7 +630,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
-			$$.idName = NULL;
+			$$.idName = newtemp();
 			$$.lval = 0;
 		}
 	}
@@ -642,7 +642,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
-			$$.idName = NULL;
+			$$.idName = newtemp();
 			$$.lval = 0;
 		}
 	}
@@ -660,8 +660,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind 
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
-			$$.idName = NULL;
+			$$.idName = newtemp();
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
 			$$.true = makelist(genStmt(OP_IFEQ, $1.idName, $3.idName, NULL, 3)); // Generiere If Equal und erzeuge mit dem neuen quadrupel die TrueList.
+			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
 		}
@@ -671,8 +673,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.next =  merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
-			$$.idName = NULL;
+			$$.idName = newtemp();
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
 			$$.true = makelist(genStmt(OP_IFNE, $1.idName, $3.idName, NULL, 3)); // Generiere If NOT Equal und erzeuge mit dem neuen quadrupel die TrueList.
+			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
 		}
@@ -682,8 +686,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.next =  merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
-			$$.idName = NULL;
+			$$.idName = newtemp();
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
 			$$.true = makelist(genStmt(OP_IFLT, $1.idName, $3.idName, NULL, 3)); // Generiere If less then und erzeuge mit dem neuen quadrupel die TrueList.
+			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
 		}
@@ -693,8 +699,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
-			$$.idName = NULL;
+			$$.idName = newtemp();
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
 			$$.true = makelist(genStmt(OP_IFLE, $1.idName, $3.idName, NULL, 3)); // Generiere If less or Equal und erzeuge mit dem neuen quadrupel die TrueList.
+			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
 		}
@@ -704,8 +712,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
-			$$.idName = NULL;
+			$$.idName = newtemp();
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
 			$$.true = makelist(genStmt(OP_IFGE, $1.idName, $3.idName, NULL, 3)); // Generiere If greater or Equal und erzeuge mit dem neuen quadrupel die TrueList.
+			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
 		}
@@ -715,8 +725,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
-			$$.idName = NULL;
+			$$.idName = newtemp();
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
 			$$.true = makelist(genStmt(OP_IFGT, $1.idName, $3.idName, NULL, 3)); // Generiere If greater then und erzeuge mit dem neuen quadrupel die TrueList.
+			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
 		}
