@@ -1034,8 +1034,8 @@ function_call_parameters
 void yyerror(char *s, ...){
 	correct = 0;	// set the syntax flag to 0, to indicate that the assumption of a correct syntax (1) was false
 	if(cc_options.silent == 0){ // only proceed if the silent mode isn't activated
-		va_list ap;
-		va_start(ap, s);
+		va_list ap;			// new argument list
+		va_start(ap, s);	// attach fucntion arguments to the newly crerated argument list ap
 		
 		if(yylloc.first_line)	// if there are location information print them
 			//fprintf(stderr, "%d.%d: ", yylloc.first_line, yylloc.first_column);
