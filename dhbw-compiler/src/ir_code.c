@@ -265,7 +265,44 @@ void printIrCode(char* fn) {
 }
 
 // Free functions
-
+/**
+ * Frees the memory for one IRCODE_T struct
+ */
 void free_IRCODE_t(IRCODE_t* var) {
 //TODO
+}
+
+/**
+ * Frees the memory for one IRCODE_T struct recursively
+ */
+void free_IRCODE_t_rec(IRCODE_t* var) {
+	//TODO
+}
+
+/**
+ * Frees the memory for one IRTYPE_t struct
+ */
+void free_IRTYPE_t(IRTYPE_t* var) {
+//TODO
+}
+
+/**
+ * Frees the memory for one IRTYPE_t structrecursively
+ */
+void free_IRTYPE_t_rec(IRTYPE_t* var) {
+	//TODO
+}
+
+/**
+ * Frees the memory for one IRLIST_t struct
+ */
+void free_IRLIST_t(IRLIST_t* var) {
+//TODO
+}
+
+/**
+ * Frees the memory for one IRLIST_t structrecursively
+ */
+void free_IRLIST_t_rec(IRLIST_t* var) {
+	//TODO
 }
