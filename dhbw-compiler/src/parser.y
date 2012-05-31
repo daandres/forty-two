@@ -1026,17 +1026,21 @@ function_call_parameters
 	;
 
 %%
- 
+
+/**
+* yyerror ist the error method for this parser. When it is called, the syntax will be makred as false and if the silent mode is deactivated, errors will beprinted on stderr.
+* @parm like printf
+*/
 void yyerror(char *s, ...){
-	correct = 0;
-	if(cc_options.silent == 0){
+	correct = 0;	// set the syntax flag to 0, to indicate that the assumption of a correct syntax (1) was false
+	if(cc_options.silent == 0){ // only proceed if the silent mode isn't activated
 		va_list ap;
 		va_start(ap, s);
 		
-		if(yylloc.first_line)
+		if(yylloc.first_line)	// if there are location information print them
 			//fprintf(stderr, "%d.%d: ", yylloc.first_line, yylloc.first_column);
 			fprintf(stderr, "%d.%d-%d.%d: ", yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column);
-		vfprintf(stderr, s, ap);
+		vfprintf(stderr, s, ap); // printf all items like printf from the arguments list
 		fprintf(stderr, "\n");
 	}
 }
