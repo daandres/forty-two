@@ -54,15 +54,15 @@ IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2) {
 			list1 = list1->next;
 		// Hänge zweite Liste an die erste Liste...
 		list1->next = list2;
-	}
-	return list1;
+		return list1;
+	} else  // falls erste Liste null, dann gebe die zweite wieder zurück...
+		return list2;
 }
 
 /**
  * This function appends the jump markers to the statements in the codes.
  */
 void setMissingParm(IRCODE_t* code, char* value) {
-	warning("###################setMissingParm: %s", value);
 	switch (code->paramcount) {
 		case 3:
 			code->op_three = value;
@@ -88,8 +88,6 @@ void backpatch(IRLIST_t* list, int nquad) {
 		//FIXME
 	}
 	sprintf(addr, "%d", nquad);
-	fprintf(stderr, "+++++++++++++++BACKPATCH++%s\n", addr);
-
 	// Setze für jedes Listenelement die Adresse nquad
 	while (list != NULL) {
 		setMissingParm(list->item, addr);
