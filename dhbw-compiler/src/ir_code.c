@@ -49,12 +49,13 @@ IRLIST_t* makelist(IRCODE_t* nquad) {
  */
 IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2) {
 
+	IRLIST_t* mergedlist = list1;
 	if(list1 != NULL){// Gehe zum letzten Element der ersten Liste
-		while (list1 != NULL)
+		while (list1->next != NULL)
 			list1 = list1->next;
 		// Hänge zweite Liste an die erste Liste...
 		list1->next = list2;
-		return list1;
+		return mergedlist; // Hier wird mergedlist zurückgegeben, da dies der Anfang von der gemeinsamen liste 1 und 2 ist
 	} else  // falls erste Liste null, dann gebe die zweite wieder zurück...
 		return list2;
 }
@@ -164,11 +165,6 @@ void delLastQuad(){
 }
 
 void formatIrCode(char* code_string, IRCODE_t* i) {
-	if (code_string == NULL) {
-		warning("could not allocate memory");
-		//FIXME
-		return;
-	}
 	//Wähle anhand des Operators aus welcher String in s geschrieben werden soll
 	switch (i->op) {
 		case OP_ASSIGN:
@@ -250,7 +246,8 @@ void printIrCode(char* fn) {
 	while (code_quad != NULL) {
 		tmp = (char *) malloc(210); //sizeof(char) * ((63 * 3) + 6 + 1 + 13) + 1;// 3 mal identifier + quadruperl number + tab + operator signs and spaces + end of string symbol
 		if (tmp == NULL) {
-				warning("could not allocate memory");
+				warning("could not allocate memory for code_quad %d, therefore noe ir_code line was generated", code_quad->quad);
+				continue;
 			}
 		formatIrCode(tmp, code_quad);
 		fprintf(f, "%s\n", tmp);
