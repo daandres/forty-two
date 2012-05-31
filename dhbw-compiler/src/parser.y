@@ -611,7 +611,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	   	 	 	} else {
 	   	 	 		yyerror("Typemissmatch in function %s. Illegal lefthand-value. Not 'int', 'int-Array' or numeric.", function_context);
 	   	 	 	}
-				
 		}
 	}
 	| expression LOGICAL_OR M_svQuad expression {
@@ -634,7 +633,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.quad = nextquad;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Logical Or expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression LOGICAL_AND M_svQuad expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
@@ -659,16 +660,26 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.quad = nextquad;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Logical And expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| LOGICAL_NOT expression {
-		$$.true = $2.false; 
-		$$.false = $2.true;
-		$$.next = $2.next; 
-		$$.quad = nextquad;
-		$$.type = $2.type;
-		$$.idName = NULL;
-		$$.lval = 0;
+		if ($2.type == intType || $2.type == intArrayType) {
+			$$.true = $2.false; 
+			$$.false = $2.true;
+			$$.next = $2.next; 
+			$$.quad = nextquad;
+			$$.type = $2.type;
+			$$.idName = newtemp();
+			$$.lval = 0;
+			genStmt(OP_IFEQ, $2.idName, "0", nextquad+2, 3); //überprüfe ob die expression den Wert 0 hat, wenn ja gehe zum überübernächsten statement
+			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2);	// falls vorige überprüfung false war setze den Wert auf 0
+			genStmt(OP_GOTO, nextquad+1, NULL, NULL, 1);	// überspringe nächstes statement
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2);	// falls expression gleich 0 ist, dann setze den Wert auf 1
+		} else {
+	   		yyerror("Typemissmatch in function %s. Logical Not expression is not 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression EQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -681,7 +692,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Eq expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression NE expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -694,7 +707,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Ne expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression LS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -707,7 +722,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Ls expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	} 
 	| expression LSEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -720,7 +737,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Lseq expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	} 
 	| expression GTEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -733,7 +752,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Gteq expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	} 
 	| expression GT expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -746,7 +767,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Gt expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression PLUS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -758,7 +781,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_ADD, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Plus expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression MINUS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -770,7 +795,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Minus expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression MUL expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -782,7 +809,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Mul expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression SHIFT_LEFT expression { //TODO
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -794,7 +823,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SHL, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Shift Left expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression SHIFT_RIGHT expression { //TODO
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -806,7 +837,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SHR, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Shift Right expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| expression MOD expression { //TODO test
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
@@ -818,9 +851,11 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_MOD, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Mod expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
-	| expression DIV expression { //TODO implement div 0
+	| expression DIV expression { 
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 		
 			// gen statement to check if $3 is 0 (div 0 not allowed)
@@ -843,7 +878,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch(nextlist, nextquad); // nextlist wird mit dem nächsten Element gebackpatcht...
 			
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Div expressions are not both 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| MINUS expression %prec UNARY_MINUS {
 		if ($2.type == intType || $2.type == intArrayType) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
@@ -855,7 +892,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = $2.idName;
 			genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Unary Minus expression is not 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| PLUS expression %prec UNARY_PLUS {
 		if ($2.type == intType || $2.type == intArrayType) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
@@ -867,7 +906,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = newtemp();
 			genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
 			$$.lval = 0;
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Unary Plus expression is not 'int', 'int-Array' or numeric.", function_context);
+	   	}
 	}
 	| ID BRACKET_OPEN primary BRACKET_CLOSE {
 		if (/* TODO check types */1) { 
@@ -880,7 +921,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.lval = 1;
 			// ACHTUNG: hier wird angenommen, dass die Array Operation eine Load Operation ist. Ist dies nicht der Fall muss diese Operation gelöscht werden und eine Store Operation später hinzugefügt werden
 			arrayCodeTemp = genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3); 
-		}
+		} else {
+	   		yyerror("Typemissmatch in function %s. Array access", function_context);
+	   	}
 	}
 	| PARA_OPEN expression PARA_CLOSE {
 		$$.true = $2.true; 
