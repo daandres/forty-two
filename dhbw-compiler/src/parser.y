@@ -584,6 +584,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						$$.next = $3.next; 
 						$$.quad = nextquad;
 						$$.idName = $1.idName;
+						$$.type = $1.type;
 						$$.lval = 1; // TODO test:  a = b = c = 1;
 						genStmt(OP_ASSIGN, $1.idName, $3.idName, NULL, 2);
 	   	 	 		} else {
@@ -601,6 +602,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						$$.next = $3.next; 
 						$$.quad = nextquad;
 						$$.idName = $1.idName;
+						$$.type = $1.type;
 						$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
 					
 						genStmt(OP_ARRAY_STORE, code_quad->op_two, code_quad->op_three, $3.idName, 3);
