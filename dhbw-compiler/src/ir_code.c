@@ -95,6 +95,8 @@ void backpatch(IRLIST_t* list, int nquad) {
 		setMissingParm(list->item, addr);
 		list = list->next;
 	}
+
+	free_IRLIST_t_rec(list);
 }
 
 /*
@@ -186,6 +188,12 @@ void formatIrCode(char* code_string, IRCODE_t* i) {
 			break;
 		case OP_MIN:
 			sprintf(code_string, "%d\t%s = - %s", i->quad, i->op_one, i->op_two);
+			break;
+		case OP_SHL:
+			sprintf(code_string, "%d\t%s = %s << %s", i->quad, i->op_one, i->op_two, i->op_three);
+			break;
+		case OP_SHR:
+			sprintf(code_string, "%d\t%s = %s >> %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFEQ:
 			sprintf(code_string, "%d\tIF %s == %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);

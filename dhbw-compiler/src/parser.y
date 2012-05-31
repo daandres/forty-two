@@ -67,10 +67,10 @@
 %right ASSIGN 
 %left  LOGICAL_OR
 %left  LOGICAL_AND
-%left  EQ NE	
+%left  EQ NE
 %left  LS LSEQ GTEQ GT 
 %left  SHIFT_LEFT SHIFT_RIGHT
-%left  PLUS MINUS	
+%left  PLUS MINUS
 %left  MUL MOD DIV
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
@@ -792,7 +792,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = newtemp();
 			$$.true = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
-			//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+			genStmt(OP_SHL, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
 		}
 	}
@@ -804,7 +804,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
-			//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+			genStmt(OP_SHR, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
 		}
 	}
@@ -822,6 +822,12 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| expression DIV expression { //TODO implement div 0
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
+		
+			// gen statement to check if $3 is 0 (div 0 not allowed)
+			IRLIST_t* truelist = makelist(genStmt(OP_IFNE, $3.idName, "0", NULL, 3));
+			IRLIST_t* falselist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1));		
+			backpatch(truelist, nextquad); // setze true Ausgang auf das Statement mit der Berechnung
+			
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
 			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
@@ -829,6 +835,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_DIV, $$.idName, $1.idName, $3.idName, 3);
+			IRLIST_t* nextlist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1));	// nextlist um über die Zuweisung des neutralen Elements hiunwegzuspringen
+			
+			backpatch(falselist, nextquad); // setze false Ausgang der Überprüfung, ob 2. Operand 0 ist,  auf das Statement nach der Berechnung, da div 0 nicht erlaubt ist. // Ein Runtime Error wird nicht geworfen, da der Sprach Umfang zu klein ist			
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2);	// Wenn div 0 ist wird der Wert auf 1 gesetzt ( neutrales Element der Divison)
+			
+			backpatch(nextlist, nextquad); // nextlist wird mit dem nächsten Element gebackpatcht...
+			
 			$$.lval = 0;
 		}
 	}
