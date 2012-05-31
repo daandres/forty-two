@@ -624,25 +624,48 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| expression LOGICAL_OR M_svQuad expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
+			$$.idName = newtemp();
+
 			backpatch($1.false, $3.quad); // False Ausgang von $1 springt zu $4
-			$$.true = merge($1.true, $4.true); // True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat
-			$$.false = $4.false; // wenn auch noch $4 false ist, dann ist $$ auch false
+			IRCODE_t* truequad = genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
+			backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), nextquad+1); // überspringe den false wert  		
+			IRCODE_t* falsequad = genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ true ist soll die expression den Wert 0 erhalten
+			
+			backpatch(merge($1.true, $4.true), truequad->quad);// True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat; backpatche mit truequad, sodass Wert 1 angenommen wird
+			backpatch($4.false, falsequad->quad);// wenn auch noch $4 false ist, dann ist $$ auch false; backpatche mit falsequad, sodass Wert 0 angenommen wird
+			//$$.true = merge($1.true, $4.true); // True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat
+			//$$.false = $4.false; // wenn auch noch $4 false ist, dann ist $$ auch false
+			
+			$$.true = NULL;
+			$$.false = NULL;
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
-			$$.idName = newtemp();
 			$$.lval = 0;
 		}
 	}
 	| expression LOGICAL_AND M_svQuad expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
+			$$.idName = newtemp();
+			
 			backpatch($1.true, $3.quad); // True Ausgang von $1 springt zu $4
-			$$.false = merge($1.false, $4.false); // False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat
-			$$.true = $4.true; // wenn auch noch $4 true ist, dann ist $$ auch true
+			
+			backpatch($1.false, $3.quad); // False Ausgang von $1 springt zu $4
+			IRCODE_t* truequad = genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
+			backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), nextquad+1); // überspringe den false wert  		
+			IRCODE_t* falsequad = genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ true ist soll die expression den Wert 0 erhalten
+			
+			backpatch($4.true, truequad->quad);// wenn auch noch $4 true ist, dann ist $$ auch true; backpatche mit truequad, sodass Wert 1 angenommen wird
+			backpatch(merge($1.false, $4.false), falsequad->quad);// False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat; backpatche mit falsequad, sodass Wert 0 angenommen wird
+			
+			//$$.false = merge($1.false, $4.false); // False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat
+			//$$.true = $4.true; // wenn auch noch $4 true ist, dann ist $$ auch true
+			
+			$$.true = NULL;
+			$$.false = NULL;
 			$$.next = NULL; 
 			$$.quad = nextquad;
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
-			$$.idName = newtemp();
 			$$.lval = 0;
 		}
 	}
