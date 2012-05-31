@@ -83,6 +83,7 @@ return						{	return RETURN; }
 \+							{	return PLUS; }
 \-							{	return MINUS; }
 \*							{	return MUL; }
+\%							{	return MOD; }
 \[							{	return BRACKET_OPEN; }
 \]							{	return BRACKET_CLOSE; }
 \(							{	return PARA_OPEN; }

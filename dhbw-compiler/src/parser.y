@@ -71,7 +71,7 @@
 %left  LS LSEQ GTEQ GT 
 %left  SHIFT_LEFT SHIFT_RIGHT
 %left  PLUS MINUS	
-%left  MUL
+%left  MUL MOD
 %right LOGICAL_NOT UNARY_MINUS UNARY_PLUS
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
@@ -813,6 +813,18 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+			$$.lval = 0;
+		}
+	}
+	| expression MOD expression { //TODO test
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
+			$$.quad = nextquad;
+			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
+			$$.idName = newtemp();
+			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
+			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
+			genStmt(OP_MOD, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
 		}
 	}
