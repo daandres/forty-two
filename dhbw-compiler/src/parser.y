@@ -792,6 +792,30 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.lval = 0;
 		}
 	}
+	| expression SHIFT_LEFT expression { //TODO
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
+			$$.quad = NULL;
+			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
+			$$.idName = newtemp();
+			$$.true = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
+			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
+			//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+			$$.lval = 0;
+		}
+	}
+	| expression SHIFT_RIGHT expression { //TODO
+		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
+			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
+			$$.quad = NULL;
+			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
+			$$.idName = newtemp();
+			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
+			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
+			//genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
+			$$.lval = 0;
+		}
+	}
 	| MINUS expression %prec UNARY_MINUS {
 		if ($2.type == intType || $2.type == intArrayType) { // Hier auch ein Type checking machen, da nur int ein Minus haben dürfen. EIne FUnktion ohne Retrun nicht...
 			$$.true = $2.true;
