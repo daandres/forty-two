@@ -5,25 +5,25 @@
 /****************************************************************************/
  
 %{
-  #include "ir_code.h"
-  #include "typecheck.h"
-  #include <stdio.h>
-  #include <stdarg.h>
-  #include <stdlib.h>
-  #include <string.h>
+	#include "ir_code.h"
+	#include "typecheck.h"
+	#include <stdio.h>
+	#include <stdarg.h>
+	#include <stdlib.h>
+	#include <string.h>
 	
-  #define YYERROR_VERBOSE
-  int yylex(void);
+	#define YYERROR_VERBOSE
+	int yylex(void);
   	  
-  	  //Funktionskontext. Enthaelt den Namen der Funktion, wenn er sich in ihr befindet. Anonsten wird der String '___#nktx&' abgespeichert.
-  	  //Der Kryptische Name wurde gewaehlt, da es teilweise zu Problemen mit dem NULL-Wert kam.
-  	  char* function_context = '___#nktx&';
+	//Funktionskontext. Enthaelt den Namen der Funktion, wenn er sich in ihr befindet. Anonsten wird der String '___#nktx&' abgespeichert.
+	//Der Kryptische Name wurde gewaehlt, da es teilweise zu Problemen mit dem NULL-Wert kam.
+	char* function_context = '___#nktx&';
   
-  //Flag to indicate if the code is syntacitcal correct. 1 means correct, else not; Assume the code is correct, when not change this value
-  int correct = 1;
+	//Flag to indicate if the code is syntacitcal correct. 1 means correct, else not; Assume the code is correct, when not change this value
+	int correct = 1;
   
-  // This temporaray IRCODE pointer contains an IR Code for an Array Load. If the Array load was wrong it has to be changed and deleted
-  IRCODE_t* arrayCodeTemp = NULL;
+	// This temporaray IRCODE pointer contains an IR Code for an Array Load. If the Array load was wrong it has to be changed and deleted
+	IRCODE_t* arrayCodeTemp = NULL;
 %}
 %code requires{
 	#include "symtab.h"
@@ -108,17 +108,15 @@ function_def
 		}else{
 		}*/
 		
-		if(insertFuncGlobal(function_context, func)==1) //Does the function allready exist? Otherwise it will be inserted
-		{
+		if(insertFuncGlobal(function_context, func)==1) { //Does the function allready exist? Otherwise it will be inserted
 			//FIXME vof.symFunction.callVar ist nicht initialisiert			
 			//if the function allready exists, check if there is a parameter-missmatch
-			if(checkFunctionDefinition(param_list, function_context) != 0){
+			if(checkFunctionDefinition(param_list, function_context) != 0) {
 				yyerror("Conflicting parameter-types for function-definition '%s'",function_context);
 			}
 		}
 		
 		if(param_list != NULL){ //the new parameter-list overrides the one in the declaration. During declaration no intermediate code is created.
-			
 			insertCallVarLocal(function_context, param_list);
 			//param_list = NULL;
 		}
@@ -128,7 +126,7 @@ reset_param
 	: /*empty*/ {
 		PurgeParameters(param_list);//param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
 				param_list = NULL;
-}
+	}
 
 M_svQuad
 	: /* empty */ { 
@@ -206,7 +204,7 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 			}
 		}
 	}
-	| type identifier_declaration	{
+	| type identifier_declaration {
 		sym_union_t var;
 		if($2.vof.symVariable.varType == ArrayType){
 			if($1 == intType) {
@@ -242,7 +240,7 @@ identifier_declaration
 		var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
 		$$ = var;
 	}
-	| ID	{ 
+	| ID { 
 		sym_union_t var;
 	 	var.name = $1;
 	  	$$ = var;
@@ -259,7 +257,7 @@ function_definition
 		
 		if(function->vof.symFunction.protOrNot == proto){
 			//The type None is set in the function_def in the case, that the function was defined before it was declared.
-					//As the type is not known in function_def, it will be set after parsing the function_definition.
+			//As the type is not known in function_def, it will be set after parsing the function_definition.
 			if(function->vof.symFunction.returnType == None){
 				function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 			}
@@ -270,7 +268,7 @@ function_definition
 			
 			//Declare the entry of the function to be no prototype anymore
 			function->vof.symFunction.protOrNot = no;
-		}else{
+		} else {
 			yyerror("Duplicate implementation for function %s",function_context);
 		}
 		
@@ -294,11 +292,8 @@ function_definition
 		}else{
 			yyerror("Duplicate implementation for function %s",function_context);
 		}
-		
 							
 		function_context = '___#nktx&';
-		
-		
 	}
 	;
 
@@ -312,9 +307,9 @@ function_declaration
 		func.returnType = $1.vof.symFunction.returnType;
 		func.protOrNot = proto; 
 		if(insertFuncGlobal($1.name, func) != 0){
-			
 			sym_union_t* entry = searchGlobal($1.name);
 			
+			// FIXME callVar is maybe uninitialiesed
 			if(entry != NULL && entry->vof.symFunction.callVar != NULL){
 				yyerror("Error while declaring function %s. Function-parameter missmatch", $1.name);
 			}
@@ -322,7 +317,6 @@ function_declaration
 		}else{
 			debug("Function %s declared. \n", $1.name);
 		}
-		
 		function_context = '___#nktx&';
 	} 
 	| function_header function_parameter_list PARA_CLOSE { 
@@ -538,9 +532,9 @@ stmt_conditional
 		$$.lval = 0;
 	}
 	| IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
-		backpatch($3.true, $5.quad); // backpatche true Ausgang mit true stmt block
-		backpatch($3.false, $9.quad); // backpatche false Ausgang mit else stmt block
-		backpatch($8.next, nextquad); // backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
+		backpatch($3.true, $5.quad); 	// backpatche true Ausgang mit true stmt block
+		backpatch($3.false, $9.quad); 	// backpatche false Ausgang mit else stmt block
+		backpatch($8.next, nextquad); 	// backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
 		
 		$$.true = NULL; 
 		$$.false = NULL;
@@ -553,9 +547,9 @@ stmt_conditional
 									
 stmt_loop
 	: WHILE PARA_OPEN M_svQuad expression PARA_CLOSE M_svQuad stmt{
-		backpatch($4.true, $6.quad); // backpatche true ausgang mit begin des schleifen bodys
-		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $3.quad); //springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
-		backpatch($4.false, nextquad); // backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
+		backpatch($4.true, $6.quad); 											// backpatche true ausgang mit begin des schleifen bodys
+		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $3.quad); 	//springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
+		backpatch($4.false, nextquad); 											// backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
 		
 		$$.true = NULL; 
 		$$.false = NULL;
@@ -565,8 +559,8 @@ stmt_loop
 		$$.lval = 0;
 	}
 	| DO M_svQuad stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON{
-		backpatch($6.true, $2.quad); //backpatche true ausgang mit begin der schleife
-		backpatch($6.false, nextquad); // backpatche fals ausgang mit ende der schleife
+		backpatch($6.true, $2.quad); 	//backpatche true ausgang mit begin der schleife
+		backpatch($6.false, nextquad); 	// backpatche fals ausgang mit ende der schleife
 		
 		$$.true = NULL; 
 		$$.false = NULL;
@@ -590,7 +584,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						$$.next = $3.next; 
 						$$.quad = nextquad;
 						$$.idName = $1.idName;
-						$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
+						$$.lval = 1; // TODO test:  a = b = c = 1;
 						genStmt(OP_ASSIGN, $1.idName, $3.idName, NULL, 2);
 	   	 	 		} else {
 	   	 	 			yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
@@ -598,21 +592,19 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	   	 	 			
 	   	 	 	} else if($1.type = intArrayType){
 	   	 	 		if($3.type == intType || $3.type == intArrayType){
-					//Proceed with array access
-	   	 	 		IRCODE_t* temp_quad = code_quad; // aktuelles code_quad wird zwischengespeichert
+						//Proceed with array access
+	   	 	 			IRCODE_t* temp_quad = code_quad; // aktuelles code_quad wird zwischengespeichert
+						delLastQuad(); //Lösche letztes Quadrupel da es eine falsche Array Operation war
 					
-					delLastQuad(); //Lösche letztes Quadrupel da es eine falsche Array Operation war
+						$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
+						$$.false = $3.false; 
+						$$.next = $3.next; 
+						$$.quad = nextquad;
+						$$.idName = $1.idName;
+						$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
 					
-					$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
-					$$.false = $3.false; 
-					$$.next = $3.next; 
-					$$.quad = nextquad;
-					$$.idName = $1.idName;
-					$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
-					
-					genStmt(OP_ARRAY_STORE, code_quad->op_two, code_quad->op_three, $3.idName, 3);
-					free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
-					
+						genStmt(OP_ARRAY_STORE, code_quad->op_two, code_quad->op_three, $3.idName, 3);
+						free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
 					} else {
 						yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
 					}
@@ -916,100 +908,96 @@ primary
 		$$.lval = 0;
 	}
 	| ID { 
-    	if(function_context != '___#nktx&'){
-    		sym_union_t* found_entry = searchBoth($1, function_context);
-    		if(found_entry == NULL){
-    	 	 	yyerror("'%s' undeclared (first use in '%s')",$1, function_context);
-    	 	 	//exit(1);
-    	 	} else {
+		if(function_context != '___#nktx&'){
+			sym_union_t* found_entry = searchBoth($1, function_context);
+			if(found_entry == NULL){
+				yyerror("'%s' undeclared (first use in '%s')",$1, function_context);
+			 	//exit(1);
+			} else {
 				//TODO: it is probably necessary to pass the actual symbol-table entry up.
-    			 $$.idName = $1;
-    			 
-    			 $$.type = found_entry->vof.symVariable.varType;
- 				$$.lval = 1;
-    	 	}
-    	 } else {
-    	 	yyerror("Identifiers can only be used within function context.");
-    	 	//exit(1);
-    	 }
-    	
+				$$.idName = $1;
+				$$.type = found_entry->vof.symVariable.varType;
+				$$.lval = 1;
+			}
+		} else {
+			yyerror("Identifiers can only be used within function context.");
+			//exit(1);
+		}
 	}
 	;
 
 function_call
 	 : ID PARA_OPEN PARA_CLOSE{
-	  //Check if the function was defined in symbol table
-		 sym_union_t* entry = searchGlobal($1);
-		 if(function_context != '___#nktx&'){
-			 if(entry != NULL){
-				 //Check if the function was defined
-				 if(entry->vof.symFunction.protOrNot != no){
-					 //yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
-				 }else{
-					 //Check if there is 'no' parameter-list, as there shouldn't be any.
+		//Check if the function was defined in symbol table
+		sym_union_t* entry = searchGlobal($1);
+		if(function_context != '___#nktx&'){
+			if(entry != NULL){
+				//Check if the function was defined
+				if(entry->vof.symFunction.protOrNot != no){
+					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
+				} else {
+					//Check if there is 'no' parameter-list, as there shouldn't be any.
 					// FIXME uninitialised callVar
-					 if(entry->vof.symFunction.callVar != NULL){
-						 yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
-					 }else{ 
-						 //TODO: Intermediate-Code for function-call
+					if(entry->vof.symFunction.callVar != NULL){
+						yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
+					} else { 
+						//TODO: Intermediate-Code for function-call
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
-							genStmt(OP_CALL_VOID, $1, "", NULL, 2); 
+						genStmt(OP_CALL_VOID, $1, "", NULL, 2); 
 						else {
 							$$.idName = newtemp();
 							genStmt(OP_CALL_RET, $$.idName, $1, "", 3); 
 					 	}
-					 }
-					 
-					 //Set the return-value
-					 $$.type = entry->vof.symFunction.returnType;
-				 }
-			 }else{
-				 yyerror("Undefined symbol %s in function '%s'", $1,function_context);
-			 }
-		 }else{
-			 yyerror("Function-call %s can only be used within a function-context", $1);
-		 }
-	 }
-	 | ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
-		 //Check if the function was defined in symbol table
-		 sym_union_t* entry = searchGlobal($1);
-		 if(function_context != '___#nktx&'){
-			 if(entry != NULL){
-				 //Check if the function was defined
-				 if(entry->vof.symFunction.protOrNot != no){
-					 //TODO: what to do if the definition of a function follows afterwards but it was declared???
-					 //yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
-				 }else{
-					 //Check if the parameter-list is available and correct (type)
-					 if(validateDefinition(param_list, function_context) == 1){
-						 yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
-					 }else{
-						 //TODO: Intermediate-Code for function-call
-						 if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
-							genStmt(OP_CALL_VOID, $1, $4.name, NULL, 2); 
+					}
+					//Set the return-value
+					$$.type = entry->vof.symFunction.returnType;
+				}
+			} else {
+				yyerror("Undefined symbol %s in function '%s'", $1,function_context);
+			}
+		} else {
+			yyerror("Function-call %s can only be used within a function-context", $1);
+		}
+	}
+	| ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
+		//Check if the function was defined in symbol table
+		sym_union_t* entry = searchGlobal($1);
+		if(function_context != '___#nktx&'){
+			if(entry != NULL){
+				//Check if the function was defined
+				if(entry->vof.symFunction.protOrNot != no){
+					//TODO: what to do if the definition of a function follows afterwards but it was declared???
+					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
+				} else {
+					//Check if the parameter-list is available and correct (type)
+					if(validateDefinition(param_list, function_context) == 1){
+						yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
+					} else {
+						//TODO: Intermediate-Code for function-call
+						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
+						genStmt(OP_CALL_VOID, $1, $4.name, NULL, 2); 
 						else {
 							$$.idName = newtemp();
 							genStmt(OP_CALL_RET, $$.idName, $1, $4.name, 3); 
 					 	}
-					 }
+					}
+					//Set the return-value
+					$$.type = entry->vof.symFunction.returnType;
+				}
+			} else {
+				yyerror("Undefined symbol %s in function '%s'", $1,function_context);
+			}
+		} else {
+			yyerror("Function-call %s can only be used within a function-context", $1);
+		}
+		
+		//Clear the current param_list
+		PurgeParameters(param_list);
+		param_list = NULL;
+	}
+	;
 
-					 //Set the return-value
-					 $$.type = entry->vof.symFunction.returnType;
-				 }
-			 }else{
-				 yyerror("Undefined symbol %s in function '%s'", $1,function_context);
-			 }
-		 }else{
-			 yyerror("Function-call %s can only be used within a function-context", $1);
-		 }
-		 
-		 //Clear the current param_list
-		 PurgeParameters(param_list);
-		 param_list = NULL;
-	 }
-	 ;
-
-	 //We can reuse the param_list global-variable for the call_parameter-list, as it is will be overwritten after the call
+//We can reuse the param_list global-variable for the call_parameter-list, as it is will be overwritten after the call
 function_call_parameters
 	: function_call_parameters COMMA expression{
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
@@ -1023,8 +1011,6 @@ function_call_parameters
 		DL_APPEND(param_list,param);
 	}
 	| expression {
-		
-		
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
 		if(param == NULL){
 			yyerror("could not allocate memory");
@@ -1036,7 +1022,7 @@ function_call_parameters
 		param->varType = $1.type; //obtain type from expression
 		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
-}
+	}
 	;
 
 %%
