@@ -929,7 +929,9 @@ function_call
 		//Check if the function was defined in symbol table
 		warning("+++++++++++++++++++++\n\n");
 		sym_union_t* entry = searchGlobal($1);
+		
 		if(function_context != '___#nktx&'){
+			
 			if(entry != NULL){
 				//Check if the function was defined
 				if(entry->vof.symFunction.protOrNot != no){
@@ -937,13 +939,12 @@ function_call
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 				} else {
 					
-					function_param_t *fparam;
-							
-					
 					
 					//Check if the parameter-list is available and correct (type)
-					if(validateDefinition(param_list, function_context) == 1){
+					if(validateDefinition(param_list, $1) == 1){
+						
 						yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
+						
 					} else {
 						//TODO: Intermediate-Code for function-call
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
