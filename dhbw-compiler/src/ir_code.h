@@ -67,7 +67,6 @@ void delLastQuad();
 void free_IRCODE_t(IRCODE_t* var);
 void free_IRCODE_t_rec(IRCODE_t* var);
 void free_IRTYPE_t(IRTYPE_t* var);
-void free_IRTYPE_t_rec(IRTYPE_t* var);
 void free_IRLIST_t(IRLIST_t* var);
 void free_IRLIST_t_rec(IRLIST_t* var);
 
