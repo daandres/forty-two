@@ -119,6 +119,7 @@ int insertFuncGlobal(char* symName, sym_function_t func) {
 
 		new_entry->vof.symFunction = func;
 		new_entry->vof.symFunction.local_variables = NULL;
+		new_entry->vof.symFunction.callVar = NULL;
 		HASH_ADD_KEYPTR(hh, sym_table, new_entry->name, strlen(new_entry->name), new_entry);
 		return 0;
 	}
@@ -224,7 +225,7 @@ void PurgeParameters(function_param_t* params){
 }
 
 /**
- * Own method for inserting call parameter definitions. As this happens during declaration,
+ * Own method for inserting call parameter definitions. As this happens during declaration/definition,
  * there is no need for checking the local sym-table for occurence.
  * @parm funcName name of the function to insert the parameters in
  * @parm parm actual list of the parameters

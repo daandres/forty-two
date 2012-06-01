@@ -83,7 +83,7 @@ int validateParameter(function_param_t* first, function_param_t* second){
 
 /**
  * Check wether the definition of a function is compliant with its declaration
- * concerning the given parameter-list.
+ * concerning the given parameter-list. Allows the declaration to be emptry
  *
  * @parm params parameters of the definition
  * @parm funcName Name of the current function-context
@@ -115,7 +115,7 @@ int checkFunctionDefinition(function_param_t* params, char* funcName){
 
 /**
  * Check wether the definition of a function is compliant with its declaration
- * concerning the given parameter-list.
+ * concerning the given parameter-list. Does not allow the declaration to be empty
  *
  * @parm params parameters of the definition
  * @parm funcName Name of the current function-context

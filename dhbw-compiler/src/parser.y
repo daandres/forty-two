@@ -101,6 +101,7 @@ function_def
 		sym_function_t func; //The returntype is left blank for now. will be added in the definition
 		func.returnType = None;
 		func.protOrNot = proto;
+		func.callVar = NULL;
 		
 		//Feature wurde entfernt, da es doch moeglich ist, funktionen zu definieren ohne sie zu deklarieren
 		/*if(insertFuncGlobal(function_context, func) == 1){
@@ -110,7 +111,8 @@ function_def
 		}*/
 		
 		if(insertFuncGlobal(function_context, func)==1) { //Does the function allready exist? Otherwise it will be inserted
-			//FIXME vof.symFunction.callVar ist nicht initialisiert			
+			//FIXME vof.symFunction.callVar ist nicht initialisiert		
+			
 			//if the function allready exists, check if there is a parameter-missmatch
 			if(checkFunctionDefinition(param_list, function_context) != 0) {
 				yyerror("Conflicting parameter-types for function-definition '%s'",function_context);
