@@ -905,7 +905,8 @@ function_call
 					//Check if there is 'no' parameter-list, as there shouldn't be any.
 					
 					if(entry->vof.symFunction.callVar != NULL){
-						yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
+						//FIXME: Still creates an error on valgrind. Remove if not working
+						yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
 					} else { 
 						//TODO: Intermediate-Code for function-call
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
@@ -942,8 +943,8 @@ function_call
 					
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, $1) == 1){
-						
-						yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
+						//FIXME: Still creates an error on valgrind. Remove if not working
+						yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (%s)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
 						
 					} else {
 						//TODO: Intermediate-Code for function-call

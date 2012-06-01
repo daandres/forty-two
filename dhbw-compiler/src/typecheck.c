@@ -134,7 +134,7 @@ int validateDefinition(function_param_t* params, char* funcName){
 			}
 			else{
 				//As both the definition and the declaration are not empty, we need to checkt the parametertypes
-				// FIXME uninitialised callVar
+
 				return validateParameter(function->vof.symFunction.callVar, params);
 			}
 		}else

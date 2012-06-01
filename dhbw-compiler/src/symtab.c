@@ -51,7 +51,7 @@ sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable z
 		return NULL;
 	}
 
-	// FIXME uninitialised callVar
+
 	if (function->vof.symFunction.local_variables == NULL && function->vof.symFunction.callVar == NULL) {
 		return NULL;
 	}
@@ -255,7 +255,6 @@ int insertCallVarLocal(char* funcName, function_param_t* parm) {
 
 
 
-
 //Noch nicht ausführlich getestet!!!
 /**
  * alters the entered information of an already in either a local symbol table or call variable table entered variable
@@ -416,4 +415,52 @@ int printSymTable(char* filename) {
 	return 0;
 }
 
-//*************!!!Wird sp�ter in typecheck.h ausgelagert!!!*****************//
+/**
+ * generates a coma separated string that contains the types of all parameters.
+ * @parm parm_list linked list (UTLIST) of the parameters
+ */
+char* ParameterListToString(function_param_t* param_list){
+
+		if(param_list != NULL){
+			function_param_t *fparam;
+			char* list = NULL; //Create one container for the string that is to be created
+			char* parmtype = NULL;
+
+			DL_FOREACH(param_list,fparam) {
+
+				switch (fparam->varType) {
+					case voidType:
+						parmtype = "VOID";
+						break;
+					case intType:
+						parmtype = "INT";
+						break;
+					case intArrayType:
+						parmtype = "INT[]";
+						break;
+					case ArrayType:
+						parmtype = "ARRAY";
+						break;
+					case None:
+						parmtype = "NULL";
+					break;
+				}
+
+				if(list == NULL){
+					list = malloc(strlen(parmtype));
+					strcpy(list, parmtype);
+				}else{
+					sprintf(list, "%s,%s",list,parmtype);
+				}
+			}
+
+			return(list);
+
+		}else
+		{
+			return "NULL";
+		}
+}
+
+
+
