@@ -111,7 +111,7 @@ function_def
 		}*/
 		
 		if(insertFuncGlobal(function_context, func)==1) { //Does the function allready exist? Otherwise it will be inserted
-			//FIXME vof.symFunction.callVar ist nicht initialisiert		
+					
 			
 			//if the function allready exists, check if there is a parameter-missmatch
 			if(checkFunctionDefinition(param_list, function_context) != 0) {
@@ -312,7 +312,7 @@ function_declaration
 		if(insertFuncGlobal($1.name, func) != 0){
 			sym_union_t* entry = searchGlobal($1.name);
 			
-			// FIXME callVar is maybe uninitialiesed
+			
 			if(entry != NULL && entry->vof.symFunction.callVar != NULL){
 				yyerror("Error while declaring function %s. Function-parameter missmatch", $1.name);
 			}
@@ -881,7 +881,6 @@ primary
 				yyerror("'%s' undeclared (first use in '%s')",$1, function_context);
 			 	//exit(1);
 			} else {
-				//TODO: it is probably necessary to pass the actual symbol-table entry up.
 				$$.idName = $1;
 				$$.type = found_entry->vof.symVariable.varType;
 				$$.lval = 1;
@@ -904,7 +903,7 @@ function_call
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 				} else {
 					//Check if there is 'no' parameter-list, as there shouldn't be any.
-					// FIXME uninitialised callVar
+					
 					if(entry->vof.symFunction.callVar != NULL){
 						yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
 					} else { 
@@ -937,6 +936,11 @@ function_call
 					//TODO: what to do if the definition of a function follows afterwards but it was declared???
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 				} else {
+					
+					function_param_t *fparam;
+							
+					
+					
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, function_context) == 1){
 						yyerror("Function %s in '%s': parameter-missmatch", $1, function_context);
@@ -986,7 +990,6 @@ function_call_parameters
 		}
 		
 		param->name = $1.idName; //Obtain the temporary-name
-		//TODO: Why is IR-Type a pointer? Is it supposed to have several types?
 		param->varType = $1.type; //obtain type from expression
 		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
