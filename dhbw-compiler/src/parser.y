@@ -80,8 +80,9 @@
 %type <lexem> function_def
 %type <airt> program_element_list program_element 
 %type <airt>  function_definition function_declaration
-%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop expression function_call 
-%type <airt> M_svQuad M_NextListAndGOTO primary
+/*%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop // wird nicht benötigt */ 
+%type <airt> expression function_call primary
+%type <airt> M_svQuad M_NextListAndGOTO 
 %%
 
 
@@ -416,107 +417,40 @@ function_parameter
 								
 stmt_list
 	: /* empty: epsilon */{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 
 	| stmt_list stmt{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	;
 
 //TODO: OPTIONAL:Detect returnstatement when it is called and unreachable code is detected.	
 stmt
 	: stmt_block{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	| variable_declaration SEMICOLON{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	| expression SEMICOLON{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	| stmt_conditional{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	| stmt_loop{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	| RETURN expression SEMICOLON{
 		//if(/*check types, return type of function and the real one*/1){
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
-
-			$$.true = NULL; 
-			$$.false = NULL;
-			$$.next = NULL; 
-			$$.quad = NULL;
-			$$.idName = NULL;
-			$$.lval = 0;
 		//}
 	}
 	| RETURN SEMICOLON{
 		//if(/*check types, return type of function and the real one*/1){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
-			$$.true = NULL; 
-			$$.false = NULL;
-			$$.next = NULL; 
-			$$.quad = NULL;
-			$$.idName = NULL;
-			$$.lval = 0;
 		//}
 	}
 	| SEMICOLON /* empty statement */{
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	;
 
 stmt_block
 	: BRACE_OPEN stmt_list BRACE_CLOSE {
-		$$.true = $2.true; 
-		$$.false = $2.false;
-		$$.next = $2.next; 
-		$$.quad = $2.quad;
-		$$.idName = $2.idName;
-		$$.lval = 0;
 	}
 	;
 	
@@ -524,24 +458,11 @@ stmt_conditional
 	: IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt {
 		backpatch($3.true, $5.quad); //backpatche den true Ausgang zum Statement der if Anweisung
 		backpatch($3.false, nextquad); // backpatche den false Ausgang hinter die STatements der if anweisung
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	| IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
 		backpatch($3.true, $5.quad); 	// backpatche true Ausgang mit true stmt block
 		backpatch($3.false, $9.quad); 	// backpatche false Ausgang mit else stmt block
 		backpatch($8.next, nextquad); 	// backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
-		
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	;
 									
@@ -550,24 +471,10 @@ stmt_loop
 		backpatch($4.true, $6.quad); 											// backpatche true ausgang mit begin des schleifen bodys
 		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $3.quad); 	//springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
 		backpatch($4.false, nextquad); 											// backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
-		
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	| DO M_svQuad stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON{
 		backpatch($6.true, $2.quad); 	//backpatche true ausgang mit begin der schleife
 		backpatch($6.false, nextquad); 	// backpatche fals ausgang mit ende der schleife
-		
-		$$.true = NULL; 
-		$$.false = NULL;
-		$$.next = NULL; 
-		$$.quad = NULL;
-		$$.idName = NULL;
-		$$.lval = 0;
 	}
 	;
 									
@@ -1019,6 +926,7 @@ function_call
 	}
 	| ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
 		//Check if the function was defined in symbol table
+		warning("+++++++++++++++++++++\n\n");
 		sym_union_t* entry = searchGlobal($1);
 		if(function_context != '___#nktx&'){
 			if(entry != NULL){
