@@ -966,7 +966,7 @@ function_call
 		//Clear the current param_list
 		PurgeParameters(param_list);
 		param_list = NULL;
-	}
+	} 
 	;
 
 //We can reuse the param_list global-variable for the call_parameter-list, as it is will be overwritten after the call

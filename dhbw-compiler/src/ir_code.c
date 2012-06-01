@@ -22,7 +22,6 @@ char* newtemp() {
 	char* tmp = (char *) malloc(sizeof(char) * 6); // don't forget End of STring symbol during the malloc
 	if (tmp == NULL) {
 		warning("could not allocate memory");
-		//FIXME
 		return NULL;
 	}
 	sprintf(tmp, ".t%d", tmpCount++);
@@ -32,7 +31,6 @@ char* newtemp() {
  * This function generates a true/falselist with a given quadruple  (next quad = nquad)
  */
 IRLIST_t* makelist(IRCODE_t* nquad) {
-
 	IRLIST_t* list = (IRLIST_t*) malloc(sizeof(IRLIST_t));
 	if (list == NULL) {
 		warning("could not allocate memory for a new list");
@@ -84,10 +82,10 @@ void setMissingParm(IRCODE_t* code, char* value) {
  * This function backpatches temp identifiers with its addresses...
  */
 void backpatch(IRLIST_t* list, int nquad) {
+	IRLIST_t* first_elemt = list;
 	char* addr = (char *) malloc(sizeof(char) * 10); // don't forget End of String symbol during the malloc
 	if (addr == NULL) {
 		warning("could not allocate memory");
-		//FIXME
 	}
 	sprintf(addr, "%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
@@ -96,7 +94,8 @@ void backpatch(IRLIST_t* list, int nquad) {
 		list = list->next;
 	}
 
-	free_IRLIST_t_rec(list);
+	//free(addr); // wenn einkommentiert, dann gibt es invald reads auf addr, was sehr komsich ist TODO
+	free_IRLIST_t_rec(first_elemt);
 }
 
 /*
@@ -277,40 +276,67 @@ void printIrCode(char* fn) {
  * Frees the memory for one IRCODE_T struct
  */
 void free_IRCODE_t(IRCODE_t* var) {
-//TODO
+	if (var->op_one != NULL)
+		free(var->op_one);
+	if (var->op_two != NULL)
+		free(var->op_two);
+	if (var->op_three != NULL)
+		free(var->op_three);
+	free(var);
 }
 
 /**
  * Frees the memory for one IRCODE_T struct recursively
  */
 void free_IRCODE_t_rec(IRCODE_t* var) {
-	//TODO
+	IRCODE_t* next = var->next;
+	IRCODE_t* prev = var->previous;
+	while (next != NULL) {
+		IRCODE_t* tmp = next->next;
+		free_IRCODE_t(next);
+		next = tmp;
+		tmp = NULL;
+	}
+	while (prev != NULL) {
+		IRCODE_t* tmp = prev->previous;
+		free_IRCODE_t(prev);
+		prev = tmp;
+		tmp = NULL;
+	}
 }
 
 /**
  * Frees the memory for one IRTYPE_t struct
  */
 void free_IRTYPE_t(IRTYPE_t* var) {
-//TODO
-}
-
-/**
- * Frees the memory for one IRTYPE_t structrecursively
- */
-void free_IRTYPE_t_rec(IRTYPE_t* var) {
-	//TODO
+	if (var->true != NULL)
+		free_IRLIST_t_rec(var->true);
+	if (var->false != NULL)
+		free_IRLIST_t_rec(var->false);
+	if (var->next != NULL)
+		free_IRLIST_t_rec(var->next);
+	if (var->idName != NULL)
+		free(var->idName);
 }
 
 /**
  * Frees the memory for one IRLIST_t struct
  */
 void free_IRLIST_t(IRLIST_t* var) {
-//TODO
+	if (var->item != NULL)
+		free_IRCODE_t(var->item);
+	free(var);
 }
 
 /**
  * Frees the memory for one IRLIST_t structrecursively
  */
 void free_IRLIST_t_rec(IRLIST_t* var) {
-	//TODO
+	IRLIST_t* next = var->next;
+	while (next != NULL) {
+		IRLIST_t* tmp = next->next;
+		free_IRLIST_t(next);
+		next = tmp;
+		tmp = NULL;
+	}
 }
