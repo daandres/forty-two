@@ -415,6 +415,25 @@ int printSymTable(char* filename) {
 	return 0;
 }
 
+char* typeToString(types_t type){
+	switch (type) {
+		case voidType:
+			return("VOID");
+			break;
+		case intType:
+			return("INT");
+			break;
+		case intArrayType:
+			return("INT[]");
+			break;
+		case ArrayType:
+			return("ARRAY");
+			break;
+		case None:
+			return("NULL");
+		break;
+	}
+}
 /**
  * generates a coma separated string that contains the types of all parameters.
  * @parm parm_list linked list (UTLIST) of the parameters
@@ -428,23 +447,7 @@ char* ParameterListToString(function_param_t* param_list){
 
 			DL_FOREACH(param_list,fparam) {
 
-				switch (fparam->varType) {
-					case voidType:
-						parmtype = "VOID";
-						break;
-					case intType:
-						parmtype = "INT";
-						break;
-					case intArrayType:
-						parmtype = "INT[]";
-						break;
-					case ArrayType:
-						parmtype = "ARRAY";
-						break;
-					case None:
-						parmtype = "NULL";
-					break;
-				}
+				parmtype = typeToString(fparam->varType);
 
 				if(list == NULL){
 					list = malloc(strlen(parmtype));

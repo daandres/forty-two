@@ -103,12 +103,6 @@ function_def
 		func.protOrNot = proto;
 		func.callVar = NULL;
 		
-		//Feature wurde entfernt, da es doch moeglich ist, funktionen zu definieren ohne sie zu deklarieren
-		/*if(insertFuncGlobal(function_context, func) == 1){
-			
-			//warning("Function %s was used before it was declared. Adding declaration automatically.", function_context);
-		}else{
-		}*/
 		
 		if(insertFuncGlobal(function_context, func)==1) { //Does the function allready exist? Otherwise it will be inserted
 					
@@ -266,7 +260,7 @@ function_definition
 			}
 			
 			if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
-				yyerror("Type-missmatch. The returntype does not fit its declaration");
+				yyerror("Type-missmatch. The returntype for %s does not fit its declaration. Found (%s) but expected (%s).",$1.name, typeToString($1.vof.symFunction.returnType),typeToString(function->vof.symFunction.returnType));
 			}
 			
 			//Declare the entry of the function to be no prototype anymore
@@ -287,7 +281,7 @@ function_definition
 			}
 			
 			if(function->vof.symFunction.returnType != $1.vof.symFunction.returnType){
-				yyerror("Type-missmatch. The returntype does not fit its declaration");
+				yyerror("Type-missmatch. The returntype for %s does not fit its declaration. Found (%s) but expected (%s).",$1.name, typeToString($1.vof.symFunction.returnType),typeToString(function->vof.symFunction.returnType));
 			}
 			
 			//Declare the entry of the function to be no prototype anymore
@@ -314,8 +308,13 @@ function_declaration
 			
 			
 			if(entry != NULL && entry->vof.symFunction.callVar != NULL){
-				yyerror("Error while declaring function %s. Function-parameter missmatch", $1.name);
+				yyerror("Type-missmatch. The returntype for %s does not fit its declaration. Found (%s) but expected (%s).",$1.name, typeToString($1.vof.symFunction.returnType),typeToString(entry->vof.symFunction.returnType));
 			}
+			
+			if(entry->vof.symFunction.returnType != $1.vof.symFunction.returnType){
+				yyerror("Type-missmatch. The returntype does not fit its declaration");
+			}
+			
 			//exit(1);
 		}else{
 			debug("Function %s declared. \n", $1.name);
@@ -328,12 +327,15 @@ function_declaration
 		func.protOrNot = proto; 
 		
 		if(insertFuncGlobal($1.name, func) != 0){
-			//sym_union_t* entry = searchGlobal($1.name);
+			sym_union_t* entry = searchGlobal($1.name);
 						
 			if(validateDefinition(param_list, function_context)==1 ){
 				yyerror("Error while declaring function %s. Function-parameter missmatch.", $1.name);
 			}
-			//exit(1);
+			
+			if(entry->vof.symFunction.returnType != $1.vof.symFunction.returnType){
+				yyerror("Type-missmatch. The returntype for %s does not fit its declaration. Found (%s) but expected (%s).",$1.name, typeToString($1.vof.symFunction.returnType),typeToString(entry->vof.symFunction.returnType));
+			}
 		}else{
 			debug("Function %s declared. \n", $1.name);
 			insertCallVarLocal(function_context, param_list);
@@ -928,7 +930,7 @@ function_call
 	}
 	| ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
 		//Check if the function was defined in symbol table
-		warning("+++++++++++++++++++++\n\n");
+		//warning("+++++++++++++++++++++\n\n");
 		sym_union_t* entry = searchGlobal($1);
 		
 		if(function_context != '___#nktx&'){
