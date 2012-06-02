@@ -286,7 +286,7 @@ int printSymTable(char* filename) {
 		fprintf(stderr, "Fehler beim oeffnen der IR Datei.\n");
 		return 1;
 	}
-	debug("SymTab: Datei '%s' geöffnet.\n", filename);
+	//debug("SymTab: Datei '%s' geöffnet.\n", filename);
 
 	fprintf(datei, "/* **************** */\n");
 	fprintf(datei, "/* Symbol Table     */\n\n");

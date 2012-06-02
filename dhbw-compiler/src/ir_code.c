@@ -262,9 +262,6 @@ void printIrCode(char* fn) {
 		}
 		formatIrCode(tmp, code_quad);
 		fprintf(f, "%s\n", tmp);
-		if (cc_options.log != NULL) {
-			debug("%s", tmp);
-		}
 		code_quad = code_quad->next;
 		free(tmp);
 	}
