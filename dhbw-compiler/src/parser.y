@@ -452,17 +452,21 @@ stmt
 		$$.next = $1.next;
 	}
 	| RETURN expression SEMICOLON{ //Return that returns a actual value
-		//if(/*check types, return type of function and the real one*/1){
+		if(CheckFunctionReturnTyp(function_context, $2.type) == 0){
 			backpatch($2.next,nextquad);//expression.next leads to the following statement
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
 			//$$.next = nextquad; //the next statement after this is the nextquad
-		//}
+		} else {
+			yyerror("Type missmatch in return statement. '%s' has not the return type '%s'", function_context, typeToString($2.type));	
+		}
 	}
 	| RETURN SEMICOLON{//Empty returntype
-		//if(/*check types, return type of function and the real one*/1){
+		if(CheckFunctionReturnTyp(function_context, voidType) == 0){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
 			//$$.next = nextquad;
-		//}
+		} else {
+			yyerror("Type missmatch in return statement. '%s' has not the return type 'void'", function_context);	
+		}
 	}
 	| SEMICOLON /* empty statement */{
 	}

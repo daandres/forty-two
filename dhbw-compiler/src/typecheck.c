@@ -21,15 +21,21 @@
  * @return returns 0 for true (types match) or 1 for false (type mismatch)
  */
 //=>STATUS: könnte funktionieren ;)
-int CheckFunctionReturnTyp(types_t functionReturnType, types_t returnedType) {
-	if (functionReturnType == intType && returnedType == intType) {
-		return 0;
-	}
-	else if (functionReturnType == intArrayType && returnedType == intArrayType) {
-		return 0;
-	}
-	else if (functionReturnType == voidType && returnedType == voidType) {
-		return 0;
+int CheckFunctionReturnTyp(char* funcname, types_t returnedType) {
+//int CheckFunctionReturnTyp(types_t functionReturnType, types_t returnedType) {
+//	if (functionReturnType == intType && returnedType == intType) {
+//		return 0;
+//	}
+//	else if (functionReturnType == intArrayType && returnedType == intArrayType) {
+//		return 0;
+//	}
+//	else if (functionReturnType == voidType && returnedType == voidType) {
+//		return 0;
+//	}
+	sym_union_t* function = searchGlobal(funcname);
+	if(function->symbolType == symFunction){
+		if(function->vof.symFunction.returnType == returnedType)
+			return 0;
 	}
 	return 1;
 }
