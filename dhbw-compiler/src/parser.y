@@ -438,7 +438,7 @@ stmt
 		$$.next = $1.next;
 	}
 	| variable_declaration SEMICOLON{
-		$$.next = nextquad; //TODO: Check if nextquad comas after the declaration
+		//$$.next = nextquad; //TODO: Check if nextquad comas after the declaration
 	}
 	| expression SEMICOLON{
 		$$.next = $1.next;
