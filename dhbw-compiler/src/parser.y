@@ -516,7 +516,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						$$.type = $1.type;
 						$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
 					
-						genStmt(OP_ARRAY_STORE, code_quad->op_two, code_quad->op_three, $3.idName, 3);
+						genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
 						free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
 					} else {
 						yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
