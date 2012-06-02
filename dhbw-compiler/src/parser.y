@@ -80,7 +80,7 @@
 %type <lexem> function_def
 %type <airt> program_element_list program_element 
 %type <airt>  function_definition function_declaration
-/*%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop // wird nicht benötigt */ 
+%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop 
 %type <airt> expression function_call primary
 %type <airt> M_svQuad M_NextListAndGOTO 
 %%
