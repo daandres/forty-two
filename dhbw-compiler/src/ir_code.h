@@ -13,18 +13,6 @@
 #include "symtab.h"
 #define START 100
 #define TMP 100 // Counter für Temp Variables Names
-/*
- * This struct is for Expressions.
- */
-typedef struct IRTYPE {
-	int* true; 		// true exit
-	int* false;		// false exit
-	int* next; 		// next exit
-	int quad; 		// number of statement
-	types_t type;	// type of terminal / non-terminal
-	char* idName; 	// variable or temporary variable name
-	int lval; //0=not a valid lvalv, 1=valid lval
-} IRTYPE_t;
 
 typedef enum opcode {
 	OP_ASSIGN, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_MIN, OP_SHL, OP_SHR,
@@ -53,6 +41,19 @@ typedef struct IRLIST {
 	struct IRLIST* next;		// Pointer to next quadrupel
 	IRCODE_t* item;			// Pointer to Quadrupel, which is element of this list
 } IRLIST_t;
+
+/*
+ * This struct is for Expressions.
+ */
+typedef struct IRTYPE {
+	IRLIST_t* true; 		// true exit
+	IRLIST_t* false;		// false exit
+	IRLIST_t* next; 		// next exit
+	int quad; 		// number of statement
+	types_t type;	// type of terminal / non-terminal
+	char* idName; 	// variable or temporary variable name
+	int lval; //0=not a valid lvalv, 1=valid lval
+} IRTYPE_t;
 
 IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, int paramcount);
 void printIrCode(char* f);
