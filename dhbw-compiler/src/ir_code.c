@@ -359,5 +359,6 @@ void free_IRLIST_t_rec(IRLIST_t* var) {
 			next = tmp;
 			tmp = NULL;
 		}
+		next = NULL;
 	}
 }
