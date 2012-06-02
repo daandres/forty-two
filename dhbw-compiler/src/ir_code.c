@@ -90,7 +90,10 @@ void backpatch(IRLIST_t* list, int nquad) {
 	sprintf(addr, "%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
 	while (list != NULL) {
-		setMissingParm(list->item, addr);
+		if(list->item != NULL)
+			setMissingParm(list->item, addr);
+		else
+			warning("could not backpatch %d ind one element of list", nquad);
 		list = list->next;
 	}
 
