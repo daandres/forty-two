@@ -431,8 +431,9 @@ char* typeToString(types_t type){
 			break;
 		case None:
 			return("NULL");
-		break;
+			break;
 	}
+	return("NULL");
 }
 /**
  * generates a coma separated string that contains the types of all parameters.
