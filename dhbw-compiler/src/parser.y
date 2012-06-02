@@ -423,30 +423,40 @@ stmt_list
 	: /* empty: epsilon */{
 	}
 
-	| stmt_list stmt{
+	| stmt_list M_svQuad stmt{
+		backpatch($1.next, $2.quad); //patch the nextlist of stmt_list to M_svQuad
+		$$.next = $3.next; //the next statement after this stmt
 	}
 	;
 
 //TODO: OPTIONAL:Detect returnstatement when it is called and unreachable code is detected.	
 stmt
 	: stmt_block{
+		$$.next = $1.next;
 	}
 	| variable_declaration SEMICOLON{
+		$$.next = nextquad; //TODO: Check if nextquad comas after the declaration
 	}
 	| expression SEMICOLON{
+		$$.next = $1.next;
 	}
 	| stmt_conditional{
+		$$.next = $1.next;
 	}
 	| stmt_loop{
+		$$.next = $1.next;
 	}
-	| RETURN expression SEMICOLON{
+	| RETURN expression SEMICOLON{ //Return that returns a actual value
 		//if(/*check types, return type of function and the real one*/1){
+			backpatch($2.next,nextquad);//expression.next leads to the following statement
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
+			$$.next = nextquad; //the next statement after this is the nextquad
 		//}
 	}
-	| RETURN SEMICOLON{
+	| RETURN SEMICOLON{//Empty returntype
 		//if(/*check types, return type of function and the real one*/1){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
+			$$.next = nextquad;
 		//}
 	}
 	| SEMICOLON /* empty statement */{
@@ -455,6 +465,7 @@ stmt
 
 stmt_block
 	: BRACE_OPEN stmt_list BRACE_CLOSE {
+		$$.next = $2.next;
 	}
 	;
 	
@@ -466,7 +477,9 @@ stmt_conditional
 	| IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
 		backpatch($3.true, $5.quad); 	// backpatche true Ausgang mit true stmt block
 		backpatch($3.false, $9.quad); 	// backpatche false Ausgang mit else stmt block
-		backpatch($8.next, nextquad); 	// backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
+		//backpatch($8.next, nextquad); 	// backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
+		$$.next = merge($6.next, $10.next);
+		$$.next = merge($$.next, $8.quad); //FIXME: we would need to merge the nextlists with the quad for the 
 	}
 	;
 									
@@ -476,9 +489,11 @@ stmt_loop
 		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $3.quad); 	//springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
 		backpatch($4.false, nextquad); 											// backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
 	}
-	| DO M_svQuad stmt WHILE PARA_OPEN expression PARA_CLOSE SEMICOLON{
-		backpatch($6.true, $2.quad); 	//backpatche true ausgang mit begin der schleife
-		backpatch($6.false, nextquad); 	// backpatche fals ausgang mit ende der schleife
+	| DO M_svQuad stmt WHILE PARA_OPEN M_svQuad expression PARA_CLOSE SEMICOLON{
+		backpatch($7.true, $2.quad); 	//backpatche true ausgang mit begin der schleife
+		backpatch($3.next, $6.quad);	//stmt.next wird zu expression hin gepatcht
+		$$.next = $7.false; //Der false-fall der expression ist next
+		//backpatch($7.false, nextquad); 	// backpatche fals ausgang mit ende der schleife
 	}
 	;
 									
