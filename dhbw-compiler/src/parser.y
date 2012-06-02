@@ -80,7 +80,7 @@
 %type <lexem> function_def
 %type <airt> program_element_list program_element 
 %type <airt>  function_definition function_declaration
-%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop // wird nicht benötigt 
+%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop 
 %type <airt> expression function_call primary
 %type <airt> M_svQuad M_NextListAndGOTO 
 %%
@@ -522,20 +522,29 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	   	 	 			
 	   	 	 	} else if($1.type = intArrayType){
 	   	 	 		if($3.type == intType || $3.type == intArrayType){
-						//Proceed with array access
-	   	 	 			IRCODE_t* temp_quad = code_quad; // aktuelles code_quad wird zwischengespeichert
-						delLastQuad(); //Lösche letztes Quadrupel da es eine falsche Array Operation war
-					
-						$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
-						$$.false = $3.false; 
-						$$.next = $3.next; 
-						$$.quad = nextquad;
-						$$.idName = $1.idName;
-						$$.type = $1.type;
-						$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
-					
-						genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
-						free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
+						//Proceed with array store
+	   	 	 			if(code_quad !=NULL){ // wenn es kein vorheriges code_quad gibt wurde das array ohne direkten zugrif angesprochen (a anstatt a[i]), da das behandelte c subset keine pointer kennt kann a nichts zugewiesen werden. Wenn ein a[i] erkannt wurde wird ein code_quad erzeugt, somit lässt sich der richtige Zugriff erkennen
+							IRCODE_t* temp_quad = code_quad; // aktuelles code_quad wird zwischengespeichert
+							delLastQuad(); //Lösche letztes Quadrupel da es eine falsche Array Operation war
+						
+							$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
+							$$.false = $3.false; 
+							$$.next = $3.next; 
+							$$.quad = nextquad;
+							$$.idName = $1.idName;
+							$$.type = $1.type;
+							$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
+						
+							genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
+							free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
+						} else {
+							if($3.type == intType)
+								yyerror("Type missmatch. Cannot assign int to an int Array (int[]=int)");
+							else if ($3.type == intArrayType) 
+								yyerror("Type missmatch. Cannot assign int* to an int Array (int[]=int*), because pointers aren't element to this c subset and in c it is also not possible.");
+ 							else
+								yyerror("Type missmatch. Cannot assign int Array.");
+						}
 					} else {
 						yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
 					}

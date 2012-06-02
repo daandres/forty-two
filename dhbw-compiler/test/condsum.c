@@ -2,12 +2,12 @@ int global, a[10];
 int b;
 
 
-void print();
+int print();
 
-void scan();
+int scan();
 void exit(int i);
-void exit(int i);
-void scan(){
+
+int scan(){
 
 
 }
@@ -30,12 +30,12 @@ void exit(int i){
 
 }
 
-void print(int gerd){
+int print(int gerd){
 
 }
 
 int main() {
-  global = print();
+  global = print(1);
   return funcy(a,5+5,5);
   print(scan());
 
