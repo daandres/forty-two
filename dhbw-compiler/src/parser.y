@@ -80,7 +80,7 @@
 %type <lexem> function_def
 %type <airt> program_element_list program_element 
 %type <airt>  function_definition function_declaration
-/*%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop // wird nicht benötigt */ 
+%type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop // wird nicht benötigt 
 %type <airt> expression function_call primary
 %type <airt> M_svQuad M_NextListAndGOTO 
 %%
@@ -109,6 +109,7 @@ function_def
 			
 			//if the function allready exists, check if there is a parameter-missmatch
 			if(checkFunctionDefinition(param_list, function_context) != 0) {
+				
 				yyerror("Conflicting parameter-types for function-definition '%s'",function_context);
 			}
 		}
@@ -193,11 +194,11 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		var.name = $3.name;
 		if(function_context == '___#nktx&'){
 			if(insertVarGlobal(var.name, var.vof.symVariable) == 1){
-				yyerror("Identifier %s has already been defined.", var.name);
+				yyerror("Identifier %s has already been declared.", var.name);
 			}
 		} else {
 			if(insertVarLocal(var.name, function_context, var.vof.symVariable, 0) == 1){
-				yyerror("Identifier %s has already been defined in function %s.", var.name, function_context);
+				yyerror("Identifier %s has already been declared in function %s.", var.name, function_context);
 			}
 		}
 	}
@@ -220,11 +221,11 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		var.name = $2.name;	
 		if(function_context == '___#nktx&'){
 			if(insertVarGlobal(var.name, var.vof.symVariable) == 1){
-				yyerror("Identifier %s has already been defined.", var.name);
+				yyerror("Identifier %s has already been declared.", var.name);
 			}
 		} else {
 			if(insertVarLocal(var.name, function_context, var.vof.symVariable, 0) == 1){
-				yyerror("Identifier %s has already been defined in function %s.", var.name, function_context);
+				yyerror("Identifier %s has already been declared in function %s.", var.name, function_context);
 			}
 		}
 	}
@@ -266,7 +267,7 @@ function_definition
 			//Declare the entry of the function to be no prototype anymore
 			function->vof.symFunction.protOrNot = no;
 		} else {
-			yyerror("Duplicate implementation for function %s",function_context);
+			yyerror("Duplicate declaration of function %s",function_context);
 		}
 		
 		function_context = '___#nktx&';
@@ -287,7 +288,7 @@ function_definition
 			//Declare the entry of the function to be no prototype anymore
 			function->vof.symFunction.protOrNot = no;
 		}else{
-			yyerror("Duplicate implementation for function %s",function_context);
+			yyerror("Duplicate declaration of function %s",function_context);
 		}
 							
 		function_context = '___#nktx&';
@@ -308,11 +309,12 @@ function_declaration
 			
 			
 			if(entry != NULL && entry->vof.symFunction.callVar != NULL){
-				yyerror("Type-missmatch. The returntype for %s does not fit its declaration. Found (%s) but expected (%s).",$1.name, typeToString($1.vof.symFunction.returnType),typeToString(entry->vof.symFunction.returnType));
+				//yyerror("Declaration of function %s: parameter-missmatch. Expected (%s) but found (%s)", $1.name, ParameterListToString(entry->vof.symFunction.callVar), "NULL");
+				yyerror("Declaration of function %s: parameter-missmatch.", $1.name);
 			}
 			
 			if(entry->vof.symFunction.returnType != $1.vof.symFunction.returnType){
-				yyerror("Type-missmatch. The returntype does not fit its declaration");
+				yyerror("Type-missmatch. The returntype for %s does not fit its declaration. Found (%s) but expected (%s).",$1.name, typeToString($1.vof.symFunction.returnType),typeToString(entry->vof.symFunction.returnType));
 			}
 			
 			//exit(1);
@@ -330,7 +332,8 @@ function_declaration
 			sym_union_t* entry = searchGlobal($1.name);
 						
 			if(validateDefinition(param_list, function_context)==1 ){
-				yyerror("Error while declaring function %s. Function-parameter missmatch.", $1.name);
+				//yyerror("Declaration of function %s: parameter-missmatch. Expected (%s) but found (%s)", $1.name, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
+				yyerror("Declaration of function %s: parameter-missmatch.", $1.name);
 			}
 			
 			if(entry->vof.symFunction.returnType != $1.vof.symFunction.returnType){
@@ -929,8 +932,8 @@ function_call
 					//Check if there is 'no' parameter-list, as there shouldn't be any.
 					
 					if(entry->vof.symFunction.callVar != NULL){
-						//FIXME: Still creates an error on valgrind. Remove if not working
-						yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
+						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
+						yyerror("Function %s in '%s': parameter-missmatch.)", $1);
 					} else { 
 						//TODO: Intermediate-Code for function-call
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
@@ -967,8 +970,8 @@ function_call
 					
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, $1) == 1){
-						//FIXME: Still creates an error on valgrind. Remove if not working
-						yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (%s)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
+						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (%s)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
+						yyerror("Function %s in '%s': parameter-missmatch.", $1);
 						
 					} else {
 						//TODO: Intermediate-Code for function-call
