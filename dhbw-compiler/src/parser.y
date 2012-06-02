@@ -533,7 +533,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						//Proceed with array store
 	   	 	 			if(code_quad !=NULL){ // wenn es kein vorheriges code_quad gibt wurde das array ohne direkten zugrif angesprochen (a anstatt a[i]), da das behandelte c subset keine pointer kennt kann a nichts zugewiesen werden. Wenn ein a[i] erkannt wurde wird ein code_quad erzeugt, somit lässt sich der richtige Zugriff erkennen
 							IRCODE_t* temp_quad = code_quad; // aktuelles code_quad wird zwischengespeichert
-							if(temp_quad->op_three == NULL) {
+							if(temp_quad->op_three == NULL) { // Falls kein index angegeben wurde wurde das array nicht richtig angesprochen -> Fehler
 								yyerror("Type missmatch. Cannot use int Array without index.");
 							}							
 
