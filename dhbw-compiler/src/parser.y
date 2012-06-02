@@ -955,7 +955,7 @@ function_call
 					
 					if(entry->vof.symFunction.callVar != NULL){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
-						yyerror("Function %s in '%s': parameter-missmatch.)", $1);
+						yyerror("Function %s in '%s': parameter-missmatch.)", $1, function_context);
 					} else { 
 						//TODO: Intermediate-Code for function-call
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
@@ -972,7 +972,7 @@ function_call
 				yyerror("Undefined symbol %s in function '%s'", $1,function_context);
 			}
 		} else {
-			yyerror("Function-call %s can only be used within a function-context", $1);
+			yyerror("Function-call %s can only be used within a function-context", $1, function_context);
 		}
 	}
 	| ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
@@ -993,7 +993,7 @@ function_call
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, $1) == 1){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (%s)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
-						yyerror("Function %s in '%s': parameter-missmatch.", $1);
+						yyerror("Function %s in '%s': parameter-missmatch.", $1, function_context);
 						
 					} else {
 						//TODO: Intermediate-Code for function-call
@@ -1008,7 +1008,7 @@ function_call
 					$$.type = entry->vof.symFunction.returnType;
 				}
 			} else {
-				yyerror("Undefined symbol %s in function '%s'", $1,function_context);
+				yyerror("Undefined symbol %s in function '%s'", $1, function_context);
 			}
 		} else {
 			yyerror("Function-call %s can only be used within a function-context", $1);
