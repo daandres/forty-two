@@ -157,11 +157,16 @@ IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, in
 //	IRCODE_t* prev = code->previous;
 //	IRCODE_t* next = code->next;
 //}
+
+/**
+ * Löscht das aktuelle Quadrupel und setzt das vorige als aktuell. ACHTUNG: Memory wird hier nicht gefreed --> selbst machen
+ */
 void delLastQuad() {
-	IRCODE_t* prev = code_quad->previous;
-	prev->next = NULL;
-	code_quad = prev;
-	nextquad--;
+	IRCODE_t* prev = code_quad->previous; // speicher das vorherige quadrupel in prev. wenn es keins gibt wird NULL gespeichert
+	if (prev != NULL) // wenn prev != NULL ist soll von prev die Referenz zum nächsten QUadrupel gelöscht werden
+		prev->next = NULL;
+	code_quad = prev; // setze als aktuelles Quadrupel das vorherige, wenn prev ==  NULL dann gibt es kein Quadrupel mehr
+	nextquad--; // dekrementiere Statement counter
 }
 
 void formatIrCode(char* code_string, IRCODE_t* i) {
