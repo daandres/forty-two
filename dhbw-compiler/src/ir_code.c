@@ -157,7 +157,6 @@ IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, in
 //	IRCODE_t* prev = code->previous;
 //	IRCODE_t* next = code->next;
 //}
-
 /**
  * Löscht das aktuelle Quadrupel und setzt das vorige als aktuell. ACHTUNG: Memory wird hier nicht gefreed --> selbst machen
  */
@@ -263,9 +262,6 @@ void printIrCode(char* fn) {
 		}
 		formatIrCode(tmp, code_quad);
 		fprintf(f, "%s\n", tmp);
-		if (cc_options.log != NULL) {
-			debug("%s", tmp);
-		}
 		code_quad = code_quad->next;
 		free(tmp);
 	}
@@ -328,8 +324,8 @@ void free_IRTYPE_t(IRTYPE_t* var) {
  * Frees the memory for one IRLIST_t struct
  */
 void free_IRLIST_t(IRLIST_t* var) {
-	if (var->item != NULL)
-		free_IRCODE_t(var->item);
+//	if (var->item != NULL)			// wird nicht gefreed, da ja nur die Liste gefreed werden soll und nicht das element an sich
+//		free_IRCODE_t(var->item);
 	free(var);
 }
 
@@ -337,11 +333,13 @@ void free_IRLIST_t(IRLIST_t* var) {
  * Frees the memory for one IRLIST_t structrecursively
  */
 void free_IRLIST_t_rec(IRLIST_t* var) {
-	IRLIST_t* next = var->next;
-	while (next != NULL) {
-		IRLIST_t* tmp = next->next;
-		free_IRLIST_t(next);
-		next = tmp;
-		tmp = NULL;
+	if (var != NULL) {
+		IRLIST_t* next = var->next;
+		while (next != NULL) {
+			IRLIST_t* tmp = next->next;
+			free_IRLIST_t(next);
+			next = tmp;
+			tmp = NULL;
+		}
 	}
 }

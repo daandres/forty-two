@@ -376,7 +376,7 @@ void warning(char *string, ...) {
  * \param argv The input parameters.
  */
 int main(int argc, char *argv[]) {
-	int parser_return;
+	int parser_return = 1; // parser return value; initialisiert auf 1, sodass nur ein korrekter durchlauf (0) auch zum erfolg führt
 	/* the resource manager must be initialized before any
 	 * further actions are implemented */
 	rm_init(&resource_mgr);
@@ -413,7 +413,10 @@ int main(int argc, char *argv[]) {
 	} else{
 		info("Compiling failed.");
 	}
+	//system("rm Symtable.txt");
 	//printSymTable("Symtable.txt");
+	//system("rm IRCode.txt");
+	//printIrCode("IRCode.txt");
 	rm_cleanup_resources(&resource_mgr);
 	return 0;
 }

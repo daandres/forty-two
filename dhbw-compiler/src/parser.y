@@ -531,7 +531,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						$$.type = $1.type;
 						$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
 					
-						genStmt(OP_ARRAY_STORE, code_quad->op_two, code_quad->op_three, $3.idName, 3);
+						genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
 						free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
 					} else {
 						yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
@@ -594,17 +594,24 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| LOGICAL_NOT expression {
 		if ($2.type == intType || $2.type == intArrayType) {
-			$$.true = $2.false; 
-			$$.false = $2.true;
-			$$.next = $2.next; 
 			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = newtemp();
 			$$.lval = 0;
-			genStmt(OP_IFEQ, $2.idName, "0", nextquad+2, 3); //überprüfe ob die expression den Wert 0 hat, wenn ja gehe zum überübernächsten statement
-			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2);	// falls vorige überprüfung false war setze den Wert auf 0
-			genStmt(OP_GOTO, nextquad+1, NULL, NULL, 1);	// überspringe nächstes statement
-			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2);	// falls expression gleich 0 ist, dann setze den Wert auf 1
+			
+			// eigentlich wird für logical_not kein IRCode benötigt, es müsten nur die true und false listen vertaischt werden... da aber in c logical_not ein integer wert zurück gibt wird hier trotzdem ircode erzeugt, auch wenn dieser manchmal dead_code ist (das muss dann später im ir_code wegoptimiert werden)
+			
+			// falscher Ansatz weil nicht mit den übergebenen truelisten gearbeitet wird und nur statisch auf die zu springenden Statements verwiesen wird. 
+			//genStmt(OP_IFEQ, $2.idName, "0", nextquad+2, 3); //überprüfe ob die expression den Wert 0 hat, wenn ja gehe zum überübernächsten statement
+			//genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2);	// falls vorige überprüfung false war setze den Wert auf 0
+			//genStmt(OP_GOTO, nextquad+1, NULL, NULL, 1);	// überspringe nächstes statement
+			//genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2);	// falls expression gleich 0 ist, dann setze den Wert auf 1
+			
+			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // assume $$.idName ist false (1)
+			$$.true = merge($2.false, makelist(genStmt(OP_IFEQ, $2.idName, "0", NULL, 3))); // generiere Abfrage ob expression gleich 0 ist, erzeuge daraus eine Liste und merge die mit der übergebenen true Liste
+			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // falss if oben falsch setze $$.idName zu true (0) 
+			$$.false = merge($2.true, makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1))); // erzeuge GOTO als Liste die mit der fals Liste gemerged die neue false Liste ergibt
+			$$.next = $2.next; 
 		} else {
 	   		yyerror("Typemissmatch in function %s. Logical Not expression is not 'int', 'int-Array' or numeric.", function_context);
 	   	}
