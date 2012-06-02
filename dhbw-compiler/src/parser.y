@@ -182,7 +182,7 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		if($3.vof.symVariable.varType == ArrayType) {
 			if($1.vof.symVariable.varType == intType || $1.vof.symVariable.varType == intArrayType) {
 				var.vof.symVariable.varType = intArrayType;
-				var.vof.symVariable.size = 4;
+				var.vof.symVariable.size = $1.vof.symVariable.size;
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
 				//exit(1);
@@ -208,14 +208,14 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		if($2.vof.symVariable.varType == ArrayType){
 			if($1 == intType) {
 				var.vof.symVariable.varType = intArrayType;
-				var.vof.symVariable.size = 4;
+				var.vof.symVariable.size = $2.vof.symVariable.size;
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
     	 	 	//exit(1);
     	 	}
     	} else {
     		var.vof.symVariable.varType = $1;
-    		var.vof.symVariable.size = 4;
+    		var.vof.symVariable.size = $2.vof.symVariable.size;
 		}
 		$$.vof.symVariable.varType = var.vof.symVariable.varType;
 		$$.vof.symVariable.size = var.vof.symVariable.size;
@@ -237,12 +237,14 @@ identifier_declaration
 		sym_union_t var;
 		var.name = $1;
 		var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
+		var.vof.symVariable.size = atoi($3);
 		$$ = var;
 	}
 	| ID { 
 		sym_union_t var;
 	 	var.name = $1;
 	  	$$ = var;
+		var.vof.symVariable.size = 1;
 	}
 	;
 /*
@@ -542,7 +544,8 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 							$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
 						
 							genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
-							free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
+							//free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad // gibt in valgrind invalid access wenn einkommentiert :(
+							free(temp_quad); // only free struct but not the char* inside...
 						} else {
 							if($3.type == intType)
 								yyerror("Type missmatch. Cannot assign int to an int Array (int[]=int)");
