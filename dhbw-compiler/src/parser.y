@@ -533,6 +533,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						//Proceed with array store
 	   	 	 			if(code_quad !=NULL){ // wenn es kein vorheriges code_quad gibt wurde das array ohne direkten zugrif angesprochen (a anstatt a[i]), da das behandelte c subset keine pointer kennt kann a nichts zugewiesen werden. Wenn ein a[i] erkannt wurde wird ein code_quad erzeugt, somit lässt sich der richtige Zugriff erkennen
 							IRCODE_t* temp_quad = code_quad; // aktuelles code_quad wird zwischengespeichert
+							if(temp_quad->op_three == NULL) {
+								yyerror("Type missmatch. Cannot use int Array without index.");
+							}							
+
 							delLastQuad(); //Lösche letztes Quadrupel da es eine falsche Array Operation war
 						
 							$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
