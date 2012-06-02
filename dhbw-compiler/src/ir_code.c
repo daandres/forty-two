@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int nextquad = START;		// addresse of TAC
+int nextquad = START;		// addresse of TAC (line numbers .lXXX)
 IRCODE_t* code_quad; 		// Pointer to current TAC quadrupel
 IRCODE_t* first_code_quad; // First Quadrupel
 int size = 0; 					// size of dynamic code array
@@ -87,7 +87,7 @@ void backpatch(IRLIST_t* list, int nquad) {
 	if (addr == NULL) {
 		warning("could not allocate memory");
 	}
-	sprintf(addr, "%d", nquad);
+	sprintf(addr, ".l%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
 	while (list != NULL) {
 		if(list->item != NULL)
@@ -177,70 +177,70 @@ void formatIrCode(char* code_string, IRCODE_t* i) {
 	//Wähle anhand des Operators aus welcher String in s geschrieben werden soll
 	switch (i->op) {
 		case OP_ASSIGN:
-			sprintf(code_string, "%d\t%s = %s", i->quad, i->op_one, i->op_two);
+			sprintf(code_string, ".l%d\t%s = %s", i->quad, i->op_one, i->op_two);
 			break;
 		case OP_ADD:
-			sprintf(code_string, "%d\t%s = %s + %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s = %s + %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_SUB:
-			sprintf(code_string, "%d\t%s = %s - %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s = %s - %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_MUL:
-			sprintf(code_string, "%d\t%s = %s * %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s = %s * %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_DIV:
-			sprintf(code_string, "%d\t%s = %s / %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s = %s / %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_MOD:
-			sprintf(code_string, "%d\t%s = %s %s %s", i->quad, i->op_one, i->op_two, "%", i->op_three);
+			sprintf(code_string, ".l%d\t%s = %s %s %s", i->quad, i->op_one, i->op_two, "%", i->op_three);
 			break;
 		case OP_MIN:
-			sprintf(code_string, "%d\t%s = - %s", i->quad, i->op_one, i->op_two);
+			sprintf(code_string, ".l%d\t%s = - %s", i->quad, i->op_one, i->op_two);
 			break;
 		case OP_SHL:
-			sprintf(code_string, "%d\t%s = %s << %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s = %s << %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_SHR:
-			sprintf(code_string, "%d\t%s = %s >> %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s = %s >> %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFEQ:
-			sprintf(code_string, "%d\tIF %s == %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\tIF %s == %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFNE:
-			sprintf(code_string, "%d\tIF %s != %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\tIF %s != %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFGT:
-			sprintf(code_string, "%d\tIF %s > %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\tIF %s > %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFGE:
-			sprintf(code_string, "%d\tIF %s >= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\tIF %s >= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFLT:
-			sprintf(code_string, "%d\tIF %s < %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\tIF %s < %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_IFLE:
-			sprintf(code_string, "%d\tIF %s <= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\tIF %s <= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_GOTO:
-			sprintf(code_string, "%d\tGOTO %s", i->quad, i->op_one);
+			sprintf(code_string, ".l%d\tGOTO %s", i->quad, i->op_one);
 			break;
 		case OP_RETURN_VOID:
-			sprintf(code_string, "%d\tRETURN", i->quad);
+			sprintf(code_string, ".l%d\tRETURN", i->quad);
 			break;
 		case OP_RETURN_VAL:
-			sprintf(code_string, "%d\tRETURN %s", i->quad, i->op_one);
+			sprintf(code_string, ".l%d\tRETURN %s", i->quad, i->op_one);
 			break;
 		case OP_CALL_VOID:
-			sprintf(code_string, "%d\tCALL %s, (%s)", i->quad, i->op_one, i->op_two);
+			sprintf(code_string, ".l%d\tCALL %s, (%s)", i->quad, i->op_one, i->op_two);
 			break;
 		case OP_CALL_RET:
-			sprintf(code_string, "%d\t%s = CALL %s, (%s)", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s = CALL %s, (%s)", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_ARRAY_LOAD:
-			sprintf(code_string, "%d\t%s = %s[%s]", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s = %s[%s]", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 		case OP_ARRAY_STORE:
-			sprintf(code_string, "%d\t%s[%s] = %s", i->quad, i->op_one, i->op_two, i->op_three);
+			sprintf(code_string, ".l%d\t%s[%s] = %s", i->quad, i->op_one, i->op_two, i->op_three);
 			break;
 	}
 }
