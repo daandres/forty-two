@@ -415,6 +415,10 @@ int printSymTable(char* filename) {
 	return 0;
 }
 
+/**
+ * Converts a given type into its string-representation. returns the string 'NULL' if no type was found.
+ * @parm type
+ */
 char* typeToString(types_t type){
 	switch (type) {
 		case voidType:
