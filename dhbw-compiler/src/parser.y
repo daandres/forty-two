@@ -251,7 +251,7 @@ identifier_declaration
  * rule.
  */
 function_definition
-	: function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    
+	: function_header PARA_CLOSE BRACE_OPEN function_def  {    
 		sym_union_t* function = searchGlobal($1.name);
 		
 		if(function->vof.symFunction.protOrNot == proto){
@@ -270,10 +270,10 @@ function_definition
 		} else {
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
-		
+	} stmt_list BRACE_CLOSE {
 		function_context = '___#nktx&';
     }
-	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
+	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def{	
 		sym_union_t* function = searchGlobal($1.name);
 
 		if(function->vof.symFunction.protOrNot == proto){
@@ -292,7 +292,7 @@ function_definition
 		}else{
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
-							
+	}  stmt_list BRACE_CLOSE {					
 		function_context = '___#nktx&';
 	}
 	;
