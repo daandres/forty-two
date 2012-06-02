@@ -118,6 +118,7 @@ function_def
 			insertCallVarLocal(function_context, param_list);
 			//param_list = NULL;
 		}
+		genFuncNameQuad(function_context); // generate the name of function as IR Code
 	} 
 
 reset_param
@@ -274,6 +275,7 @@ function_definition
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
 		sym_union_t* function = searchGlobal($1.name);
+
 		if(function->vof.symFunction.protOrNot == proto){
 			//The type None is set in the function_def in the case, that the function was defined before it was declared.
 			//As the type is not known in function_def, it will be set after parsing the function_definition.

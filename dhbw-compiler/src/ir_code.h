@@ -21,7 +21,9 @@ typedef enum opcode {
 
 	OP_RETURN_VOID, OP_RETURN_VAL, OP_CALL_VOID, OP_CALL_RET,
 
-	OP_ARRAY_LOAD, OP_ARRAY_STORE
+	OP_ARRAY_LOAD, OP_ARRAY_STORE,
+
+	FUNCTIONNAME // Special Opcode: it writes the function name into the IRcode, but dowsn't increase nextquad; ATTENTION when use Assembelr Generation, you have to handle this in a special way!
 } opcode_t;
 
 typedef struct IRCODE {

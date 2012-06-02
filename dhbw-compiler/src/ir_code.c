@@ -90,7 +90,7 @@ void backpatch(IRLIST_t* list, int nquad) {
 	sprintf(addr, ".l%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
 	while (list != NULL) {
-		if(list->item != NULL)
+		if (list->item != NULL)
 			setMissingParm(list->item, addr);
 		else
 			warning("could not backpatch %d ind one element of list", nquad);
@@ -142,6 +142,16 @@ IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, in
 }
 
 /**
+ * // Special Opcode: it writes the function name into the IRcode, but dosn't increase nextquad;
+ * ATTENTION when use Assembeler Generation, you have to handle this in a special way!
+ *
+ */
+IRCODE_t* genFuncNameQuad(char* name) {
+	IRCODE_t* temp = genStmt(FUNCTIONNAME, name, NULL, NULL, 1);
+	nextquad--;
+	return temp;
+}
+/**
  * Changes an IR Code struct.
  */
 //void changeIRCode(IRCODE_t* code_quad, enum opcode newop, char* op_one, char* op_two, char* op_three, int paramcount){
@@ -164,7 +174,7 @@ IRCODE_t* genStmt(enum opcode op, char* op_one, char* op_two, char* op_three, in
  * Löscht das aktuelle Quadrupel und setzt das vorige als aktuell. ACHTUNG: Memory wird hier nicht gefreed --> selbst machen
  */
 void delLastQuad() {
-	if (code_quad != NULL) {// wenn es noch kein Statement gibt, kann ja auch nix gelöscht werden
+	if (code_quad != NULL) { // wenn es noch kein Statement gibt, kann ja auch nix gelöscht werden
 		IRCODE_t* prev = code_quad->previous; // speicher das vorherige quadrupel in prev. wenn es keins gibt wird NULL gespeichert
 		if (prev != NULL) // wenn prev != NULL ist soll von prev die Referenz zum nächsten QUadrupel gelöscht werden
 			prev->next = NULL;
@@ -241,6 +251,9 @@ void formatIrCode(char* code_string, IRCODE_t* i) {
 			break;
 		case OP_ARRAY_STORE:
 			sprintf(code_string, ".l%d\t%s[%s] = %s", i->quad, i->op_one, i->op_two, i->op_three);
+			break;
+		case FUNCTIONNAME:
+			sprintf(code_string, "\n%s:", i->op_one);
 			break;
 	}
 }
