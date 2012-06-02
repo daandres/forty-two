@@ -15,7 +15,7 @@
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_START_MODE" value="run"/>
 <booleanAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN" value="true"/>
 <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN_SYMBOL" value="main"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_ARGUMENTS" value="--leak-check=full bin/yacp -pfd test/tests_mail/fail/t${string_prompt:Specify Test file:01}.c"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_ARGUMENTS" value="--leak-check=full --show-reachable=yes --track-origins=yes bin/yacp -pfd test/tests_mail/success/t${string_prompt:Specify Test file:01}.c"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="/usr/bin/valgrind"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="yacp"/>
 <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
