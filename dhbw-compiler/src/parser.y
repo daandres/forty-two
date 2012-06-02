@@ -453,13 +453,13 @@ stmt
 		//if(/*check types, return type of function and the real one*/1){
 			backpatch($2.next,nextquad);//expression.next leads to the following statement
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
-			$$.next = nextquad; //the next statement after this is the nextquad
+			//$$.next = nextquad; //the next statement after this is the nextquad
 		//}
 	}
 	| RETURN SEMICOLON{//Empty returntype
 		//if(/*check types, return type of function and the real one*/1){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
-			$$.next = nextquad;
+			//$$.next = nextquad;
 		//}
 	}
 	| SEMICOLON /* empty statement */{
