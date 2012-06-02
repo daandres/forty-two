@@ -471,4 +471,36 @@ char* ParameterListToString(function_param_t* param_list){
 }
 
 
+void freeMoritz(sym_union_t *act) {
+	function_param_t* callVar = act->vof.symFunction.callVar;  
+	function_param_t *prev = NULL;
+	function_param_t* element;
+
+	DL_FOREACH(callVar, element) {
+		if (prev != NULL) {
+			free(prev);
+		}
+		prev = element;
+	}
+	if (prev != NULL) {
+		free(prev);
+	}
+}	
+		
+		
+void everythingEnds(sym_union_t *freeMe, int level) {
+	if (level == 0) {
+		freeMe = sym_table;
+	}
+	sym_union_t *act, *tmp;
+	HASH_ITER(hh, freeMe, act, tmp) {
+		HASH_DEL(freeMe, act);
+		if (act->symbolType == symFunction) {
+			everythingEnds(act->vof.symFunction.local_variables, 1);
+			freeMoritz(act);
+		}		
+		free(act);
+	}		
+}
+
 
