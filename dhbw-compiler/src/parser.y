@@ -170,7 +170,10 @@ program_element
 	| function_definition
 	| SEMICOLON
 	;
-									
+
+/**
+ * Defines the rulesets to detect the types INT and VOID (independent of array-indeces)
+ */
 type
 	: INT {
 		$$ = intType; /*Using typedefinitions from symtab.h instead of lexems for types*/
@@ -180,6 +183,11 @@ type
 	}
 	;
 
+/**
+ * variable_declaration defines the ruleset that is required to detect and parse variable declarations. A
+ * valid variable-declaration is either a type followed by an identifier-declaration or a variable declaration followed by a comma and an
+ * identifier-declaration
+ */
 variable_declaration 
 	: variable_declaration COMMA identifier_declaration	{	
 		sym_union_t var;
@@ -256,7 +264,11 @@ variable_declaration
 		}
 	}
 	;
-	
+
+/**
+ * Provides the ruleset do detect identifier-declarations for variables. An identifier-declaration can either be an identifier
+ * or an identifier followed by an array-index.
+ */
 identifier_declaration
 	: ID BRACKET_OPEN NUM BRACKET_CLOSE	{ 
 		sym_union_t var;
@@ -460,9 +472,11 @@ stmt_list
 		//$$.next = $3.next; //the next statement after this stmt
 	}
 	;
-
-//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable code is detected.	
-stmt
+/**
+ * This ruleset defines general programm-statements. A statement can be a block, a variable, an expression,
+ * controll- and looping-structures etc.
+ */
+stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable code is detected.	
 	: stmt_block{
 		$$.next = $1.next;
 	}
@@ -505,6 +519,9 @@ stmt_block
 	}
 	;
 	
+/**
+ * Definitions to detect conditional-statements like if or if-else
+ */
 stmt_conditional
 	: IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt {
 		backpatch($3.true, $5.quad); //backpatche den true Ausgang zum Statement der if Anweisung
@@ -518,7 +535,10 @@ stmt_conditional
 		$$.next = merge($$.next, $8.quad); //FIXME: we would need to merge the nextlists with the quad for the 
 	}
 	;
-									
+
+/**
+ * Definitions to detect loop-statements like while or Do-while.
+ */
 stmt_loop
 	: WHILE PARA_OPEN M_svQuad expression PARA_CLOSE M_svQuad stmt{
 		backpatch($4.true, $6.quad); 											// backpatche true ausgang mit begin des schleifen bodys
@@ -532,7 +552,11 @@ stmt_loop
 		//backpatch($7.false, nextquad); 	// backpatche fals ausgang mit ende der schleife
 	}
 	;
-									
+	
+/**
+ * Defines the set of possible expressions in the compiler/language. Possible expressions are assignments, comparisions, function-calls or
+ * arithmetical expressions.
+ */									
 expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was drin steht*/
 	: expression ASSIGN expression {
 				 
@@ -941,6 +965,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	;
 
+/**
+ * Defines primary-tokens that are used within expressions. Primary-tokens are either numbers or identifiers of
+ * variables/functions defined before.
+ */
 primary
 	: NUM {
 		//sprintf($$.idName, "%d", $1);
@@ -966,6 +994,10 @@ primary
 	}
 	;
 
+/**
+ * Ruleset to define the structure of functioncalls in the programming language. A functioncall can either
+ * be empty (like fuu();) or contains a parameter-list (like fuu(1,2,a);)
+ */
 function_call
 	 : ID PARA_OPEN PARA_CLOSE{
 		//Check if the function was defined in symbol table
@@ -1045,8 +1077,11 @@ function_call
 	} 
 	;
 
-//We can reuse the param_list global-variable for the call_parameter-list, as it is will be overwritten after the call
-function_call_parameters
+/**
+ * Definition of the structure of the function-call-parameters. A function-call-parameter can be an arbitrary expression.
+ */
+
+function_call_parameters//We can reuse the param_list global-variable for the call_parameter-list, as it is will be overwritten after the call
 	: function_call_parameters COMMA expression{
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
 		if(param == NULL){
