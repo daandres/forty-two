@@ -9,8 +9,8 @@
 #include <string.h>
 
 sym_union_t *sym_table = NULL;
-function_param_t *param_list = NULL; //Speichert die Parameterlisten f�r Funktionsdefinitionen und Funcktionsaufrufe
-int guenter = 2;
+function_param_t *param_list = NULL; //Stores the parameter-lists for function calls and definintions/declarations. Only used while parsing, the final list can be found within the symbol-table
+int offset = 0; //stores the global-offset
 
 /**
  * looks in the global symbol table for an entry with the given name

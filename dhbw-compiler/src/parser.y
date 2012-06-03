@@ -29,6 +29,7 @@
 	#include "symtab.h"
 	extern sym_union_t *sym_table;
 	extern function_param_t *param_list;
+	extern int offset;
 }
 
 %union {
@@ -139,6 +140,9 @@ M_NextListAndGOTO /*creates an empty goto statement and a nextlist*/
 *								Program										*
 *																			*
 ****************************************************************************/
+/**
+ * Root of the parse-tree that represents the programs-structure.
+ */
 
 program
 	: program_element_list {
@@ -176,20 +180,30 @@ type
 	}
 	;
 
-variable_declaration //TODO: Check if all the variables have the same Type;
+variable_declaration 
 	: variable_declaration COMMA identifier_declaration	{	
 		sym_union_t var;
 		if($3.vof.symVariable.varType == ArrayType) {
 			if($1.vof.symVariable.varType == intType || $1.vof.symVariable.varType == intArrayType) {
 				var.vof.symVariable.varType = intArrayType;
-				var.vof.symVariable.size = $1.vof.symVariable.size;
+				var.vof.symVariable.size = $3.vof.symVariable.size;
+				
+				//Calculate the offset for this type
+				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				offset += ($3.vof.symVariable.size * 4);
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
 				//exit(1);
 			}
 		} else {
 			var.vof.symVariable.varType = $1.vof.symVariable.varType;
-			var.vof.symVariable.size = $1.vof.symVariable.size;
+			var.vof.symVariable.size = $3.vof.symVariable.size;
+			
+			if($3.vof.symVariable.varType == intType){ //check varType to determine offset, because otherwise it is void and of size 0
+				//Calculate the offset for this type
+				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				offset += 4;
+			}
 		}
 		$$.vof.symVariable.varType = $1.vof.symVariable.varType;
 		var.name = $3.name;
@@ -209,6 +223,11 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 			if($1 == intType) {
 				var.vof.symVariable.varType = intArrayType;
 				var.vof.symVariable.size = $2.vof.symVariable.size;
+				
+				//Calculate the offset for this type
+				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				offset += ($2.vof.symVariable.size * 4);
+
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
     	 	 	//exit(1);
@@ -216,6 +235,12 @@ variable_declaration //TODO: Check if all the variables have the same Type;
     	} else {
     		var.vof.symVariable.varType = $1;
     		var.vof.symVariable.size = $2.vof.symVariable.size;
+    		
+    		if($1 == intType){ //check varType to determine offset
+    			//Calculate the offset for this type
+				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				offset += 4;
+			}
 		}
 		$$.vof.symVariable.varType = var.vof.symVariable.varType;
 		$$.vof.symVariable.size = var.vof.symVariable.size;
