@@ -41,7 +41,7 @@ typedef struct function_param {
 typedef struct sym_function {
 	types_t returnType;
 	prototype_t protOrNot;
-	function_param_t *callVar;
+	function_param_t *callVar /* = NULL */;
 	struct sym_union* local_variables;
 	char* interCode;
 } sym_function_t;

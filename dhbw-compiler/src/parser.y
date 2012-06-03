@@ -118,6 +118,7 @@ function_def
 			insertCallVarLocal(function_context, param_list);
 			//param_list = NULL;
 		}
+		genFuncNameQuad(function_context); // generate the name of function as IR Code
 	} 
 
 reset_param
@@ -181,7 +182,7 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		if($3.vof.symVariable.varType == ArrayType) {
 			if($1.vof.symVariable.varType == intType || $1.vof.symVariable.varType == intArrayType) {
 				var.vof.symVariable.varType = intArrayType;
-				var.vof.symVariable.size = 4;
+				var.vof.symVariable.size = $1.vof.symVariable.size;
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
 				//exit(1);
@@ -207,14 +208,14 @@ variable_declaration //TODO: Check if all the variables have the same Type;
 		if($2.vof.symVariable.varType == ArrayType){
 			if($1 == intType) {
 				var.vof.symVariable.varType = intArrayType;
-				var.vof.symVariable.size = 4;
+				var.vof.symVariable.size = $2.vof.symVariable.size;
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
     	 	 	//exit(1);
     	 	}
     	} else {
     		var.vof.symVariable.varType = $1;
-    		var.vof.symVariable.size = 4;
+    		var.vof.symVariable.size = $2.vof.symVariable.size;
 		}
 		$$.vof.symVariable.varType = var.vof.symVariable.varType;
 		$$.vof.symVariable.size = var.vof.symVariable.size;
@@ -236,12 +237,14 @@ identifier_declaration
 		sym_union_t var;
 		var.name = $1;
 		var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
+		var.vof.symVariable.size = atoi($3);
 		$$ = var;
 	}
 	| ID { 
 		sym_union_t var;
 	 	var.name = $1;
 	  	$$ = var;
+		var.vof.symVariable.size = 1;
 	}
 	;
 /*
@@ -250,7 +253,7 @@ identifier_declaration
  * rule.
  */
 function_definition
-	: function_header PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {    
+	: function_header PARA_CLOSE BRACE_OPEN function_def {    
 		sym_union_t* function = searchGlobal($1.name);
 		
 		if(function != NULL && function->vof.symFunction.protOrNot == proto){
@@ -269,11 +272,12 @@ function_definition
 		} else {
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
-		
+	} stmt_list BRACE_CLOSE {
 		function_context = '___#nktx&';
     }
-	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def stmt_list BRACE_CLOSE {	
+	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def {	
 		sym_union_t* function = searchGlobal($1.name);
+
 		if(function->vof.symFunction.protOrNot == proto){
 			//The type None is set in the function_def in the case, that the function was defined before it was declared.
 			//As the type is not known in function_def, it will be set after parsing the function_definition.
@@ -290,7 +294,7 @@ function_definition
 		}else{
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
-							
+	}  stmt_list BRACE_CLOSE {					
 		function_context = '___#nktx&';
 	}
 	;
@@ -450,17 +454,21 @@ stmt
 		$$.next = $1.next;
 	}
 	| RETURN expression SEMICOLON{ //Return that returns a actual value
-		//if(/*check types, return type of function and the real one*/1){
+		if(CheckFunctionReturnTyp(function_context, $2.type) == 0){
 			backpatch($2.next,nextquad);//expression.next leads to the following statement
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
 			//$$.next = nextquad; //the next statement after this is the nextquad
-		//}
+		} else {
+			yyerror("Type missmatch in return statement. '%s' has not the return type '%s'", function_context, typeToString($2.type));	
+		}
 	}
 	| RETURN SEMICOLON{//Empty returntype
-		//if(/*check types, return type of function and the real one*/1){
+		if(CheckFunctionReturnTyp(function_context, voidType) == 0){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
 			//$$.next = nextquad;
-		//}
+		} else {
+			yyerror("Type missmatch in return statement. '%s' has not the return type 'void'", function_context);	
+		}
 	}
 	| SEMICOLON /* empty statement */{
 	}
@@ -525,6 +533,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						//Proceed with array store
 	   	 	 			if(code_quad !=NULL){ // wenn es kein vorheriges code_quad gibt wurde das array ohne direkten zugrif angesprochen (a anstatt a[i]), da das behandelte c subset keine pointer kennt kann a nichts zugewiesen werden. Wenn ein a[i] erkannt wurde wird ein code_quad erzeugt, somit lässt sich der richtige Zugriff erkennen
 							IRCODE_t* temp_quad = code_quad; // aktuelles code_quad wird zwischengespeichert
+							if(temp_quad->op_three == NULL) { // Falls kein index angegeben wurde wurde das array nicht richtig angesprochen -> Fehler
+								yyerror("Type missmatch. Cannot use int Array without index.");
+							}							
+
 							delLastQuad(); //Lösche letztes Quadrupel da es eine falsche Array Operation war
 						
 							$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
@@ -536,7 +548,8 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 							$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
 						
 							genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
-							free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad
+							//free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad // gibt in valgrind invalid access wenn einkommentiert :(
+							free(temp_quad); // only free struct but not the char* inside...
 						} else {
 							if($3.type == intType)
 								yyerror("Type missmatch. Cannot assign int to an int Array (int[]=int)");
@@ -942,7 +955,7 @@ function_call
 					
 					if(entry->vof.symFunction.callVar != NULL){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
-						yyerror("Function %s in '%s': parameter-missmatch.)", $1);
+						yyerror("Function %s in '%s': parameter-missmatch.)", $1, function_context);
 					} else { 
 						//TODO: Intermediate-Code for function-call
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
@@ -959,7 +972,7 @@ function_call
 				yyerror("Undefined symbol %s in function '%s'", $1,function_context);
 			}
 		} else {
-			yyerror("Function-call %s can only be used within a function-context", $1);
+			yyerror("Function-call %s can only be used within a function-context", $1, function_context);
 		}
 	}
 	| ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
@@ -980,7 +993,7 @@ function_call
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, $1) == 1){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (%s)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
-						yyerror("Function %s in '%s': parameter-missmatch.", $1);
+						yyerror("Function %s in '%s': parameter-missmatch.", $1, function_context);
 						
 					} else {
 						//TODO: Intermediate-Code for function-call
@@ -995,7 +1008,7 @@ function_call
 					$$.type = entry->vof.symFunction.returnType;
 				}
 			} else {
-				yyerror("Undefined symbol %s in function '%s'", $1,function_context);
+				yyerror("Undefined symbol %s in function '%s'", $1, function_context);
 			}
 		} else {
 			yyerror("Function-call %s can only be used within a function-context", $1);

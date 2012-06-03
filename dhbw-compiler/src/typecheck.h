@@ -18,7 +18,7 @@
 int CheckArithmeticalExpression(types_t initTypeOne, types_t initTypeTwo, types_t* returnValue);
 int checkFunctionDefinition(function_param_t* params, char* funcName);
 int CheckAssignment(types_t assignmentTarger, types_t toAssign);
-int CheckFunctionReturnTyp(types_t functionReturnType, types_t returnedType);
+int CheckFunctionReturnTyp(char* funcname, types_t returnedType);
 
 int validateDefinition(function_param_t* params, char* funcName);
 int checkFunctionDefinition(function_param_t* params, char* funcName);
