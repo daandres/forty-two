@@ -471,13 +471,19 @@ char* ParameterListToString(function_param_t* param_list){
 }
 
 
+/**
+ * frees the memory of everything, that was allocated during parameter-processing
+ * @parm act pointer to a sym_union_t (root of the symbol-table)
+ */
 void freeMoritz(sym_union_t *act) {
 	function_param_t* callVar = act->vof.symFunction.callVar;  
 	function_param_t *prev = NULL;
+	function_param_t *tmp = NULL;
 	function_param_t* element;
 
-	DL_FOREACH(callVar, element) {
+	DL_FOREACH_SAFE(callVar, element,tmp) {
 		if (prev != NULL) {
+			DL_DELETE(callVar, element);
 			free(prev);
 		}
 		prev = element;
@@ -487,7 +493,11 @@ void freeMoritz(sym_union_t *act) {
 	}
 }	
 		
-		
+/**
+ * frees the memory of everything, that was allocated during symbol-table-creation
+ * @parm freeMe pointer to a sym_union_t (root of the symbol-table)
+ * @parm level defines the level up to which the table should be freed.
+ */
 void everythingEnds(sym_union_t *freeMe, int level) {
 	if (level == 0) {
 		freeMe = sym_table;

@@ -26,19 +26,19 @@ typedef enum prototype {
 	no = 0, proto = 1
 } prototype_t;
 
-typedef struct sym_variable {
+typedef struct sym_variable { //Defines the symbol-table entry for variables
 	types_t varType;
 	int offsetAddress;
 	int size; // Größe eines Arrays
 } sym_variable_t;
 
-typedef struct function_param {
+typedef struct function_param { //Defines function-parameters
 	char *name;
 	types_t varType;
 	struct function_param *prev, *next;
 } function_param_t;
 
-typedef struct sym_function {
+typedef struct sym_function { //Defines the symbol-table entry for functions
 	types_t returnType;
 	prototype_t protOrNot;
 	function_param_t *callVar /* = NULL */;
@@ -51,7 +51,7 @@ typedef union variable_or_function {
 	sym_function_t symFunction;
 } variable_or_function_t;
 
-typedef struct sym_union {
+typedef struct sym_union { //Base-struct that is hashed using uthash.
 	symbol_t symbolType; /* 1 -> variable; 0 -> function */
 	variable_or_function_t vof;
 	UT_hash_handle hh; /* makes this structure hashable */

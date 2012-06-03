@@ -20,7 +20,6 @@
  * @param returnedType the type of the value which should be returned
  * @return returns 0 for true (types match) or 1 for false (type mismatch)
  */
-//=>STATUS: könnte funktionieren ;)
 int CheckFunctionReturnTyp(char* funcname, types_t returnedType) {
 //int CheckFunctionReturnTyp(types_t functionReturnType, types_t returnedType) {
 //	if (functionReturnType == intType && returnedType == intType) {
