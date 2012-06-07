@@ -151,6 +151,17 @@ IRCODE_t* genFuncNameQuad(char* name) {
 	nextquad--;
 	return temp;
 }
+
+/**
+ * // Special Opcode: it adds a newline to the written code;
+ * ATTENTION: for Code Optimization this Opcode has to be ignored
+ *
+ */
+IRCODE_t* genNewLine() {
+	IRCODE_t* temp = genStmt(NEWLINE, NULL, NULL, NULL, 0);
+	nextquad--;
+	return temp;
+}
 /**
  * Changes an IR Code struct.
  */
@@ -254,6 +265,9 @@ void formatIrCode(char* code_string, IRCODE_t* i) {
 			break;
 		case FUNCTIONNAME:
 			sprintf(code_string, "\n%s:", i->op_one);
+			break;
+		case NEWLINE:
+			sprintf(code_string, " ");
 			break;
 	}
 }

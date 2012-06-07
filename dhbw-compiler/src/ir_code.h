@@ -23,7 +23,9 @@ typedef enum opcode {
 
 	OP_ARRAY_LOAD, OP_ARRAY_STORE,
 
-	FUNCTIONNAME // Special Opcode: it writes the function name into the IRcode, but dowsn't increase nextquad; ATTENTION when use Assembelr Generation, you have to handle this in a special way!
+	FUNCTIONNAME, // Special Opcode: it writes the function name into the IRcode, but dowsn't increase nextquad; ATTENTION when use Assembelr Generation, you have to handle this in a special way!
+
+	NEWLINE // Special Opcode: it adds a newline to the written code; ATTENTION: for Code Optimization this Opcode has to be ignored
 } opcode_t;
 
 typedef struct IRCODE {
