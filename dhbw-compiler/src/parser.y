@@ -79,7 +79,7 @@
 %type <etyp> type
 %type <sunion> function_parameter identifier_declaration variable_declaration function_header 
 %type <lexem> function_def
-%type <airt> program_element_list program_element 
+//%type <airt> program_element_list program_element 
 %type <airt>  function_definition function_declaration 
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop 
 %type <airt> expression function_call primary function_call_parameters
@@ -556,6 +556,9 @@ stmt_loop
 		backpatch($3.next, $6.quad);	//stmt.next wird zu expression hin gepatcht
 		$$.next = $7.false; //Der false-fall der expression ist next
 		//backpatch($7.false, nextquad); 	// backpatche fals ausgang mit ende der schleife
+		
+		genStmt(OP_IFEQ, $7.idName, "1", $2.quad, 3); // wenn die expression true (1) ist soll zurück zum anfang gesprungen werden
+			
 	}
 	;
 	
@@ -627,13 +630,12 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 
 			backpatch($1.false, $3.quad); // False Ausgang von $1 springt zu $4
 			IRCODE_t* truequad = genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
-			backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), nextquad+1); // überspringe den false wert  		
+			IRLIST_t* nextlist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // überspringe den false wert  		
 			IRCODE_t* falsequad = genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ true ist soll die expression den Wert 0 erhalten
 			
 			backpatch(merge($1.true, $4.true), truequad->quad);// True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat; backpatche mit truequad, sodass Wert 1 angenommen wird
 			backpatch($4.false, falsequad->quad);// wenn auch noch $4 false ist, dann ist $$ auch false; backpatche mit falsequad, sodass Wert 0 angenommen wird
-			//$$.true = merge($1.true, $4.true); // True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat
-			//$$.false = $4.false; // wenn auch noch $4 false ist, dann ist $$ auch false
+			backpatch(nextlist, nextquad);
 			
 			$$.true = NULL;
 			$$.false = NULL;
@@ -651,16 +653,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			
 			backpatch($1.true, $3.quad); // True Ausgang von $1 springt zu $4
 			
-			backpatch($1.false, $3.quad); // False Ausgang von $1 springt zu $4
 			IRCODE_t* truequad = genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
-			backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), nextquad+1); // überspringe den false wert  		
+			IRLIST_t* nextlist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // überspringe den false wert  		
 			IRCODE_t* falsequad = genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ true ist soll die expression den Wert 0 erhalten
 			
 			backpatch($4.true, truequad->quad);// wenn auch noch $4 true ist, dann ist $$ auch true; backpatche mit truequad, sodass Wert 1 angenommen wird
 			backpatch(merge($1.false, $4.false), falsequad->quad);// False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat; backpatche mit falsequad, sodass Wert 0 angenommen wird
-			
-			//$$.false = merge($1.false, $4.false); // False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat
-			//$$.true = $4.true; // wenn auch noch $4 true ist, dann ist $$ auch true
+			backpatch(nextlist, nextquad);
 			
 			$$.true = NULL;
 			$$.false = NULL;
@@ -680,12 +679,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.lval = 0;
 			
 			// eigentlich wird für logical_not kein IRCode benötigt, es müsten nur die true und false listen vertaischt werden... da aber in c logical_not ein integer wert zurück gibt wird hier trotzdem ircode erzeugt, auch wenn dieser manchmal dead_code ist (das muss dann später im ir_code wegoptimiert werden)
-			
-			// falscher Ansatz weil nicht mit den übergebenen truelisten gearbeitet wird und nur statisch auf die zu springenden Statements verwiesen wird. 
-			//genStmt(OP_IFEQ, $2.idName, "0", nextquad+2, 3); //überprüfe ob die expression den Wert 0 hat, wenn ja gehe zum überübernächsten statement
-			//genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2);	// falls vorige überprüfung false war setze den Wert auf 0
-			//genStmt(OP_GOTO, nextquad+1, NULL, NULL, 1);	// überspringe nächstes statement
-			//genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2);	// falls expression gleich 0 ist, dann setze den Wert auf 1
 			
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // assume $$.idName ist false (1)
 			$$.true = merge($2.false, makelist(genStmt(OP_IFEQ, $2.idName, "0", NULL, 3))); // generiere Abfrage ob expression gleich 0 ist, erzeuge daraus eine Liste und merge die mit der übergebenen true Liste
