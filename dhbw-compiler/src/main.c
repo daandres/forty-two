@@ -272,17 +272,19 @@ int process_options(int argc, char *argv[]) {
 						if (!f) {
 							fprintf(stderr, "ERROR: IR File could not be created. Because it already exists. \n");
 							ret = 1;
+						} else {
+							fprintf_head(f);
+							fclose(f);
 						}
-						fprintf_head(f);
-						fclose(f);
 					} else { //creates a file without checking if exists... FORCE mode
 						FILE* f = fopen(cc_options.ir_file, "w");
 						if (!f) {
 							fprintf(stderr, "ERROR: IR File could not be created. \n");
 							ret = 1;
+						} else {
+							fprintf_head(f);
+							fclose(f);
 						}
-						fprintf_head(f);
-						fclose(f);
 					}
 				}
 			}
@@ -298,22 +300,23 @@ int process_options(int argc, char *argv[]) {
 				if (!f) {
 					fprintf(stderr, "ERROR: Debug Log File could not be created. Because it already exists. \n");
 					ret = 1;
+				} else {
+					fprintf_head(f);
+					fclose(f);
 				}
-				fprintf_head(f);
-				fclose(f);
 			} else { //creates a file without checking if exists... FORCE mode
 				FILE* f = fopen(cc_options.log, "w");
 				if (!f) {
 					fprintf(stderr, "ERROR: Debug Log File could not be created. \n");
 					ret = 1;
+				} else {
+					fprintf_head(f);
+					fclose(f);
 				}
-				fprintf_head(f);
-				fclose(f);
 			}
 		}
 		free(filebase);
 	}
-
 	return ret;
 }
 
@@ -382,6 +385,7 @@ int main(int argc, char *argv[]) {
 	rm_init(&resource_mgr);
 
 	if (process_options(argc, argv) == 1) {
+		info("****** Compiling failed. ******");
 		rm_cleanup_resources(&resource_mgr);
 		exit(EXIT_FAILURE);
 	}
@@ -394,7 +398,7 @@ int main(int argc, char *argv[]) {
 		info("Debug Log: %s", cc_options.log);
 
 	info("");
-	info("Compiling started.");
+	info("****** Compiling started. ******");
 
 	yyin = fopen(cc_options.input_file, "r");
 	if (!yyin) {
@@ -409,16 +413,15 @@ int main(int argc, char *argv[]) {
 			printSymTable(cc_options.ir_file);
 			printIrCode(cc_options.ir_file);
 		}
-		info("Compiling ended successfull.");
-	} else{
-		info("Compiling failed.");
+		info("****** Compiling ended successfull. ******");
+	} else {
+		info("****** Compiling failed. ******");
 	}
 	//system("rm Symtable.txt");
 	//printSymTable("Symtable.txt");
 	//system("rm IRCode.txt");
 	//printIrCode("IRCode.txt");
-	
-	
+
 	everythingEnds(NULL, 0);
 	rm_cleanup_resources(&resource_mgr);
 	return 0;

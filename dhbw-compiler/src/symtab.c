@@ -477,19 +477,21 @@ char* ParameterListToString(function_param_t* param_list){
  */
 void freeMoritz(sym_union_t *act) {
 	function_param_t* callVar = act->vof.symFunction.callVar;  
+	if(callVar != NULL){
 	function_param_t *prev = NULL;
 	function_param_t *tmp = NULL;
-	function_param_t* element;
+	function_param_t* element = NULL;
 
 	DL_FOREACH_SAFE(callVar, element,tmp) {
 		if (prev != NULL) {
 			DL_DELETE(callVar, element);
-			free(prev);
+			//free(prev);
 		}
 		prev = element;
 	}
 	if (prev != NULL) {
 		free(prev);
+	}
 	}
 }	
 		

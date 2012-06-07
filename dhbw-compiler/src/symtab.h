@@ -69,5 +69,6 @@ int insertVarLocal(char* symName, char* funcName, sym_variable_t var, int varCal
 int insertCallVarLocal(char* funcName, function_param_t* parm);
 int alterVarLocal(char* symName, char* funcName, sym_variable_t var);
 int printSymTable(char* filename);
+void everythingEnds(sym_union_t *freeMe, int level);
 
 #endif /* SYMTAB_H_ */
