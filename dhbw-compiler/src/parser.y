@@ -211,10 +211,10 @@ variable_declaration
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
 				offset += 4;
-			}else {
-				yyerror("Error: Only Integer variables are valid.");
+			} //else {
+				//yyerror("Error: Only Integer variables are valid.");
 				//exit(1);
-			}
+			//}
 		}
 		$$.vof.symVariable.varType = $1.vof.symVariable.varType;
 		var.name = $3.name;
@@ -474,7 +474,7 @@ stmt_list
 	}
 
 	| stmt_list M_svQuad stmt{
-		//backpatch($1.next, $2.quad); //patch the nextlist of stmt_list to M_svQuad
+		backpatch($1.next, $2.quad); //patch the nextlist of stmt_list to M_svQuad
 		//$$.next = $3.next; //the next statement after this stmt
 	}
 	;
@@ -531,7 +531,7 @@ stmt_block
 stmt_conditional
 	: IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt {
 		backpatch($3.true, $5.quad); //backpatche den true Ausgang zum Statement der if Anweisung
-		backpatch($3.false, nextquad); // backpatche den false Ausgang hinter die STatements der if anweisung
+		backpatch($3.false, nextquad); // backpatche den false Ausgang hinter die Statements der if anweisung
 	}
 	| IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
 		backpatch($3.true, $5.quad); 	// backpatche true Ausgang mit true stmt block
