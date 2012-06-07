@@ -77,12 +77,12 @@
 %left  BRACKET_OPEN BRACKET_CLOSE PARA_OPEN PARA_CLOSE
 
 %type <etyp> type
-%type <sunion> function_parameter identifier_declaration variable_declaration function_header function_call_parameters
+%type <sunion> function_parameter identifier_declaration variable_declaration function_header 
 %type <lexem> function_def
 %type <airt> program_element_list program_element 
-%type <airt>  function_definition function_declaration
+%type <airt>  function_definition function_declaration 
 %type <airt> stmt_list stmt stmt_block stmt_conditional stmt_loop 
-%type <airt> expression function_call primary
+%type <airt> expression function_call primary function_call_parameters
 %type <airt> M_svQuad M_NextListAndGOTO 
 %%
 
@@ -1061,10 +1061,10 @@ function_call
 					} else {
 						//TODO: Intermediate-Code for function-call
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
-						genStmt(OP_CALL_VOID, $1, $4.name, NULL, 2); 
+						genStmt(OP_CALL_VOID, $1, $4.idName, NULL, 2); 
 						else {
 							$$.idName = newtemp();
-							genStmt(OP_CALL_RET, $$.idName, $1, $4.name, 3); 
+							genStmt(OP_CALL_RET, $$.idName, $1, $4.idName, 3); 
 					 	}
 					}
 					//Set the return-value
@@ -1098,6 +1098,14 @@ function_call_parameters//We can reuse the param_list global-variable for the ca
 		param->varType = $3.type; //obtain type from expression
 		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
+		char * newIdName = (char *) malloc(strlen($1.idName) + 3 + strlen($3.idName)); // allokiere einen neuen String mit der länge vom neuen Parameteren und den bisher erkannten und dem trennzeichen ", "
+		if(newIdName == NULL){
+			warning("could not allocate memory for ne function call parameters string");
+		}
+		strcat(newIdName, $1.idName); // verknüpfe beide Strings in den neuen
+		strcat(newIdName, ", "); // verknüpfe beide Strings in den neuen
+		strcat(newIdName, $3.idName); // verknüpfe beide Strings in den neuen
+		$$.idName = newIdName; 
 	}
 	| expression {
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
@@ -1110,6 +1118,7 @@ function_call_parameters//We can reuse the param_list global-variable for the ca
 		param->varType = $1.type; //obtain type from expression
 		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
+		$$.idName = $1.idName;
 	}
 	;
 
