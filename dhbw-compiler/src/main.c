@@ -422,7 +422,7 @@ int main(int argc, char *argv[]) {
 	//system("rm IRCode.txt");
 	//printIrCode("IRCode.txt");
 
-	everythingEnds(NULL, 0);
+	//everythingEnds(NULL, 0);
 	rm_cleanup_resources(&resource_mgr);
 	return 0;
 }
