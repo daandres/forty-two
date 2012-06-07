@@ -7,6 +7,8 @@
 #include <stdarg.h>
 
 #include "main.h"
+#include "symtab.h"
+#include "ir_code.h"
 
 /* Constants */
 static const char *C_EXT = ".c";
