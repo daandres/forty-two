@@ -136,6 +136,11 @@ M_NextListAndGOTO /*creates an empty goto statement and a nextlist*/
 	: /* empty */ { 
 		$$.next = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1));
 	}
+
+M_NewLine /*creates a new line*/
+	: /* empty */ { 
+		genNewLine();
+	}
 /****************************************************************************
 *								Program										*
 *																			*
@@ -529,16 +534,18 @@ stmt_block
  * Definitions to detect conditional-statements like if or if-else
  */
 stmt_conditional
-	: IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt {
-		backpatch($3.true, $5.quad); //backpatche den true Ausgang zum Statement der if Anweisung
-		backpatch($3.false, nextquad); // backpatche den false Ausgang hinter die Statements der if anweisung
+	: M_NewLine IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt {
+		backpatch($4.true, $6.quad); //backpatche den true Ausgang zum Statement der if Anweisung
+		backpatch($4.false, nextquad); // backpatche den false Ausgang hinter die Statements der if anweisung
+		genNewLine();
 	}
-	| IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
-		backpatch($3.true, $5.quad); 	// backpatche true Ausgang mit true stmt block
-		backpatch($3.false, $9.quad); 	// backpatche false Ausgang mit else stmt block
-		//backpatch($8.next, nextquad); 	// backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
-		$$.next = merge($6.next, $10.next);
-		$$.next = merge($$.next, $8.quad); //FIXME: we would need to merge the nextlists with the quad for the 
+	| M_NewLine IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
+		backpatch($4.true, $6.quad); 	// backpatche true Ausgang mit true stmt block
+		backpatch($4.false, $10.quad); 	// backpatche false Ausgang mit else stmt block
+		//backpatch($9.next, nextquad); 	// backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
+		$$.next = merge($7.next, $11.next);
+		$$.next = merge($$.next, $9.quad); //FIXME: we would need to merge the nextlists with the quad for the 
+		genNewLine();
 	}
 	;
 
@@ -546,19 +553,20 @@ stmt_conditional
  * Definitions to detect loop-statements like while or Do-while.
  */
 stmt_loop
-	: WHILE PARA_OPEN M_svQuad expression PARA_CLOSE M_svQuad stmt{
-		backpatch($4.true, $6.quad); 											// backpatche true ausgang mit begin des schleifen bodys
-		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $3.quad); 	//springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
-		backpatch($4.false, nextquad); 											// backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
+	: M_NewLine WHILE PARA_OPEN M_svQuad expression PARA_CLOSE M_svQuad stmt{
+		backpatch($5.true, $7.quad); 											// backpatche true ausgang mit begin des schleifen bodys
+		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $4.quad); 	//springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
+		backpatch($5.false, nextquad); 											// backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
+		genNewLine();
 	}
-	| DO M_svQuad stmt WHILE PARA_OPEN M_svQuad expression PARA_CLOSE SEMICOLON{
-		backpatch($7.true, $2.quad); 	//backpatche true ausgang mit begin der schleife
-		backpatch($3.next, $6.quad);	//stmt.next wird zu expression hin gepatcht
-		$$.next = $7.false; //Der false-fall der expression ist next
-		//backpatch($7.false, nextquad); 	// backpatche fals ausgang mit ende der schleife
+	| M_NewLine DO M_svQuad stmt WHILE PARA_OPEN M_svQuad expression PARA_CLOSE SEMICOLON{
+		backpatch($8.true, $3.quad); 	//backpatche true ausgang mit begin der schleife
+		backpatch($4.next, $7.quad);	//stmt.next wird zu expression hin gepatcht
+		$$.next = $8.false; //Der false-fall der expression ist next
+		//backpatch($8.false, nextquad); 	// backpatche fals ausgang mit ende der schleife
 		
-		genStmt(OP_IFEQ, $7.idName, "1", $2.quad, 3); // wenn die expression true (1) ist soll zurück zum anfang gesprungen werden
-			
+		backpatch(makelist(genStmt(OP_IFEQ, $8.idName, "1", NULL, 3)), $3.quad); // wenn die expression true (1) ist soll zurück zum anfang gesprungen werden
+		genNewLine();
 	}
 	;
 	
