@@ -498,10 +498,12 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 		$$.next = $1.next;
 	}
 	| stmt_conditional{
-		$$.next = $1.next;
+		//$$.next = $1.next;
+		backpatch($1.next, nextquad);
 	}
 	| stmt_loop{
-		$$.next = $1.next;
+		//$$.next = $1.next;
+		backpatch($1.next, nextquad);
 	}
 	| RETURN expression SEMICOLON{ //Return that returns a actual value
 		if(CheckFunctionReturnTyp(function_context, $2.type) == 0){
@@ -536,15 +538,17 @@ stmt_block
 stmt_conditional
 	: M_NewLine IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt {
 		backpatch($4.true, $6.quad); //backpatche den true Ausgang zum Statement der if Anweisung
-		backpatch($4.false, nextquad); // backpatche den false Ausgang hinter die Statements der if anweisung
+		backpatch(merge($4.false, $4.next), nextquad); // backpatche den false Ausgang hinter die Statements der if anweisung
 		genNewLine();
 	}
 	| M_NewLine IF PARA_OPEN expression PARA_CLOSE M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
 		backpatch($4.true, $6.quad); 	// backpatche true Ausgang mit true stmt block
 		backpatch($4.false, $10.quad); 	// backpatche false Ausgang mit else stmt block
-		//backpatch($9.next, nextquad); 	// backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
-		$$.next = merge($7.next, $11.next);
-		$$.next = merge($$.next, $9.quad); //FIXME: we would need to merge the nextlists with the quad for the 
+		backpatch($9.next, nextquad); 	// backpatche temp next list after true block mit dem nächsten quadrupel nach dem letzten stmt
+										// falls expression true ist wird zum ersten M_svQUad gesprungen, die stmts ausgeführt und beim M_NextListAndGOTO über den False Teil hinweggesprungen; 
+										// wenn expression false ist wird zum zweiten M_svQUad gesprungen
+		//$$.next = merge($7.next, $11.next);
+		//$$.next = merge($$.next, $9.quad); //FIXME: we would need to merge the nextlists with the quad for the 
 		genNewLine();
 	}
 	;
@@ -639,6 +643,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch($1.false, $3.quad); // False Ausgang von $1 springt zu $4
 			IRCODE_t* truequad = genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
 			IRLIST_t* nextlist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // überspringe den false wert  		
+			genNewLine(); // zur lesbarkeit
 			IRCODE_t* falsequad = genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ true ist soll die expression den Wert 0 erhalten
 			
 			backpatch(merge($1.true, $4.true), truequad->quad);// True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat; backpatche mit truequad, sodass Wert 1 angenommen wird
@@ -662,7 +667,8 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch($1.true, $3.quad); // True Ausgang von $1 springt zu $4
 			
 			IRCODE_t* truequad = genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
-			IRLIST_t* nextlist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // überspringe den false wert  		
+			IRLIST_t* nextlist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // überspringe den false wert  
+			genNewLine(); // zur lesbarkeit
 			IRCODE_t* falsequad = genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ true ist soll die expression den Wert 0 erhalten
 			
 			backpatch($4.true, truequad->quad);// wenn auch noch $4 true ist, dann ist $$ auch true; backpatche mit truequad, sodass Wert 1 angenommen wird
