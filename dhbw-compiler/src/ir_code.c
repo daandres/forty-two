@@ -191,10 +191,15 @@ IRCODE_t* genNewLine() {
 void delLastQuad() {
 	if (code_quad != NULL) { // wenn es noch kein Statement gibt, kann ja auch nix gelöscht werden
 		IRCODE_t* prev = code_quad->previous; // speicher das vorherige quadrupel in prev. wenn es keins gibt wird NULL gespeichert
+		IRCODE_t* self = code_quad->self;
 		if (prev != NULL) // wenn prev != NULL ist soll von prev die Referenz zum nächsten QUadrupel gelöscht werden
 			prev->next = NULL;
 		code_quad = prev; // setze als aktuelles Quadrupel das vorherige, wenn prev ==  NULL dann gibt es kein Quadrupel mehr
 		nextquad--; // dekrementiere Statement counter
+		if (self != NULL && self->op_one != NULL){ // diese free Operation wird benötigt, damit bei dem wechsel von arra_load und array store auch der temp identifer gefreed wird
+			free(self->op_one);
+			tmpCount--; //dekrementiere den counter damit keine 'lücke' entsteht
+		}
 	}
 }
 
