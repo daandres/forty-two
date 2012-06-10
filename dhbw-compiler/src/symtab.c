@@ -7,7 +7,7 @@
 
 #include "symtab.h"
 #include <string.h>
-
+#include <assert.h> // to get DL_DELTE from utlist work
 sym_union_t *sym_table = NULL;
 function_param_t *param_list = NULL; //Stores the parameter-lists for function calls and definintions/declarations. Only used while parsing, the final list can be found within the symbol-table
 int offset = 0; //stores the global-offset
@@ -29,7 +29,6 @@ sym_union_t* searchGlobal(char* symName) { /* Kann Funktion und Variable zurück
 
 	HASH_FIND_STR(sym_table, symName, found_entry);
 
-
 	return found_entry;
 }
 
@@ -46,11 +45,9 @@ sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable z
 
 	sym_union_t* function = searchGlobal(funcName);
 
-
 	if (function == NULL || function->symbolType != symFunction) {
 		return NULL;
 	}
-
 
 	if (function->vof.symFunction.local_variables == NULL && function->vof.symFunction.callVar == NULL) {
 		return NULL;
@@ -58,16 +55,17 @@ sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable z
 
 	function_param_t *fparam;
 	sym_union_t* found_variable = NULL;
-
 	//Check wether the symbol is in the parameter-list. If the list is Null,
 	//the block is skipped automatically
-	DL_FOREACH(param_list,fparam){
-		if(strcmp(fparam->name, symName)==0){
+
+	DL_FOREACH(param_list,fparam) {
+		if (strcmp(fparam->name, symName) == 0) {
 			found_variable = (sym_union_t *) malloc(sizeof(sym_union_t));
 
 			found_variable->vof.symVariable.varType = fparam->varType;
 			found_variable->name = fparam->name;
 			found_variable->symbolType = symVariable;
+			break;
 		}
 	}
 
@@ -78,8 +76,7 @@ sym_union_t* searchLocal(char* symName, char* funcName) { /* Kann nur Variable z
 	 * value unequal to NULL when the variable was found.
 	 */
 
-	if(found_variable == NULL)
-	{
+	if (found_variable == NULL) {
 		HASH_FIND_STR(function->vof.symFunction.local_variables, symName, found_variable);
 	}
 
@@ -213,15 +210,15 @@ int insertVarLocal(char* symName, char* funcName, sym_variable_t var, int varCal
  *
  * @parm params list of parameters
  */
-void PurgeParameters(function_param_t* params){
+void PurgeParameters(function_param_t* params) {
 
 	function_param_t* element = NULL; //Pointer to the current element in the iteration
 	function_param_t* temp = NULL; //tmp pointer to the iteration algorithm
 
-	DL_FOREACH_SAFE(params, element, temp){
+	DL_FOREACH_SAFE(params, element, temp) {
 		DL_DELETE(params, element);
 	}
-
+	//params = NULL;
 }
 
 /**
@@ -243,17 +240,11 @@ int insertCallVarLocal(char* funcName, function_param_t* parm) {
 
 		function->vof.symFunction.callVar = parm;
 		return 0;
-	}else
-	{
+	} else {
 		debug("No param inserted in %s. But Why???\n", funcName);
 	}
 	return 1;
 }
-
-
-
-
-
 
 //Noch nicht ausführlich getestet!!!
 /**
@@ -268,8 +259,7 @@ int alterVarLocal(char* symName, char* funcName, sym_variable_t var) {
 	if (entry != NULL) {
 		entry->vof.symVariable = var;
 		return 0;
-	}else
-	{
+	} else {
 		debug("No param inserted in %s. But Why???\n", funcName);
 	}
 	return 1;
@@ -316,7 +306,7 @@ int printSymTable(char* filename) {
 					fprintf(datei, "Typ: Array, Größe: %i \n", act->vof.symVariable.size);
 					break;
 				case None:
-				break;
+					break;
 			}
 			fprintf(datei, "Offset Adresse: %i \n", act->vof.symVariable.offsetAddress);
 		}
@@ -341,13 +331,13 @@ int printSymTable(char* filename) {
 					fprintf(datei, "Rückgabewert: Array\n");
 					break;
 				case None:
-				break;
+					break;
 			}
 
 			fprintf(datei, "Parameter: ");
 			function_param_t* element;
 
-			DL_FOREACH(act->vof.symFunction.callVar, element){
+			DL_FOREACH(act->vof.symFunction.callVar, element) {
 				switch (element->varType) {
 					case voidType:
 						fprintf(datei, "void->");
@@ -362,12 +352,12 @@ int printSymTable(char* filename) {
 						fprintf(datei, "Array->");
 						break;
 					case None:
-					break;
+						break;
 				}
-				fprintf(datei,"%s, ",element->name);
+				fprintf(datei, "%s, ", element->name);
 			}
 
-			fprintf(datei,"\n");
+			fprintf(datei, "\n");
 
 //			if (act->vof.symFunction.interCode != NULL) {
 //				fprintf(datei, "Intercode: \n %s", act->vof.symFunction.interCode);
@@ -396,7 +386,7 @@ int printSymTable(char* filename) {
 								fprintf(datei, "\tTyp: Array WTF MORITZ!!!, Größe: %i \n", subvar->vof.symVariable.size);
 								break;
 							case None:
-							break;
+								break;
 						}
 
 						fprintf(datei, "\tOffset Adresse: %i \n", subvar->vof.symVariable.offsetAddress);
@@ -419,82 +409,80 @@ int printSymTable(char* filename) {
  * Converts a given type into its string-representation. returns the string 'NULL' if no type was found.
  * @parm type
  */
-char* typeToString(types_t type){
+char* typeToString(types_t type) {
 	switch (type) {
 		case voidType:
-			return("VOID");
+			return ("VOID");
 			break;
 		case intType:
-			return("INT");
+			return ("INT");
 			break;
 		case intArrayType:
-			return("INT[]");
+			return ("INT[]");
 			break;
 		case ArrayType:
-			return("ARRAY");
+			return ("ARRAY");
 			break;
 		case None:
-			return("NULL");
+			return ("NULL");
 			break;
 	}
-	return("NULL");
+	return ("NULL");
 }
 /**
  * generates a coma separated string that contains the types of all parameters.
  * @parm parm_list linked list (UTLIST) of the parameters
  */
-char* ParameterListToString(function_param_t* param_list){
+char* ParameterListToString(function_param_t* param_list) {
 
-		if(param_list != NULL){
-			function_param_t *fparam;
-			char* list = NULL; //Create one container for the string that is to be created
-			char* parmtype = NULL;
+	if (param_list != NULL) {
+		function_param_t *fparam;
+		char* list = NULL; //Create one container for the string that is to be created
+		char* parmtype = NULL;
 
-			DL_FOREACH(param_list,fparam) {
+		DL_FOREACH(param_list,fparam) {
 
-				parmtype = typeToString(fparam->varType);
+			parmtype = typeToString(fparam->varType);
 
-				if(list == NULL){
-					list = malloc(strlen(parmtype));
-					strcpy(list, parmtype);
-				}else{
-					sprintf(list, "%s,%s",list,parmtype);
-				}
+			if (list == NULL) {
+				list = malloc(strlen(parmtype));
+				strcpy(list, parmtype);
+			} else {
+				sprintf(list, "%s,%s", list, parmtype);
 			}
-
-			return(list);
-
-		}else
-		{
-			return "NULL";
 		}
-}
 
+		return (list);
+
+	} else {
+		return "NULL";
+	}
+}
 
 /**
  * frees the memory of everything, that was allocated during parameter-processing
  * @parm act pointer to a sym_union_t (root of the symbol-table)
  */
 void freeMoritz(sym_union_t *act) {
-	function_param_t* callVar = act->vof.symFunction.callVar;  
-	if(callVar != NULL){
-	function_param_t *prev = NULL;
-	function_param_t *tmp = NULL;
-	function_param_t* element = NULL;
+	function_param_t* callVar = act->vof.symFunction.callVar;
+	if (callVar != NULL) {
+		function_param_t *prev = NULL;
+		function_param_t *tmp = NULL;
+		function_param_t* element = NULL;
 
-	DL_FOREACH_SAFE(callVar, element,tmp) {
-		if (prev != NULL) {
-			DL_DELETE(callVar, element);
-			//free(prev);
+		DL_FOREACH_SAFE(callVar, element,tmp) {
+			if (prev != NULL) {
+				DL_DELETE(callVar, element);
+				//free(prev);
+			}
+			prev = element;
 		}
-		prev = element;
+		if (prev != NULL) {
+			free(prev);
+		}
 	}
-	if (prev != NULL) {
-		free(prev);
-	}
-	}
-}	
-		
+}
+
 /**
  * frees the memory of everything, that was allocated during symbol-table-creation
  * @parm freeMe pointer to a sym_union_t (root of the symbol-table)
@@ -510,9 +498,8 @@ void everythingEnds(sym_union_t *freeMe, int level) {
 		if (act->symbolType == symFunction) {
 			everythingEnds(act->vof.symFunction.local_variables, 1);
 			freeMoritz(act);
-		}		
+		}
 		free(act);
-	}		
+	}
 }
-
 
