@@ -321,7 +321,7 @@ function_definition
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
 	} stmt_list BRACE_CLOSE {
-		function_context = '___#nktx&';
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
     }
 	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def {	
 		sym_union_t* function = searchGlobal($1.name);
@@ -343,7 +343,7 @@ function_definition
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
 	}  stmt_list BRACE_CLOSE {					
-		function_context = '___#nktx&';
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 	}
 	;
 
@@ -359,7 +359,6 @@ function_declaration
 		if(insertFuncGlobal($1.name, func) != 0){
 			sym_union_t* entry = searchGlobal($1.name);
 			
-			
 			if(entry != NULL && entry->vof.symFunction.callVar != NULL){
 				//yyerror("Declaration of function %s: parameter-missmatch. Expected (%s) but found (%s)", $1.name, ParameterListToString(entry->vof.symFunction.callVar), "NULL");
 				yyerror("Declaration of function %s: parameter-missmatch.", $1.name);
@@ -373,7 +372,7 @@ function_declaration
 		}else{
 			debug("Function %s declared. \n", $1.name);
 		}
-		function_context = '___#nktx&';
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 	} 
 	| function_header function_parameter_list PARA_CLOSE { 
     	sym_function_t func;
@@ -403,7 +402,7 @@ function_declaration
  	 	
 		//insertCallVarLocal(function_context, param_list);
 		
-		function_context = '___#nktx&';
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 	}
 	;
 
@@ -414,9 +413,8 @@ function_header
 	: type ID PARA_OPEN {
 		$$.vof.symFunction.returnType= $1;
 		$$.name = $2;
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 		function_context = $2;
-		PurgeParameters(param_list);//param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
-		param_list = NULL;
 	}
 	;
 	
@@ -479,7 +477,7 @@ stmt_list
 	}
 
 	| stmt_list M_svQuad stmt{
-		backpatch($1.next, $2.quad); //patch the nextlist of stmt_list to M_svQuad
+		//backpatch($1.next, $2.quad); //patch the nextlist of stmt_list to M_svQuad
 		backpatch($3.next, nextquad); //patch the nextlist of stmt_list to M_svQuad
 		//$$.next = $3.next; //the next statement after this stmt
 	}
@@ -1037,16 +1035,15 @@ function_call
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 				} else {
 					//Check if there is 'no' parameter-list, as there shouldn't be any.
-					
 					if(entry->vof.symFunction.callVar != NULL){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
 						yyerror("Function '%s' in '%s': parameter-missmatch.)", $1, function_context);
 					} else { 
-						//TODO: Intermediate-Code for function-call
+						// Intermediate-Code for function-call
+						$$.idName = newtemp();
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
-						genStmt(OP_CALL_VOID, $1, "", NULL, 2); 
+							genStmt(OP_CALL_VOID, $1, "", NULL, 2); 
 						else {
-							$$.idName = newtemp();
 							genStmt(OP_CALL_RET, $$.idName, $1, "", 3); 
 					 	}
 					}
@@ -1073,19 +1070,16 @@ function_call
 					//TODO: what to do if the definition of a function follows afterwards but it was declared???
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 				} else {
-					
-					
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, $1) == 1){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (%s)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
 						yyerror("Function '%s' in '%s': parameter-missmatch.", $1, function_context);
-						
 					} else {
-						//TODO: Intermediate-Code for function-call
+						// Intermediate-Code for function-call
+						$$.idName = newtemp();
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
-						genStmt(OP_CALL_VOID, $1, $4.idName, NULL, 2); 
+							genStmt(OP_CALL_VOID, $1, $4.idName, NULL, 2); 
 						else {
-							$$.idName = newtemp();
 							genStmt(OP_CALL_RET, $$.idName, $1, $4.idName, 3); 
 					 	}
 					}
@@ -1120,11 +1114,15 @@ function_call_parameters//We can reuse the param_list global-variable for the ca
 		param->varType = $3.type; //obtain type from expression
 		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
-		char * newIdName = (char *) malloc(strlen($1.idName) + 3 + strlen($3.idName)); // allokiere einen neuen String mit der länge vom neuen Parameteren und den bisher erkannten und dem trennzeichen ", "
+		int len_of_1 = strlen($1.idName);
+		int len_of_3 = strlen($3.idName);
+		int test1= len_of_3 + 1;
+		int test2 = len_of_1 +3;
+		char* newIdName = (char *) malloc(len_of_1 + 3 + len_of_3); // allokiere einen neuen String mit der länge vom neuen Parameteren und den bisher erkannten und dem trennzeichen ", "
 		if(newIdName == NULL){
 			warning("could not allocate memory for ne function call parameters string");
 		}
-		strcat(newIdName, $1.idName); // verknüpfe beide Strings in den neuen
+		sprintf(newIdName, $1.idName); // schreibe andere params in den neuen idName
 		strcat(newIdName, ", "); // verknüpfe beide Strings in den neuen
 		strcat(newIdName, $3.idName); // verknüpfe beide Strings in den neuen
 		$$.idName = newIdName; 
@@ -1162,4 +1160,12 @@ void yyerror(char *s, ...){
 		vfprintf(stderr, s, ap); // printf all items like printf from the arguments list
 		fprintf(stderr, "\n");
 	}
+}
+/**
+* Reset the global variables for function declarations and definitions
+*/
+void reset_function_vars(){
+	function_context = '___#nktx&';
+	PurgeParameters(param_list);
+	param_list = NULL;
 }
