@@ -491,25 +491,26 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 		$$.next = $1.next;
 	}
 	| variable_declaration SEMICOLON{
-		//$$.next = nextquad; //TODO: Check if nextquad comas after the declaration
+		$$.next = NULL;
 	}
 	| expression SEMICOLON{
-		$$.next = $1.next;
-		backpatch($1.false, $1.quad);
+		$$.next = NULL;
+		backpatch($1.false, nextquad);
+		backpatch($1.next, nextquad);
 	}
 	| stmt_conditional{
-		//$$.next = $1.next;
+		$$.next = NULL;
 		backpatch($1.next, nextquad);
 	}
 	| stmt_loop{
-		//$$.next = $1.next;
+		$$.next = NULL;
 		backpatch($1.next, nextquad);
 	}
 	| RETURN expression SEMICOLON{ //Return that returns a actual value
 		if(CheckFunctionReturnTyp(function_context, $2.type) == 0){
 			backpatch($2.next,nextquad);//expression.next leads to the following statement
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
-			//$$.next = nextquad; //the next statement after this is the nextquad
+			$$.next = NULL;
 		} else {
 			yyerror("Type missmatch in return statement. '%s' has not the return type '%s'", function_context, typeToString($2.type));	
 		}
@@ -517,12 +518,13 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 	| RETURN SEMICOLON{//Empty returntype
 		if(CheckFunctionReturnTyp(function_context, voidType) == 0){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
-			//$$.next = nextquad;
+			$$.next = NULL;
 		} else {
 			yyerror("Type missmatch in return statement. '%s' has not the return type 'void'", function_context);	
 		}
 	}
 	| SEMICOLON /* empty statement */{
+		$$.next = NULL;
 	}
 	;
 
@@ -573,6 +575,7 @@ stmt_loop
 		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $4.quad); 	//springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
 		backpatch($5.false, nextquad); 											// backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
 		genNewLine();
+		$$.next = NULL;
 	}
 	| M_NewLine DO M_svQuad stmt WHILE PARA_OPEN M_svQuad expression PARA_CLOSE SEMICOLON{
 		backpatch($8.true, $3.quad); 	//backpatche true ausgang mit begin der schleife
@@ -1033,6 +1036,7 @@ function_call
 				//Check if the function was defined
 				if(entry->vof.symFunction.protOrNot != no){
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
+					$$.idName = newtemp();
 				} else {
 					//Check if there is 'no' parameter-list, as there shouldn't be any.
 					if(entry->vof.symFunction.callVar != NULL){
@@ -1069,6 +1073,7 @@ function_call
 				if(entry->vof.symFunction.protOrNot != no){
 					//TODO: what to do if the definition of a function follows afterwards but it was declared???
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
+					$$.idName = "";
 				} else {
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, $1) == 1){
