@@ -507,7 +507,15 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 		backpatch($1.next, nextquad);
 	}
 	| RETURN expression SEMICOLON{ //Return that returns a actual value
-		if(CheckFunctionReturnTyp(function_context, $2.type) == 0){
+		types_t type;
+		if($2.type == intArrayType){	// Hier wird überprüft ob die expression vom type intArrayType ist. Wenn ja, und das letzte code_quad ein array_load ist, dann hat der Wert der expression den type int anstatt intArray und somit wird das hier angepasst
+			if(code_quad->op == OP_ARRAY_LOAD)
+				type = intType;
+			else 
+				type = $2.type;
+		} else 
+				type = $2.type;
+		if(CheckFunctionReturnTyp(function_context, type) == 0){
 			backpatch($2.next,nextquad);//expression.next leads to the following statement
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
 			$$.next = NULL;
