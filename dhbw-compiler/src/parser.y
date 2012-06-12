@@ -962,7 +962,8 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.false = $3.false;
 			$$.next = $3.next;
 			$$.quad = nextquad;
-			$$.type = intArrayType; // intArrayType da es hier nur int Array geben darf
+			//$$.type = intArrayType; // intArrayType da es hier nur int Array geben darf
+			$$.type = intType;
 			$$.idName = newtemp();
 			$$.lval = 1;
 			// ACHTUNG: hier wird angenommen, dass die Array Operation eine Load Operation ist. Ist dies nicht der Fall muss diese Operation gelöscht werden und eine Store Operation später hinzugefügt werden
