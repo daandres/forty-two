@@ -241,7 +241,9 @@ variable_declaration
 				var.vof.symVariable.size = $2.vof.symVariable.size;
 				
 				//Calculate the offset for this type
-				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				var.vof.symVariable.offsetAddress = offset;
+
+				//add 4bytes (because of int) times the array size to the offset-counter
 				offset += ($2.vof.symVariable.size * 4);
 
 			} else {
@@ -253,8 +255,11 @@ variable_declaration
     		var.vof.symVariable.size = $2.vof.symVariable.size;
     		
     		if($1 == intType){ //check varType to determine offset
+
     			//Calculate the offset for this type
-				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				var.vof.symVariable.offsetAddress = offset;
+
+				//add 4bytes (because of int) times the array size to the offset-counter
 				offset += 4;
 			} else {
 				yyerror("Error: Only Integer variables are valid.");
