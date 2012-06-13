@@ -498,6 +498,7 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 	}
 	| expression SEMICOLON{
 		$$.next = NULL;
+		backpatch($1.true, $1.quad);
 		backpatch($1.false, nextquad);
 		backpatch($1.next, nextquad);
 	}
@@ -614,10 +615,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
 						$$.false = $3.false; 
 						$$.next = $3.next; 
-						$$.quad = nextquad;
+						$$.quad = nextquad; //zeigt auf das letzte quad der expression
 						$$.idName = $1.idName;
 						$$.type = $1.type;
-						$$.lval = 1; // TODO test:  a = b = c = 1;
+						$$.lval = 1; // damit das hier funktioniert: a = b = c = 1;
 						genStmt(OP_ASSIGN, $1.idName, $3.idName, NULL, 2);
 	   	 	 		} else {
 	   	 	 			yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
@@ -637,7 +638,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 							$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
 							$$.false = $3.false; 
 							$$.next = $3.next; 
-							$$.quad = nextquad;
+							$$.quad = nextquad; //zeigt auf das letzte quad der expression
 							$$.idName = $1.idName;
 							$$.type = intType;
 							$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
@@ -662,6 +663,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| expression LOGICAL_OR M_svQuad expression {
+		// für eine Logical_Or expression wird immer ein numerischer Wert als Wahrheitswert erzeugt. 1 = wahr, 0 = falsch; diese Werte werden nicht immer erreicht, C gibt aber bei einem boolschen AUsdruck ebenfalls ein int zurück, sodass wir diese Werte immer erzeugen... Im Optimierer können diese bei nicht benutzen wegoptimiert werden.
 		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
 			$$.idName = newtemp();
 
@@ -672,14 +674,14 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			IRLIST_t* falselist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // springe zum Else teil  		
 			genNewLine(); // zur lesbarkeit
 			
-			backpatch(merge($1.true, $4.true), truequad->quad);// True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat; backpatche mit truequad, sodass Wert 1 angenommen wird
+			//backpatch(merge($1.true, $4.true), truequad->quad);// True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat; backpatche mit truequad, sodass Wert 1 angenommen wird
 			backpatch($4.false, falsequad->quad);// wenn auch noch $4 false ist, dann ist $$ auch false; backpatche mit falsequad, sodass Wert 0 angenommen wird
 			backpatch(nextlist, nextquad);
 			
-			$$.true = NULL;
+			$$.true = merge($1.true, $4.true); //hier werden beide true Listen gemerged, damit am Ende bei einem True zum Ende gesprungen werden kann
 			$$.false = falselist;
 			$$.next = NULL; 
-			$$.quad = nextquad;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.lval = 0;
 		} else {
@@ -687,6 +689,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	   	}
 	}
 	| expression LOGICAL_AND M_svQuad expression {
+		// für eine Logical_And expression wird immer ein numerischer Wert als Wahrheitswert erzeugt. 1 = wahr, 0 = falsch; diese Werte werden nicht immer erreicht, C gibt aber bei einem boolschen AUsdruck ebenfalls ein int zurück, sodass wir diese Werte immer erzeugen... Im Optimierer können diese bei nicht benutzen wegoptimiert werden.
 		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
 			$$.idName = newtemp();
 			
@@ -699,13 +702,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genNewLine(); // zur lesbarkeit
 			
 			backpatch($4.true, truequad->quad);// wenn auch noch $4 true ist, dann ist $$ auch true; backpatche mit truequad, sodass Wert 1 angenommen wird
-			backpatch(merge($1.false, $4.false), falsequad->quad);// False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat; backpatche mit falsequad, sodass Wert 0 angenommen wird
+			//backpatch(merge($1.false, $4.false), falsequad->quad);// False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat; backpatche mit falsequad, sodass Wert 0 angenommen wird
 			backpatch(nextlist, nextquad);
 			
 			$$.true = NULL;
-			$$.false = falselist;
+			$$.false = merge(merge($1.false, $4.false),falselist); // falseliste wird gemerged, damit bei einem false gleich zum ende gebackpatcht werden kann
 			$$.next = NULL; 
-			$$.quad = nextquad;
+			$$.quad = nextquad-1;  //zeigt auf das letzte quad der expression
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.lval = 0;
 		} else {
@@ -714,7 +717,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| LOGICAL_NOT expression {
 		if ($2.type == intType || $2.type == intArrayType) {
-			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = newtemp();
 			$$.lval = 0;
@@ -726,6 +728,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // falss if oben falsch setze $$.idName zu true (0) 
 			$$.false = merge($2.true, makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1))); // erzeuge GOTO als Liste die mit der fals Liste gemerged die neue false Liste ergibt
 			$$.next = $2.next; 
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Logical Not expression is not 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -733,7 +736,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression EQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind 
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -741,6 +743,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Eq expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -748,7 +751,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression NE expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next =  merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -756,6 +758,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Ne expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -763,7 +766,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression LS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next =  merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -771,6 +773,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Ls expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -778,7 +781,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression LSEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -786,6 +788,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Lseq expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -793,7 +796,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression GTEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -801,6 +803,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Gteq expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -808,7 +811,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression GT expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -816,6 +818,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Gt expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -823,13 +826,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression PLUS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_ADD, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Plus expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -837,13 +840,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression MINUS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Minus expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -851,13 +854,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression MUL expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Mul expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -865,13 +868,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression SHIFT_LEFT expression { //TODO
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = NULL;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SHL, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Shift Left expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -879,13 +882,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression SHIFT_RIGHT expression { //TODO
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = NULL;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SHR, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Shift Right expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -893,13 +896,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression MOD expression { //TODO test
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_MOD, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Mod expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -913,7 +916,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch(truelist, nextquad); // setze true Ausgang auf das Statement mit der Berechnung
 			
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
@@ -927,6 +929,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch(nextlist, nextquad); // nextlist wird mit dem nächsten Element gebackpatcht...
 			
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Div expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -936,11 +939,11 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = $2.true;
 			$$.false = $2.false;
 			$$.next = $2.next;
-			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = $2.idName;
 			genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Unary Minus expression is not 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -950,11 +953,11 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = $2.true;
 			$$.false = $2.false;
 			$$.next = $2.next;
-			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = newtemp();
 			genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Unary Plus expression is not 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -964,13 +967,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = $3.true;
 			$$.false = $3.false;
 			$$.next = $3.next;
-			$$.quad = nextquad;
 			$$.type = intArrayType; // intArrayType da es hier nur int Array geben darf; da später auf intType überprüft wird muss zusätzlich überprüft werden ob intArrayType eine erfolgreiche Lade Operation ist und keine Speicher Operation
 			//$$.type = intType; // wird nicht verwendet, da es somit schwieriger wird zu unterscheiden, wann ein ein OP_ARRAY_LOAD und ein OP_ARRAY_STORE verwendet wird.
 			$$.idName = newtemp();
 			$$.lval = 1;
 			// ACHTUNG: hier wird angenommen, dass die Array Operation eine Load Operation ist. Ist dies nicht der Fall muss diese Operation gelöscht werden und eine Store Operation später hinzugefügt werden
 			arrayCodeTemp = genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3); 
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Array access", function_context);
 	   	}
@@ -1065,6 +1068,7 @@ function_call
 					}
 					//Set the return-value
 					$$.type = entry->vof.symFunction.returnType;
+					$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 				}
 			} else {
 				yyerror("Undefined symbol '%s' in function '%s'", $1,function_context);
@@ -1102,6 +1106,7 @@ function_call
 					}
 					//Set the return-value
 					$$.type = entry->vof.symFunction.returnType;
+					$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 				}
 			} else {
 				yyerror("Undefined symbol '%s' in function '%s'", $1, function_context);
