@@ -213,7 +213,7 @@ variable_declaration
 			var.vof.symVariable.varType = $1.vof.symVariable.varType;
 			var.vof.symVariable.size = $3.vof.symVariable.size;
 			
-			if($3.vof.symVariable.varType == intType){ //check varType to determine offset, because otherwise it is void and of size 0
+			if($1.vof.symVariable.varType == intType){ //check varType to determine offset, because otherwise it is void and of size 0
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
 				//printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
