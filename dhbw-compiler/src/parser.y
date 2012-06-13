@@ -203,7 +203,7 @@ variable_declaration
 				
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
-				printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
+				//printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
 				offset += ($3.vof.symVariable.size * 4);
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
@@ -216,7 +216,7 @@ variable_declaration
 			if($3.vof.symVariable.varType == intType){ //check varType to determine offset, because otherwise it is void and of size 0
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
-				printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
+				//printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
 				offset += 4;
 			} //else {
 				//yyerror("Error: Only Integer variables are valid.");
@@ -244,7 +244,7 @@ variable_declaration
 				
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset;
-				printf("DEBUG: Offset for %s: %d\n",$2.name, var.vof.symVariable.offsetAddress);
+				//printf("DEBUG: Offset for %s: %d\n",$2.name, var.vof.symVariable.offsetAddress);
 				//add 4bytes (because of int) times the array size to the offset-counter
 				offset += ($2.vof.symVariable.size * 4);
 
@@ -260,7 +260,7 @@ variable_declaration
 
     			//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset;
-				printf("DEBUG: Offset for %s: %d\n",$2.name, var.vof.symVariable.offsetAddress);
+				//printf("DEBUG: Offset for %s: %d\n",$2.name, var.vof.symVariable.offsetAddress);
 				//add 4bytes (because of int) times the array size to the offset-counter
 				offset += 4;
 			} else {
@@ -289,17 +289,13 @@ variable_declaration
  */
 identifier_declaration
 	: ID BRACKET_OPEN NUM BRACKET_CLOSE	{
-		sym_union_t var;
-		var.name = $1;
-		var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
-		var.vof.symVariable.size = atoi($3);
-		$$ = var;
+		$$.name = $1;
+		$$.vof.symVariable.varType = ArrayType;
+		$$.vof.symVariable.size = atoi($3);
 	}
 	| ID {
-		sym_union_t var;
-	 	var.name = $1;
-	  	$$ = var;
-		var.vof.symVariable.size = 1;
+		$$.name = $1;
+		$$.vof.symVariable.size = 1;
 	}
 	;
 /*
