@@ -51,7 +51,7 @@
  * conflict however is solved by the default behavior of bison for shift/reduce 
  * conflicts (shift action). The default behavior of bison corresponds to what
  * we want bison to do: SHIFT if the lookahead is 'ELSE' in order to bind the 'ELSE' to
- * the last open if-clause. 
+ * the last open if-clause.
  */
 %expect 1
 
@@ -98,7 +98,7 @@
  * parameter-list.
  */
 function_def
-	:  /* empty */  {  
+	:  /* empty */  {
 		sym_function_t func; //The returntype is left blank for now. will be added in the definition
 		func.returnType = None;
 		func.protOrNot = proto;
@@ -120,7 +120,7 @@ function_def
 			//param_list = NULL;
 		}
 		genFuncNameQuad(function_context); // generate the name of function as IR Code
-	} 
+	}
 
 reset_param
 	: /*empty*/ {
@@ -129,16 +129,16 @@ reset_param
 	}
 
 M_svQuad
-	: /* empty */ { 
+	: /* empty */ {
 		$$.quad = nextquad;
 	}
 M_NextListAndGOTO /*creates an empty goto statement and a nextlist*/
-	: /* empty */ { 
+	: /* empty */ {
 		$$.next = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1));
 	}
 
 M_NewLine /*creates a new line*/
-	: /* empty */ { 
+	: /* empty */ {
 		genNewLine();
 	}
 /****************************************************************************
@@ -182,7 +182,7 @@ program_element
 type
 	: INT {
 		$$ = intType; /*Using typedefinitions from symtab.h instead of lexems for types*/
-	} 
+	}
 	| VOID {
 		$$ = voidType;
 	}
@@ -194,7 +194,7 @@ type
  * identifier-declaration
  */
 variable_declaration 
-	: variable_declaration COMMA identifier_declaration	{	
+	: variable_declaration COMMA identifier_declaration	{
 		sym_union_t var;
 		if($3.vof.symVariable.varType == ArrayType) {
 			if($1.vof.symVariable.varType == intType || $1.vof.symVariable.varType == intArrayType) {
@@ -203,6 +203,7 @@ variable_declaration
 				
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				//printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
 				offset += ($3.vof.symVariable.size * 4);
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
@@ -212,9 +213,10 @@ variable_declaration
 			var.vof.symVariable.varType = $1.vof.symVariable.varType;
 			var.vof.symVariable.size = $3.vof.symVariable.size;
 			
-			if($3.vof.symVariable.varType == intType){ //check varType to determine offset, because otherwise it is void and of size 0
+			if($1.vof.symVariable.varType == intType){ //check varType to determine offset, because otherwise it is void and of size 0
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				//printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
 				offset += 4;
 			} //else {
 				//yyerror("Error: Only Integer variables are valid.");
@@ -242,7 +244,7 @@ variable_declaration
 				
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset;
-
+				//printf("DEBUG: Offset for %s: %d\n",$2.name, var.vof.symVariable.offsetAddress);
 				//add 4bytes (because of int) times the array size to the offset-counter
 				offset += ($2.vof.symVariable.size * 4);
 
@@ -258,7 +260,7 @@ variable_declaration
 
     			//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset;
-
+				//printf("DEBUG: Offset for %s: %d\n",$2.name, var.vof.symVariable.offsetAddress);
 				//add 4bytes (because of int) times the array size to the offset-counter
 				offset += 4;
 			} else {
@@ -286,18 +288,14 @@ variable_declaration
  * or an identifier followed by an array-index.
  */
 identifier_declaration
-	: ID BRACKET_OPEN NUM BRACKET_CLOSE	{ 
-		sym_union_t var;
-		var.name = $1;
-		var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
-		var.vof.symVariable.size = atoi($3);
-		$$ = var;
+	: ID BRACKET_OPEN NUM BRACKET_CLOSE	{
+		$$.name = $1;
+		$$.vof.symVariable.varType = ArrayType;
+		$$.vof.symVariable.size = atoi($3);
 	}
-	| ID { 
-		sym_union_t var;
-	 	var.name = $1;
-	  	$$ = var;
-		var.vof.symVariable.size = 1;
+	| ID {
+		$$.name = $1;
+		$$.vof.symVariable.size = 1;
 	}
 	;
 /*
@@ -306,7 +304,7 @@ identifier_declaration
  * rule.
  */
 function_definition
-	: function_header PARA_CLOSE BRACE_OPEN function_def {    
+	: function_header PARA_CLOSE BRACE_OPEN function_def {
 		sym_union_t* function = searchGlobal($1.name);
 		
 		if(function != NULL && function->vof.symFunction.protOrNot == proto){
@@ -328,13 +326,13 @@ function_definition
 	} stmt_list BRACE_CLOSE {
 		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
     }
-	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def {	
+	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def {
 		sym_union_t* function = searchGlobal($1.name);
 
 		if(function->vof.symFunction.protOrNot == proto){
 			//The type None is set in the function_def in the case, that the function was defined before it was declared.
 			//As the type is not known in function_def, it will be set after parsing the function_definition.
-			if(function->vof.symFunction.returnType == None){ 
+			if(function->vof.symFunction.returnType == None){
 				function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 			}
 			
@@ -347,7 +345,7 @@ function_definition
 		}else{
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
-	}  stmt_list BRACE_CLOSE {					
+	}  stmt_list BRACE_CLOSE {
 		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 	}
 	;
@@ -379,7 +377,7 @@ function_declaration
 		}
 		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 	} 
-	| function_header function_parameter_list PARA_CLOSE { 
+	| function_header function_parameter_list PARA_CLOSE {
     	sym_function_t func;
 	 	func.returnType = $1.vof.symFunction.returnType;
 		func.protOrNot = proto; 
@@ -428,7 +426,7 @@ function_header
  * The Parameter-List is stored in a global variable (linked-list) so the statement-blocks can access it while parsing.
  */	
 function_parameter_list
-	: function_parameter { 
+	: function_parameter {
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
 		if(param == NULL){
 			yyerror("could not allocate memory");
@@ -438,7 +436,7 @@ function_parameter_list
 		param->varType = $1.vof.symVariable.varType;
 		DL_APPEND(param_list,param);
 	}
-	| function_parameter_list COMMA function_parameter {  
+	| function_parameter_list COMMA function_parameter {
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
 		if(param == NULL){
 			yyerror("could not allocate memory");
@@ -454,7 +452,7 @@ function_parameter_list
  * Function parameter consisting of a type followed by an identifier_declaraion.
  */
 function_parameter
-	: type identifier_declaration { 
+	: type identifier_declaration {
 		sym_union_t var;
 		if($2.vof.symVariable.varType == ArrayType){
     		if($1 == intType) {
@@ -573,7 +571,7 @@ stmt_conditional
 * Seperate if Condition Header to avoid conflicts...
 */ 
 stmt_cond_if_header
-	: M_NewLine IF PARA_OPEN expression PARA_CLOSE { 
+	: M_NewLine IF PARA_OPEN expression PARA_CLOSE {
 		$$.true = merge(makelist(genStmt(OP_IFNE, $4.idName, "0", NULL, 3)), $4.true);
 		$$.false = merge(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $4.false);
 		$$.next = $4.next; 
@@ -776,7 +774,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		} else {
 	   		yyerror("Typemissmatch in function %s. Ls expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
-	} 
+	}
 	| expression LSEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
@@ -791,7 +789,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		} else {
 	   		yyerror("Typemissmatch in function %s. Lseq expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
-	} 
+	}
 	| expression GTEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
@@ -806,7 +804,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		} else {
 	   		yyerror("Typemissmatch in function %s. Gteq expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
-	} 
+	}
 	| expression GT expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
@@ -906,7 +904,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	   		yyerror("Typemissmatch in function %s. Mod expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
 	}
-	| expression DIV expression { 
+	| expression DIV expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 		
 			// gen statement to check if $3 is 0 (div 0 not allowed)
@@ -962,7 +960,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	   	}
 	}
 	| ID BRACKET_OPEN primary BRACKET_CLOSE {
-		if (/* TODO check types */1) { 
+		if (/* TODO check types */1) {
 			$$.true = $3.true;
 			$$.false = $3.false;
 			$$.next = $3.next;
@@ -996,7 +994,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		//printf("Function-Type: %d\n", $1.type);
 		$$.lval = 0;
 	}
-	| primary { 
+	| primary {
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
@@ -1019,7 +1017,7 @@ primary
 		$$.type = intType;
 		$$.lval = 0;
 	}
-	| ID { 
+	| ID {
 		if(function_context != '___#nktx&'){
 			sym_union_t* found_entry = searchBoth($1, function_context);
 			if(found_entry == NULL){
@@ -1056,7 +1054,7 @@ function_call
 					if(entry->vof.symFunction.callVar != NULL){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
 						yyerror("Function '%s' in '%s': parameter-missmatch.)", $1, function_context);
-					} else { 
+					} else {
 						// Intermediate-Code for function-call
 						$$.idName = newtemp();
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
@@ -1115,7 +1113,7 @@ function_call
 		//Clear the current param_list
 		PurgeParameters(param_list);
 		param_list = NULL;
-	} 
+	}
 	;
 
 /**
