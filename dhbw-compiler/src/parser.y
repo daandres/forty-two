@@ -481,9 +481,6 @@ stmt_list
 
 	| stmt_list M_svQuad stmt{
 		
-		if($1.next == NULL || $3.next == NULL){
-			printf("There is a Null Here!!!\n");
-		}
 		backpatch($1.next, $2.quad); //patch the nextlist of stmt_list to M_svQuad
 		backpatch($3.next, nextquad); //patch the nextlist of stmt_list to M_svQuad
 		//$$.next = $3.next; //the next statement after this stmt
