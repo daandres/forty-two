@@ -64,6 +64,10 @@ IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2) {
  * @return 1 for usage; 0 for no usage
  */
 int setMissingParm(IRCODE_t* code, char* value) {
+	if(code == NULL){
+		debug("could not set missing param in %d", code);
+		return -1;
+	}
 	switch (code->paramcount) {
 		case 3:
 			code->op_three = value;
@@ -92,6 +96,8 @@ void backpatch(IRLIST_t* list, int nquad) {
 	sprintf(addr, ".l%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
 	int usage_counter = 0; // counts how many times the variable addr is used
+	if(list == NULL)
+		return;
 	while (list != NULL) {
 		if (list->item != NULL)
 			usage_counter += setMissingParm(list->item, addr);

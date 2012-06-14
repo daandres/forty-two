@@ -988,10 +988,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.lval = 0;
 	}
 	| function_call {
-		$$.true = $1.true; 
-		$$.false = $1.false;
-		$$.next = $1.next; 
-		$$.quad = $1.quad;
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = nextquad-1;
 		$$.idName = $1.idName;
 		$$.type = $1.type;
 		//printf("Function-Type: %d\n", $1.type);
@@ -1068,7 +1068,6 @@ function_call
 					}
 					//Set the return-value
 					$$.type = entry->vof.symFunction.returnType;
-					$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 				}
 			} else {
 				yyerror("Undefined symbol '%s' in function '%s'", $1,function_context);
@@ -1076,6 +1075,7 @@ function_call
 		} else {
 			yyerror("Function-call '%s' can only be used within a function-context", $1, function_context);
 		}
+		$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 	}
 	| ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
 		//Check if the function was defined in symbol table
@@ -1106,7 +1106,6 @@ function_call
 					}
 					//Set the return-value
 					$$.type = entry->vof.symFunction.returnType;
-					$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 				}
 			} else {
 				yyerror("Undefined symbol '%s' in function '%s'", $1, function_context);
@@ -1114,7 +1113,8 @@ function_call
 		} else {
 			yyerror("Function-call '%s' can only be used within a function-context", $1);
 		}
-		
+		$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
+
 		//Clear the current param_list
 		PurgeParameters(param_list);
 		param_list = NULL;
