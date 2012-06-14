@@ -643,7 +643,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 							$$.type = intType;
 							$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
 						
-							genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
+							IRCODE_t* newCode = genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
+							updateList($$.true, newCode); // aktualisiere die true und falselisten sodass das neue code_quad drin steht
+							updateList($$.false, newCode);
+							updateList($$.next, newCode);
 							//free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad // gibt in valgrind invalid access wenn einkommentiert :(
 							free(temp_quad); // only free struct but not the char* inside...
 						} else {
@@ -964,9 +967,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| ID BRACKET_OPEN primary BRACKET_CLOSE {
 		if (/* TODO check types */1) {
-			$$.true = $3.true;
-			$$.false = $3.false;
-			$$.next = $3.next;
+			$$.true = NULL;
+			$$.false = NULL;
+			$$.next = NULL;
 			$$.type = intArrayType; // intArrayType da es hier nur int Array geben darf; da später auf intType überprüft wird muss zusätzlich überprüft werden ob intArrayType eine erfolgreiche Lade Operation ist und keine Speicher Operation
 			//$$.type = intType; // wird nicht verwendet, da es somit schwieriger wird zu unterscheiden, wann ein ein OP_ARRAY_LOAD und ein OP_ARRAY_STORE verwendet wird.
 			$$.idName = newtemp();

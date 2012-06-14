@@ -59,12 +59,25 @@ IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2) {
 		return list2;
 }
 
+/*
+ * This function updates a list with a correct code_quad.
+ */
+void updateList(IRLIST_t* list1, IRCODE_t* code) {
+
+	if (list1 != NULL) {
+		while (list1 != NULL) { // gehe durch die ganze Liste und update das code_quad
+			list1->item = code;
+			list1 = list1->next;
+		}
+	}
+}
+
 /**
  * This function appends the jump markers to the statements in the codes.
  * @return 1 for usage; 0 for no usage
  */
 int setMissingParm(IRCODE_t* code, char* value) {
-	if(code == NULL){
+	if (code == NULL) {
 		debug("could not set missing param in %d", code);
 		return -1;
 	}
@@ -96,9 +109,10 @@ void backpatch(IRLIST_t* list, int nquad) {
 	sprintf(addr, ".l%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
 	int usage_counter = 0; // counts how many times the variable addr is used
-	if(list == NULL)
+	if (list == NULL)
 		return;
 	while (list != NULL) {
+		//debug("nquad: %d; list: %d", nquad, list);
 		if (list->item != NULL)
 			usage_counter += setMissingParm(list->item, addr);
 		else
@@ -202,7 +216,7 @@ void delLastQuad() {
 			prev->next = NULL;
 		code_quad = prev; // setze als aktuelles Quadrupel das vorherige, wenn prev ==  NULL dann gibt es kein Quadrupel mehr
 		nextquad--; // dekrementiere Statement counter
-		if (self != NULL && self->op_one != NULL){ // diese free Operation wird benötigt, damit bei dem wechsel von arra_load und array store auch der temp identifer gefreed wird
+		if (self != NULL && self->op_one != NULL) { // diese free Operation wird benötigt, damit bei dem wechsel von arra_load und array store auch der temp identifer gefreed wird
 			free(self->op_one);
 			tmpCount--; //dekrementiere den counter damit keine 'lücke' entsteht
 		}
