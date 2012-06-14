@@ -14,6 +14,7 @@ IRCODE_t* code_quad; 		// Pointer to current TAC quadrupel
 IRCODE_t* first_code_quad; // First Quadrupel
 int size = 0; 					// size of dynamic code array
 int tmpCount = TMP;			// temp identifier code number
+IRLIST_t* globallist = NULL; // all lists together so that at the end all lists can be freed
 
 /*
  * This fuction generats a new temp identifier for the TAC. (.t1, .t2, ...)
@@ -37,7 +38,6 @@ IRLIST_t* makelist(IRCODE_t* nquad) {
 		return NULL;
 	}
 	list->next = NULL;
-	list->self = list;
 	list->item = nquad;
 
 	return list;
@@ -59,22 +59,41 @@ IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2) {
 		return list2;
 }
 
+/*
+ * This function updates a list with a correct code_quad.
+ */
+void updateList(IRLIST_t* list1, IRCODE_t* code) {
+
+	if (list1 != NULL) {
+		while (list1 != NULL) { // gehe durch die ganze Liste und update das code_quad
+			list1->item = code;
+			list1 = list1->next;
+		}
+	}
+}
+
 /**
  * This function appends the jump markers to the statements in the codes.
+ * @return 1 for usage; 0 for no usage
  */
-void setMissingParm(IRCODE_t* code, char* value) {
+int setMissingParm(IRCODE_t* code, char* value) {
+	if (code == NULL) {
+		debug("could not set missing param in %d", code);
+		return -1;
+	}
 	switch (code->paramcount) {
 		case 3:
 			code->op_three = value;
-			break;
+			return 1;
 		case 2:
 			code->op_two = value;
-			break;
+			return 1;
 		case 1:
 			code->op_one = value;
-			break;
+			return 1;
 		case 0:
-			break;
+		default:
+			return 0;
 	}
 }
 
@@ -82,23 +101,28 @@ void setMissingParm(IRCODE_t* code, char* value) {
  * This function backpatches temp identifiers with its addresses...
  */
 void backpatch(IRLIST_t* list, int nquad) {
-	IRLIST_t* first_elemt = list;
+	globallist = merge(globallist, list);
 	char* addr = (char *) malloc(sizeof(char) * 10); // don't forget End of String symbol during the malloc
 	if (addr == NULL) {
 		warning("could not allocate memory");
 	}
 	sprintf(addr, ".l%d", nquad);
 	// Setze für jedes Listenelement die Adresse nquad
+	int usage_counter = 0; // counts how many times the variable addr is used
+	if (list == NULL)
+		return;
 	while (list != NULL) {
+		//debug("nquad: %d; list: %d", nquad, list);
 		if (list->item != NULL)
-			setMissingParm(list->item, addr);
+			usage_counter += setMissingParm(list->item, addr);
 		else
 			warning("could not backpatch %d ind one element of list", nquad);
 		list = list->next;
 	}
+	if (usage_counter == 0) //addr wird gefreed wenn es nicht verwendet wird
+		free(addr);
 
-	//free(addr); // wenn einkommentiert, dann gibt es invald reads auf addr, was sehr komsich ist TODO
-	free_IRLIST_t_rec(first_elemt);
+	//free_IRLIST_t_rec(first_elemt);
 }
 
 /*
@@ -187,10 +211,15 @@ IRCODE_t* genNewLine() {
 void delLastQuad() {
 	if (code_quad != NULL) { // wenn es noch kein Statement gibt, kann ja auch nix gelöscht werden
 		IRCODE_t* prev = code_quad->previous; // speicher das vorherige quadrupel in prev. wenn es keins gibt wird NULL gespeichert
+		IRCODE_t* self = code_quad->self;
 		if (prev != NULL) // wenn prev != NULL ist soll von prev die Referenz zum nächsten QUadrupel gelöscht werden
 			prev->next = NULL;
 		code_quad = prev; // setze als aktuelles Quadrupel das vorherige, wenn prev ==  NULL dann gibt es kein Quadrupel mehr
 		nextquad--; // dekrementiere Statement counter
+		if (self != NULL && self->op_one != NULL) { // diese free Operation wird benötigt, damit bei dem wechsel von arra_load und array store auch der temp identifer gefreed wird
+			free(self->op_one);
+			tmpCount--; //dekrementiere den counter damit keine 'lücke' entsteht
+		}
 	}
 }
 
@@ -309,32 +338,28 @@ void printIrCode(char* fn) {
  * Frees the memory for one IRCODE_T struct
  */
 void free_IRCODE_t(IRCODE_t* var) {
-	if (var->op_one != NULL)
-		free(var->op_one);
-	if (var->op_two != NULL)
-		free(var->op_two);
-	if (var->op_three != NULL)
-		free(var->op_three);
-	free(var);
+	if (var != NULL) {
+		if (var->op_one != NULL)
+			free(var->op_one);
+		if (var->op_two != NULL)
+			free(var->op_two);
+		if (var->op_three != NULL)
+			free(var->op_three);
+		free(var);
+	}
 }
 
 /**
  * Frees the memory for one IRCODE_T struct recursively
  */
 void free_IRCODE_t_rec(IRCODE_t* var) {
-	IRCODE_t* next = var->next;
-	IRCODE_t* prev = var->previous;
-	while (next != NULL) {
-		IRCODE_t* tmp = next->next;
-		free_IRCODE_t(next);
-		next = tmp;
-		tmp = NULL;
-	}
-	while (prev != NULL) {
-		IRCODE_t* tmp = prev->previous;
-		free_IRCODE_t(prev);
-		prev = tmp;
-		tmp = NULL;
+	if (var != NULL) {
+		while (var != NULL) {
+			IRCODE_t* next = var->next;
+			free_IRCODE_t(var);
+			var = next;
+			next = NULL;
+		}
 	}
 }
 
@@ -342,14 +367,16 @@ void free_IRCODE_t_rec(IRCODE_t* var) {
  * Frees the memory for one IRTYPE_t struct
  */
 void free_IRTYPE_t(IRTYPE_t* var) {
-	if (var->true != NULL)
-		free_IRLIST_t_rec(var->true);
-	if (var->false != NULL)
-		free_IRLIST_t_rec(var->false);
-	if (var->next != NULL)
-		free_IRLIST_t_rec(var->next);
-	if (var->idName != NULL)
-		free(var->idName);
+	if (var != NULL) {
+		if (var->true != NULL)
+			free_IRLIST_t_rec(var->true);
+		if (var->false != NULL)
+			free_IRLIST_t_rec(var->false);
+		if (var->next != NULL)
+			free_IRLIST_t_rec(var->next);
+		if (var->idName != NULL)
+			free(var->idName);
+	}
 }
 
 /**
@@ -358,7 +385,9 @@ void free_IRTYPE_t(IRTYPE_t* var) {
 void free_IRLIST_t(IRLIST_t* var) {
 //	if (var->item != NULL)			// wird nicht gefreed, da ja nur die Liste gefreed werden soll und nicht das element an sich
 //		free_IRCODE_t(var->item);
-	free(var);
+	if (var != NULL) {
+		free(var);
+	}
 }
 
 /**
@@ -366,13 +395,16 @@ void free_IRLIST_t(IRLIST_t* var) {
  */
 void free_IRLIST_t_rec(IRLIST_t* var) {
 	if (var != NULL) {
-		IRLIST_t* next = var->next;
-		while (next != NULL) {
-			IRLIST_t* tmp = next->next;
-			free_IRLIST_t(next);
-			next = tmp;
-			tmp = NULL;
+		while (var != NULL) {
+			IRLIST_t* next = var->next;
+			free_IRLIST_t(var);
+			var = next;
+			next = NULL;
 		}
-		next = NULL;
 	}
+}
+
+void free_ir() {
+	free_IRLIST_t_rec(globallist);
+	free_IRCODE_t_rec(code_quad);
 }

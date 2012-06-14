@@ -425,6 +425,7 @@ int main(int argc, char *argv[]) {
 	//printIrCode("IRCode.txt");
 
 	//everythingEnds(NULL, 0); // auskommentiert, da das Programm oft nicht terminiert
+	free_ir();
 	rm_cleanup_resources(&resource_mgr);
 	info("Resources cleaned up.");
 	return 0;

@@ -51,7 +51,7 @@
  * conflict however is solved by the default behavior of bison for shift/reduce 
  * conflicts (shift action). The default behavior of bison corresponds to what
  * we want bison to do: SHIFT if the lookahead is 'ELSE' in order to bind the 'ELSE' to
- * the last open if-clause. 
+ * the last open if-clause.
  */
 %expect 1
 
@@ -98,7 +98,7 @@
  * parameter-list.
  */
 function_def
-	:  /* empty */  {  
+	:  /* empty */  {
 		sym_function_t func; //The returntype is left blank for now. will be added in the definition
 		func.returnType = None;
 		func.protOrNot = proto;
@@ -120,7 +120,7 @@ function_def
 			//param_list = NULL;
 		}
 		genFuncNameQuad(function_context); // generate the name of function as IR Code
-	} 
+	}
 
 reset_param
 	: /*empty*/ {
@@ -129,16 +129,16 @@ reset_param
 	}
 
 M_svQuad
-	: /* empty */ { 
+	: /* empty */ {
 		$$.quad = nextquad;
 	}
 M_NextListAndGOTO /*creates an empty goto statement and a nextlist*/
-	: /* empty */ { 
+	: /* empty */ {
 		$$.next = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1));
 	}
 
 M_NewLine /*creates a new line*/
-	: /* empty */ { 
+	: /* empty */ {
 		genNewLine();
 	}
 /****************************************************************************
@@ -182,7 +182,7 @@ program_element
 type
 	: INT {
 		$$ = intType; /*Using typedefinitions from symtab.h instead of lexems for types*/
-	} 
+	}
 	| VOID {
 		$$ = voidType;
 	}
@@ -194,7 +194,7 @@ type
  * identifier-declaration
  */
 variable_declaration 
-	: variable_declaration COMMA identifier_declaration	{	
+	: variable_declaration COMMA identifier_declaration	{
 		sym_union_t var;
 		if($3.vof.symVariable.varType == ArrayType) {
 			if($1.vof.symVariable.varType == intType || $1.vof.symVariable.varType == intArrayType) {
@@ -203,6 +203,7 @@ variable_declaration
 				
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				//printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
 				offset += ($3.vof.symVariable.size * 4);
 			} else {
 				yyerror("Error: Only Integer arrays are valid.");
@@ -212,9 +213,10 @@ variable_declaration
 			var.vof.symVariable.varType = $1.vof.symVariable.varType;
 			var.vof.symVariable.size = $3.vof.symVariable.size;
 			
-			if($3.vof.symVariable.varType == intType){ //check varType to determine offset, because otherwise it is void and of size 0
+			if($1.vof.symVariable.varType == intType){ //check varType to determine offset, because otherwise it is void and of size 0
 				//Calculate the offset for this type
 				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				//printf("DEBUG: Offset for %s: %d\n",$3.name, var.vof.symVariable.offsetAddress);
 				offset += 4;
 			} //else {
 				//yyerror("Error: Only Integer variables are valid.");
@@ -241,7 +243,9 @@ variable_declaration
 				var.vof.symVariable.size = $2.vof.symVariable.size;
 				
 				//Calculate the offset for this type
-				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				var.vof.symVariable.offsetAddress = offset;
+				//printf("DEBUG: Offset for %s: %d\n",$2.name, var.vof.symVariable.offsetAddress);
+				//add 4bytes (because of int) times the array size to the offset-counter
 				offset += ($2.vof.symVariable.size * 4);
 
 			} else {
@@ -253,8 +257,11 @@ variable_declaration
     		var.vof.symVariable.size = $2.vof.symVariable.size;
     		
     		if($1 == intType){ //check varType to determine offset
+
     			//Calculate the offset for this type
-				var.vof.symVariable.offsetAddress = offset; //add 4bytes (because of int) times the array size to the offset-counter
+				var.vof.symVariable.offsetAddress = offset;
+				//printf("DEBUG: Offset for %s: %d\n",$2.name, var.vof.symVariable.offsetAddress);
+				//add 4bytes (because of int) times the array size to the offset-counter
 				offset += 4;
 			} else {
 				yyerror("Error: Only Integer variables are valid.");
@@ -281,18 +288,14 @@ variable_declaration
  * or an identifier followed by an array-index.
  */
 identifier_declaration
-	: ID BRACKET_OPEN NUM BRACKET_CLOSE	{ 
-		sym_union_t var;
-		var.name = $1;
-		var.vof.symVariable.varType = ArrayType; //Type is not known yet.Thus we use the typeless ArrayType
-		var.vof.symVariable.size = atoi($3);
-		$$ = var;
+	: ID BRACKET_OPEN NUM BRACKET_CLOSE	{
+		$$.name = $1;
+		$$.vof.symVariable.varType = ArrayType;
+		$$.vof.symVariable.size = atoi($3);
 	}
-	| ID { 
-		sym_union_t var;
-	 	var.name = $1;
-	  	$$ = var;
-		var.vof.symVariable.size = 1;
+	| ID {
+		$$.name = $1;
+		$$.vof.symVariable.size = 1;
 	}
 	;
 /*
@@ -301,7 +304,7 @@ identifier_declaration
  * rule.
  */
 function_definition
-	: function_header PARA_CLOSE BRACE_OPEN function_def {    
+	: function_header PARA_CLOSE BRACE_OPEN function_def {
 		sym_union_t* function = searchGlobal($1.name);
 		
 		if(function != NULL && function->vof.symFunction.protOrNot == proto){
@@ -321,15 +324,15 @@ function_definition
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
 	} stmt_list BRACE_CLOSE {
-		function_context = '___#nktx&';
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
     }
-	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def {	
+	| function_header function_parameter_list PARA_CLOSE BRACE_OPEN function_def {
 		sym_union_t* function = searchGlobal($1.name);
 
 		if(function->vof.symFunction.protOrNot == proto){
 			//The type None is set in the function_def in the case, that the function was defined before it was declared.
 			//As the type is not known in function_def, it will be set after parsing the function_definition.
-			if(function->vof.symFunction.returnType == None){ 
+			if(function->vof.symFunction.returnType == None){
 				function->vof.symFunction.returnType = $1.vof.symFunction.returnType;
 			}
 			
@@ -342,8 +345,8 @@ function_definition
 		}else{
 			yyerror("Duplicate declaration of function %s",function_context);
 		}
-	}  stmt_list BRACE_CLOSE {					
-		function_context = '___#nktx&';
+	}  stmt_list BRACE_CLOSE {
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 	}
 	;
 
@@ -359,7 +362,6 @@ function_declaration
 		if(insertFuncGlobal($1.name, func) != 0){
 			sym_union_t* entry = searchGlobal($1.name);
 			
-			
 			if(entry != NULL && entry->vof.symFunction.callVar != NULL){
 				//yyerror("Declaration of function %s: parameter-missmatch. Expected (%s) but found (%s)", $1.name, ParameterListToString(entry->vof.symFunction.callVar), "NULL");
 				yyerror("Declaration of function %s: parameter-missmatch.", $1.name);
@@ -373,9 +375,9 @@ function_declaration
 		}else{
 			debug("Function %s declared. \n", $1.name);
 		}
-		function_context = '___#nktx&';
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 	} 
-	| function_header function_parameter_list PARA_CLOSE { 
+	| function_header function_parameter_list PARA_CLOSE {
     	sym_function_t func;
 	 	func.returnType = $1.vof.symFunction.returnType;
 		func.protOrNot = proto; 
@@ -403,7 +405,7 @@ function_declaration
  	 	
 		//insertCallVarLocal(function_context, param_list);
 		
-		function_context = '___#nktx&';
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 	}
 	;
 
@@ -414,9 +416,8 @@ function_header
 	: type ID PARA_OPEN {
 		$$.vof.symFunction.returnType= $1;
 		$$.name = $2;
+		reset_function_vars(); //Set the listpointer to NULL, so the next declaration can start anew
 		function_context = $2;
-		PurgeParameters(param_list);//param_list = NULL; //Set the listpointer to NULL, so the next declaration can start anew
-		param_list = NULL;
 	}
 	;
 	
@@ -425,7 +426,7 @@ function_header
  * The Parameter-List is stored in a global variable (linked-list) so the statement-blocks can access it while parsing.
  */	
 function_parameter_list
-	: function_parameter { 
+	: function_parameter {
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
 		if(param == NULL){
 			yyerror("could not allocate memory");
@@ -435,7 +436,7 @@ function_parameter_list
 		param->varType = $1.vof.symVariable.varType;
 		DL_APPEND(param_list,param);
 	}
-	| function_parameter_list COMMA function_parameter {  
+	| function_parameter_list COMMA function_parameter {
 		function_param_t* param = (function_param_t*)malloc(sizeof(function_param_t));
 		if(param == NULL){
 			yyerror("could not allocate memory");
@@ -451,7 +452,7 @@ function_parameter_list
  * Function parameter consisting of a type followed by an identifier_declaraion.
  */
 function_parameter
-	: type identifier_declaration { 
+	: type identifier_declaration {
 		sym_union_t var;
 		if($2.vof.symVariable.varType == ArrayType){
     		if($1 == intType) {
@@ -498,11 +499,13 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 		$$.next = $1.next;
 	}
 	| variable_declaration SEMICOLON{
-		//$$.next = nextquad; //TODO: Check if nextquad comas after the declaration
+		$$.next = NULL;
 	}
 	| expression SEMICOLON{
-		$$.next = $1.next;
-		backpatch($1.false, $1.quad);
+		$$.next = NULL;
+		backpatch($1.true, $1.quad);
+		backpatch($1.false, nextquad);
+		backpatch($1.next, nextquad);
 	}
 	| stmt_conditional{
 		$$.next = NULL; //Set next to null to prevent errors in backpatch
@@ -513,9 +516,18 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 		backpatch($1.next, nextquad);
 	}
 	| RETURN expression SEMICOLON{ //Return that returns a actual value
-		if(CheckFunctionReturnTyp(function_context, $2.type) == 0){
+		types_t type;
+		if($2.type == intArrayType){	// Hier wird überprüft ob die expression vom type intArrayType ist. Wenn ja, und das letzte code_quad ein array_load ist, dann hat der Wert der expression den type int anstatt intArray und somit wird das hier angepasst
+			if(code_quad->op == OP_ARRAY_LOAD)
+				type = intType;
+			else 
+				type = $2.type;
+		} else 
+				type = $2.type;
+		if(CheckFunctionReturnTyp(function_context, type) == 0){
 			backpatch($2.next,nextquad);//expression.next leads to the following statement
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
+
 			$$.next = NULL; //Set next to null to prevent errors in backpatch
 		} else {
 			yyerror("Type missmatch in return statement. '%s' has not the return type '%s'", function_context, typeToString($2.type));	
@@ -566,7 +578,7 @@ stmt_conditional
 * Seperate if Condition Header to avoid conflicts...
 */ 
 stmt_cond_if_header
-	: M_NewLine IF PARA_OPEN expression PARA_CLOSE { 
+	: M_NewLine IF PARA_OPEN expression PARA_CLOSE {
 		$$.true = merge(makelist(genStmt(OP_IFNE, $4.idName, "0", NULL, 3)), $4.true);
 		$$.false = merge(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $4.false);
 		$$.next = $4.next; 
@@ -581,6 +593,7 @@ stmt_loop
 		backpatch(makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)), $4.quad); 	//springe am Ende der Schleife immer wieder zum Kopf zurück, komplizierter Weg, aber so spart man sich eigenes allokieren con einem String hier im Parser		
 		backpatch($5.false, nextquad); 											// backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
 		genNewLine();
+		$$.next = NULL;
 	}
 	| M_NewLine DO M_svQuad stmt WHILE PARA_OPEN M_svQuad expression PARA_CLOSE SEMICOLON{
 		backpatch($8.true, $3.quad); 	//backpatche true ausgang mit begin der schleife
@@ -608,10 +621,10 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 						$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
 						$$.false = $3.false; 
 						$$.next = $3.next; 
-						$$.quad = nextquad;
+						$$.quad = nextquad; //zeigt auf das letzte quad der expression
 						$$.idName = $1.idName;
 						$$.type = $1.type;
-						$$.lval = 1; // TODO test:  a = b = c = 1;
+						$$.lval = 1; // damit das hier funktioniert: a = b = c = 1;
 						genStmt(OP_ASSIGN, $1.idName, $3.idName, NULL, 2);
 	   	 	 		} else {
 	   	 	 			yyerror("Typemissmatch in function %s. Illegal righthand-value. Not 'int' or 'int-Array'.", function_context);
@@ -631,12 +644,15 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 							$$.true = $3.true; // da ein gültiger lval weder eine ture/false/next liste hat kann die von $3 verwendet werden
 							$$.false = $3.false; 
 							$$.next = $3.next; 
-							$$.quad = nextquad;
+							$$.quad = nextquad; //zeigt auf das letzte quad der expression
 							$$.idName = $1.idName;
 							$$.type = intType;
 							$$.lval = 1; // TODO es gibt doch auch sowas a = b = c = 1;
 						
-							genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
+							IRCODE_t* newCode = genStmt(OP_ARRAY_STORE, temp_quad->op_two, temp_quad->op_three, $3.idName, 3);
+							updateList($$.true, newCode); // aktualisiere die true und falselisten sodass das neue code_quad drin steht
+							updateList($$.false, newCode);
+							updateList($$.next, newCode);
 							//free_IRCODE_t(temp_quad); // free den memory of altes aktuelles code_quad // gibt in valgrind invalid access wenn einkommentiert :(
 							free(temp_quad); // only free struct but not the char* inside...
 						} else {
@@ -656,6 +672,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		}
 	}
 	| expression LOGICAL_OR M_svQuad expression {
+		// für eine Logical_Or expression wird immer ein numerischer Wert als Wahrheitswert erzeugt. 1 = wahr, 0 = falsch; diese Werte werden nicht immer erreicht, C gibt aber bei einem boolschen AUsdruck ebenfalls ein int zurück, sodass wir diese Werte immer erzeugen... Im Optimierer können diese bei nicht benutzen wegoptimiert werden.
 		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
 			$$.idName = newtemp();
 
@@ -666,14 +683,14 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			IRLIST_t* falselist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // springe zum Else teil  		
 			genNewLine(); // zur lesbarkeit
 			
-			backpatch(merge($1.true, $4.true), truequad->quad);// True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat; backpatche mit truequad, sodass Wert 1 angenommen wird
+			//backpatch(merge($1.true, $4.true), truequad->quad);// True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat; backpatche mit truequad, sodass Wert 1 angenommen wird
 			backpatch($4.false, falsequad->quad);// wenn auch noch $4 false ist, dann ist $$ auch false; backpatche mit falsequad, sodass Wert 0 angenommen wird
 			backpatch(nextlist, nextquad);
 			
-			$$.true = NULL;
+			$$.true = merge($1.true, $4.true); //hier werden beide true Listen gemerged, damit am Ende bei einem True zum Ende gesprungen werden kann
 			$$.false = falselist;
 			$$.next = NULL; 
-			$$.quad = nextquad;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.lval = 0;
 		} else {
@@ -681,6 +698,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	   	}
 	}
 	| expression LOGICAL_AND M_svQuad expression {
+		// für eine Logical_And expression wird immer ein numerischer Wert als Wahrheitswert erzeugt. 1 = wahr, 0 = falsch; diese Werte werden nicht immer erreicht, C gibt aber bei einem boolschen AUsdruck ebenfalls ein int zurück, sodass wir diese Werte immer erzeugen... Im Optimierer können diese bei nicht benutzen wegoptimiert werden.
 		if (($1.type == intType || $1.type == intArrayType) && ($4.type == intType || $4.type == intArrayType)) {
 			$$.idName = newtemp();
 			
@@ -693,13 +711,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genNewLine(); // zur lesbarkeit
 			
 			backpatch($4.true, truequad->quad);// wenn auch noch $4 true ist, dann ist $$ auch true; backpatche mit truequad, sodass Wert 1 angenommen wird
-			backpatch(merge($1.false, $4.false), falsequad->quad);// False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat; backpatche mit falsequad, sodass Wert 0 angenommen wird
+			//backpatch(merge($1.false, $4.false), falsequad->quad);// False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat; backpatche mit falsequad, sodass Wert 0 angenommen wird
 			backpatch(nextlist, nextquad);
 			
 			$$.true = NULL;
-			$$.false = falselist;
+			$$.false = merge(merge($1.false, $4.false),falselist); // falseliste wird gemerged, damit bei einem false gleich zum ende gebackpatcht werden kann
 			$$.next = NULL; 
-			$$.quad = nextquad;
+			$$.quad = nextquad-1;  //zeigt auf das letzte quad der expression
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
 			$$.lval = 0;
 		} else {
@@ -708,7 +726,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	}
 	| LOGICAL_NOT expression {
 		if ($2.type == intType || $2.type == intArrayType) {
-			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = newtemp();
 			$$.lval = 0;
@@ -720,6 +737,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // falss if oben falsch setze $$.idName zu true (0) 
 			$$.false = merge($2.true, makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1))); // erzeuge GOTO als Liste die mit der fals Liste gemerged die neue false Liste ergibt
 			$$.next = $2.next; 
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Logical Not expression is not 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -727,7 +745,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression EQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind 
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -735,6 +752,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Eq expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -742,7 +760,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression NE expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next =  merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -750,6 +767,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Ne expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -757,7 +775,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression LS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next =  merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -765,14 +782,14 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Ls expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
-	} 
+	}
 	| expression LSEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -780,14 +797,14 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Lseq expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
-	} 
+	}
 	| expression GTEQ expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -795,14 +812,14 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Gteq expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
-	} 
+	}
 	| expression GT expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Ergebnis von Vergleichoperationen ist in C ein integer
 			$$.idName = newtemp();
 			genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
@@ -810,6 +827,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			$$.false = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // Generiere else und erzeuge mit dem neuen quadrupel die FalseList.
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Gt expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -817,13 +835,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression PLUS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_ADD, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Plus expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -831,13 +849,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression MINUS expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SUB, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Minus expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -845,13 +863,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression MUL expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_MUL, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Mul expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -859,13 +877,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression SHIFT_LEFT expression { //TODO
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = NULL;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SHL, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Shift Left expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -873,13 +891,13 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression SHIFT_RIGHT expression { //TODO
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = NULL;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_SHR, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Shift Right expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -887,18 +905,18 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	| expression MOD expression { //TODO test
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
 			$$.false = merge($1.false, $3.false); // merge hier da keine informationen für ein backpatch da sind
 			genStmt(OP_MOD, $$.idName, $1.idName, $3.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Mod expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
 	}
-	| expression DIV expression { 
+	| expression DIV expression {
 		if (($1.type == intType || $1.type == intArrayType) && ($3.type == intType || $3.type == intArrayType)) {
 		
 			// gen statement to check if $3 is 0 (div 0 not allowed)
@@ -907,7 +925,6 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch(truelist, nextquad); // setze true Ausgang auf das Statement mit der Berechnung
 			
 			$$.next = merge($1.next, $3.next); // merge hier da keine informationen für ein backpatch da sind
-			$$.quad = nextquad;
 			$$.type = intType; // Da nur int als Typ zur Berechnung zur Verfügung steht
 			$$.idName = newtemp();
 			$$.true = merge($1.true, $3.true); // merge hier da keine informationen für ein backpatch da sind
@@ -921,6 +938,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch(nextlist, nextquad); // nextlist wird mit dem nächsten Element gebackpatcht...
 			
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Div expressions are not both 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -930,11 +948,11 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = $2.true;
 			$$.false = $2.false;
 			$$.next = $2.next;
-			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = $2.idName;
 			genStmt(OP_MIN, $2.idName, NULL, NULL, 1);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Unary Minus expression is not 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -944,11 +962,11 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.true = $2.true;
 			$$.false = $2.false;
 			$$.next = $2.next;
-			$$.quad = nextquad;
 			$$.type = $2.type;
 			$$.idName = newtemp();
 			genStmt(OP_ADD, $$.idName, 0, $2.idName, 3);
 			$$.lval = 0;
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Unary Plus expression is not 'int', 'int-Array' or numeric.", function_context);
 	   	}
@@ -965,6 +983,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			$$.lval = 1;
 			// ACHTUNG: hier wird angenommen, dass die Array Operation eine Load Operation ist. Ist dies nicht der Fall muss diese Operation gelöscht werden und eine Store Operation später hinzugefügt werden
 			arrayCodeTemp = genStmt(OP_ARRAY_LOAD, $$.idName, $1, $3.idName, 3); 
+			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 		} else {
 	   		yyerror("Typemissmatch in function %s. Array access", function_context);
 	   	}
@@ -979,16 +998,16 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 		$$.lval = 0;
 	}
 	| function_call {
-		$$.true = $1.true; 
-		$$.false = $1.false;
-		$$.next = $1.next; 
-		$$.quad = $1.quad;
+		$$.true = NULL; 
+		$$.false = NULL;
+		$$.next = NULL; 
+		$$.quad = nextquad-1;
 		$$.idName = $1.idName;
 		$$.type = $1.type;
 		//printf("Function-Type: %d\n", $1.type);
 		$$.lval = 0;
 	}
-	| primary { 
+	| primary {
 		$$.true = NULL; 
 		$$.false = NULL;
 		$$.next = NULL; 
@@ -1011,7 +1030,7 @@ primary
 		$$.type = intType;
 		$$.lval = 0;
 	}
-	| ID { 
+	| ID {
 		if(function_context != '___#nktx&'){
 			sym_union_t* found_entry = searchBoth($1, function_context);
 			if(found_entry == NULL){
@@ -1042,18 +1061,18 @@ function_call
 				//Check if the function was defined
 				if(entry->vof.symFunction.protOrNot != no){
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
+					$$.idName = newtemp();
 				} else {
 					//Check if there is 'no' parameter-list, as there shouldn't be any.
-					
 					if(entry->vof.symFunction.callVar != NULL){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
 						yyerror("Function '%s' in '%s': parameter-missmatch.)", $1, function_context);
-					} else { 
-						//TODO: Intermediate-Code for function-call
+					} else {
+						// Intermediate-Code for function-call
+						$$.idName = newtemp();
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
-						genStmt(OP_CALL_VOID, $1, "", NULL, 2); 
+							genStmt(OP_CALL_VOID, $1, "", NULL, 2); 
 						else {
-							$$.idName = newtemp();
 							genStmt(OP_CALL_RET, $$.idName, $1, "", 3); 
 					 	}
 					}
@@ -1066,6 +1085,7 @@ function_call
 		} else {
 			yyerror("Function-call '%s' can only be used within a function-context", $1, function_context);
 		}
+		$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
 	}
 	| ID PARA_OPEN reset_param function_call_parameters PARA_CLOSE {
 		//Check if the function was defined in symbol table
@@ -1079,20 +1099,18 @@ function_call
 				if(entry->vof.symFunction.protOrNot != no){
 					//TODO: what to do if the definition of a function follows afterwards but it was declared???
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
+					$$.idName = "";
 				} else {
-					
-					
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, $1) == 1){
 						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (%s)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
 						yyerror("Function '%s' in '%s': parameter-missmatch.", $1, function_context);
-						
 					} else {
-						//TODO: Intermediate-Code for function-call
+						// Intermediate-Code for function-call
+						$$.idName = newtemp();
 						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
-						genStmt(OP_CALL_VOID, $1, $4.idName, NULL, 2); 
+							genStmt(OP_CALL_VOID, $1, $4.idName, NULL, 2); 
 						else {
-							$$.idName = newtemp();
 							genStmt(OP_CALL_RET, $$.idName, $1, $4.idName, 3); 
 					 	}
 					}
@@ -1105,11 +1123,12 @@ function_call
 		} else {
 			yyerror("Function-call '%s' can only be used within a function-context", $1);
 		}
-		
+		$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
+
 		//Clear the current param_list
 		PurgeParameters(param_list);
 		param_list = NULL;
-	} 
+	}
 	;
 
 /**
@@ -1127,11 +1146,15 @@ function_call_parameters//We can reuse the param_list global-variable for the ca
 		param->varType = $3.type; //obtain type from expression
 		//printf("Type %d", $1.type);
 		DL_APPEND(param_list,param);
-		char * newIdName = (char *) malloc(strlen($1.idName) + 3 + strlen($3.idName)); // allokiere einen neuen String mit der länge vom neuen Parameteren und den bisher erkannten und dem trennzeichen ", "
+		int len_of_1 = strlen($1.idName);
+		int len_of_3 = strlen($3.idName);
+		int test1= len_of_3 + 1;
+		int test2 = len_of_1 +3;
+		char* newIdName = (char *) malloc(len_of_1 + 3 + len_of_3); // allokiere einen neuen String mit der länge vom neuen Parameteren und den bisher erkannten und dem trennzeichen ", "
 		if(newIdName == NULL){
 			warning("could not allocate memory for ne function call parameters string");
 		}
-		strcat(newIdName, $1.idName); // verknüpfe beide Strings in den neuen
+		sprintf(newIdName, $1.idName); // schreibe andere params in den neuen idName
 		strcat(newIdName, ", "); // verknüpfe beide Strings in den neuen
 		strcat(newIdName, $3.idName); // verknüpfe beide Strings in den neuen
 		$$.idName = newIdName; 
@@ -1169,4 +1192,12 @@ void yyerror(char *s, ...){
 		vfprintf(stderr, s, ap); // printf all items like printf from the arguments list
 		fprintf(stderr, "\n");
 	}
+}
+/**
+* Reset the global variables for function declarations and definitions
+*/
+void reset_function_vars(){
+	function_context = '___#nktx&';
+	PurgeParameters(param_list);
+	param_list = NULL;
 }

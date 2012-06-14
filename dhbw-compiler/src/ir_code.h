@@ -41,7 +41,6 @@ typedef struct IRCODE {
 } IRCODE_t;
 
 typedef struct IRLIST {
-	struct IRLIST* self;		// Pointer to itself
 	struct IRLIST* next;		// Pointer to next quadrupel
 	IRCODE_t* item;			// Pointer to Quadrupel, which is element of this list
 } IRLIST_t;
@@ -68,12 +67,14 @@ IRLIST_t* merge(IRLIST_t* list1, IRLIST_t* list2);
 void backpatch(IRLIST_t* list, int nquad);
 void changeIRCode(IRCODE_t* code_quad, enum opcode newop, char* op_one, char* op_two, char* op_three, int paramcount);
 void delLastQuad();
+void updateList(IRLIST_t* list1, IRCODE_t* code);
 
 void free_IRCODE_t(IRCODE_t* var);
 void free_IRCODE_t_rec(IRCODE_t* var);
 void free_IRTYPE_t(IRTYPE_t* var);
 void free_IRLIST_t(IRLIST_t* var);
 void free_IRLIST_t_rec(IRLIST_t* var);
+void free_ir();
 
 extern int nextquad; // Number of next quadrupel, marked as extern, so that it is known in parser.y
 extern IRCODE_t* code_quad;	// currrent code_quadrupel marked as extern, so that it is known in parser.y
