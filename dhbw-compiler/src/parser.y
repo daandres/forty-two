@@ -479,9 +479,14 @@ stmt_list
 	}
 
 	| stmt_list M_svQuad stmt{
+		
+		if($1.next == NULL || $3.next == NULL){
+			printf("There is a Null Here!!!\n");
+		}
 		backpatch($1.next, $2.quad); //patch the nextlist of stmt_list to M_svQuad
 		backpatch($3.next, nextquad); //patch the nextlist of stmt_list to M_svQuad
 		//$$.next = $3.next; //the next statement after this stmt
+		$$.next = NULL;
 	}
 	;
 /**
@@ -500,18 +505,18 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 		backpatch($1.false, $1.quad);
 	}
 	| stmt_conditional{
-		//$$.next = $1.next;
+		$$.next = NULL; //Set next to null to prevent errors in backpatch
 		backpatch($1.next, nextquad);
 	}
 	| stmt_loop{
-		//$$.next = $1.next;
+		$$.next = NULL; //Set next to null to prevent errors in backpatch
 		backpatch($1.next, nextquad);
 	}
 	| RETURN expression SEMICOLON{ //Return that returns a actual value
 		if(CheckFunctionReturnTyp(function_context, $2.type) == 0){
 			backpatch($2.next,nextquad);//expression.next leads to the following statement
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
-			//$$.next = nextquad; //the next statement after this is the nextquad
+			$$.next = NULL; //Set next to null to prevent errors in backpatch
 		} else {
 			yyerror("Type missmatch in return statement. '%s' has not the return type '%s'", function_context, typeToString($2.type));	
 		}
@@ -519,12 +524,13 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 	| RETURN SEMICOLON{//Empty returntype
 		if(CheckFunctionReturnTyp(function_context, voidType) == 0){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
-			//$$.next = nextquad;
+			$$.next = NULL; //Set next to null to prevent errors in backpatch
 		} else {
 			yyerror("Type missmatch in return statement. '%s' has not the return type 'void'", function_context);	
 		}
 	}
 	| SEMICOLON /* empty statement */{
+		$$.next = NULL; //Set next to null to prevent errors in backpatch
 	}
 	;
 
@@ -948,11 +954,12 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 	   	}
 	}
 	| ID BRACKET_OPEN primary BRACKET_CLOSE {
-		if (/* TODO check types */1) { 
+		if ($3.type == intType) { 
 			$$.true = $3.true;
 			$$.false = $3.false;
 			$$.next = $3.next;
 			$$.quad = nextquad;
+			//$$.type = intType; //When accessed, the type turns to int
 			$$.type = intArrayType; // intArrayType da es hier nur int Array geben darf
 			$$.idName = newtemp();
 			$$.lval = 1;
