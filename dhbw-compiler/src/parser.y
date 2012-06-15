@@ -712,10 +712,11 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			//backpatch(merge($1.true, $4.true), truequad->quad);// True Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon true hat; backpatche mit truequad, sodass Wert 1 angenommen wird
 			backpatch($4.false, falsequad->quad);// wenn auch noch $4 false ist, dann ist $$ auch false; backpatche mit falsequad, sodass Wert 0 angenommen wird
 			backpatch(nextlist, nextquad);
+			backpatch($1.true, truequad->quad);
+			backpatch($4.true, truequad->quad);
 			
-			$$.true = merge($1.true, $4.true); //hier werden beide true Listen gemerged, damit am Ende bei einem True zum Ende gesprungen werden kann
-			//backpatch($1.true, truequad->quad);
-			//backpatch($4.true, truequad->quad);
+			//$$.true = merge($1.true, $4.true); //hier werden beide true Listen gemerged, damit am Ende bei einem True zum Ende gesprungen werden kann
+			$$.true = NULL;
 					
 			$$.false = falselist;
 			$$.next = NULL; 
@@ -742,9 +743,12 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch($4.true, truequad->quad);// wenn auch noch $4 true ist, dann ist $$ auch true; backpatche mit truequad, sodass Wert 1 angenommen wird
 			//backpatch(merge($1.false, $4.false), falsequad->quad);// False Ausgänge von $1 und $4 werden gemerged, da bei beiden die gesamte Expressieon false hat; backpatche mit falsequad, sodass Wert 0 angenommen wird
 			backpatch(nextlist, nextquad);
+			backpatch($1.true, truequad->quad);
+			backpatch($4.true, truequad->quad);
 			
 			$$.true = NULL;
-			$$.false = merge(merge($1.false, $4.false),falselist); // falseliste wird gemerged, damit bei einem false gleich zum ende gebackpatcht werden kann
+			//$$.false = merge(merge($1.false, $4.false),falselist); // falseliste wird gemerged, damit bei einem false gleich zum ende gebackpatcht werden kann
+			$$.false = falselist;
 			$$.next = NULL; 
 			$$.quad = nextquad-1;  //zeigt auf das letzte quad der expression
 			$$.type = $1.type; // da $1.type und $4.type gleich sind ist es egal welches man nimmt
