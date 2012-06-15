@@ -16,6 +16,8 @@ int size = 0; 					// size of dynamic code array
 int tmpCount = TMP;			// temp identifier code number
 IRLIST_t* globallist = NULL; // all lists together so that at the end all lists can be freed
 
+extern int correct; // flag if the parsing is correct
+
 /*
  * This fuction generats a new temp identifier for the TAC. (.t1, .t2, ...)
  */
@@ -101,28 +103,30 @@ int setMissingParm(IRCODE_t* code, char* value) {
  * This function backpatches temp identifiers with its addresses...
  */
 void backpatch(IRLIST_t* list, int nquad) {
-	globallist = merge(globallist, list);
-	char* addr = (char *) malloc(sizeof(char) * 10); // don't forget End of String symbol during the malloc
-	if (addr == NULL) {
-		warning("could not allocate memory");
-	}
-	sprintf(addr, ".l%d", nquad);
-	// Setze für jedes Listenelement die Adresse nquad
-	int usage_counter = 0; // counts how many times the variable addr is used
-	if (list == NULL)
-		return;
-	while (list != NULL) {
-		//debug("nquad: %d; list: %d", nquad, list);
-		if (list->item != NULL)
-			usage_counter += setMissingParm(list->item, addr);
-		else
-			warning("could not backpatch %d ind one element of list", nquad);
-		list = list->next;
-	}
-	if (usage_counter == 0) //addr wird gefreed wenn es nicht verwendet wird
-		free(addr);
+	if (correct == 1) { // backpatchen wird nur benötigt wenn der code correct ist, prevent errors
+		globallist = merge(globallist, list);
+		char* addr = (char *) malloc(sizeof(char) * 10); // don't forget End of String symbol during the malloc
+		if (addr == NULL) {
+			warning("could not allocate memory");
+		}
+		sprintf(addr, ".l%d", nquad);
+		// Setze für jedes Listenelement die Adresse nquad
+		int usage_counter = 0; // counts how many times the variable addr is used
+		if (list == NULL)
+			return;
+		while (list != NULL) {
+			debug("nquad: %d; list: %d", nquad, list);
+			if (list->item != NULL)
+				usage_counter += setMissingParm(list->item, addr);
+			else
+				warning("could not backpatch %d ind one element of list", nquad);
+			list = list->next;
+		}
+		if (usage_counter == 0) //addr wird gefreed wenn es nicht verwendet wird
+			free(addr);
 
-	//free_IRLIST_t_rec(first_elemt);
+		//free_IRLIST_t_rec(first_elemt);
+	}
 }
 
 /*
@@ -224,113 +228,117 @@ void delLastQuad() {
 }
 
 void formatIrCode(char* code_string, IRCODE_t* i) {
-	//Wähle anhand des Operators aus welcher String in s geschrieben werden soll
-	switch (i->op) {
-		case OP_ASSIGN:
-			sprintf(code_string, "\t.l%d\t%s = %s", i->quad, i->op_one, i->op_two);
-			break;
-		case OP_ADD:
-			sprintf(code_string, "\t.l%d\t%s = %s + %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_SUB:
-			sprintf(code_string, "\t.l%d\t%s = %s - %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_MUL:
-			sprintf(code_string, "\t.l%d\t%s = %s * %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_DIV:
-			sprintf(code_string, "\t.l%d\t%s = %s / %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_MOD:
-			sprintf(code_string, "\t.l%d\t%s = %s %s %s", i->quad, i->op_one, i->op_two, "%", i->op_three);
-			break;
-		case OP_MIN:
-			sprintf(code_string, "\t.l%d\t%s = - %s", i->quad, i->op_one, i->op_two);
-			break;
-		case OP_SHL:
-			sprintf(code_string, "\t.l%d\t%s = %s << %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_SHR:
-			sprintf(code_string, "\t.l%d\t%s = %s >> %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_IFEQ:
-			sprintf(code_string, "\t.l%d\tIF %s == %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_IFNE:
-			sprintf(code_string, "\t.l%d\tIF %s != %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_IFGT:
-			sprintf(code_string, "\t.l%d\tIF %s > %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_IFGE:
-			sprintf(code_string, "\t.l%d\tIF %s >= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_IFLT:
-			sprintf(code_string, "\t.l%d\tIF %s < %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_IFLE:
-			sprintf(code_string, "\t.l%d\tIF %s <= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_GOTO:
-			sprintf(code_string, "\t.l%d\tGOTO %s", i->quad, i->op_one);
-			break;
-		case OP_RETURN_VOID:
-			sprintf(code_string, "\t.l%d\tRETURN", i->quad);
-			break;
-		case OP_RETURN_VAL:
-			sprintf(code_string, "\t.l%d\tRETURN %s", i->quad, i->op_one);
-			break;
-		case OP_CALL_VOID:
-			sprintf(code_string, "\t.l%d\tCALL %s, (%s)", i->quad, i->op_one, i->op_two);
-			break;
-		case OP_CALL_RET:
-			sprintf(code_string, "\t.l%d\t%s = CALL %s, (%s)", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_ARRAY_LOAD:
-			sprintf(code_string, "\t.l%d\t%s = %s[%s]", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case OP_ARRAY_STORE:
-			sprintf(code_string, "\t.l%d\t%s[%s] = %s", i->quad, i->op_one, i->op_two, i->op_three);
-			break;
-		case FUNCTIONNAME:
-			sprintf(code_string, "\n%s:", i->op_one);
-			break;
-		case NEWLINE:
-			sprintf(code_string, " ");
-			break;
+	if (i != NULL) {
+		//Wähle anhand des Operators aus welcher String in s geschrieben werden soll
+		switch (i->op) {
+			case OP_ASSIGN:
+				sprintf(code_string, "\t.l%d\t%s = %s", i->quad, i->op_one, i->op_two);
+				break;
+			case OP_ADD:
+				sprintf(code_string, "\t.l%d\t%s = %s + %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_SUB:
+				sprintf(code_string, "\t.l%d\t%s = %s - %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_MUL:
+				sprintf(code_string, "\t.l%d\t%s = %s * %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_DIV:
+				sprintf(code_string, "\t.l%d\t%s = %s / %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_MOD:
+				sprintf(code_string, "\t.l%d\t%s = %s %s %s", i->quad, i->op_one, i->op_two, "%", i->op_three);
+				break;
+			case OP_MIN:
+				sprintf(code_string, "\t.l%d\t%s = - %s", i->quad, i->op_one, i->op_two);
+				break;
+			case OP_SHL:
+				sprintf(code_string, "\t.l%d\t%s = %s << %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_SHR:
+				sprintf(code_string, "\t.l%d\t%s = %s >> %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_IFEQ:
+				sprintf(code_string, "\t.l%d\tIF %s == %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_IFNE:
+				sprintf(code_string, "\t.l%d\tIF %s != %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_IFGT:
+				sprintf(code_string, "\t.l%d\tIF %s > %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_IFGE:
+				sprintf(code_string, "\t.l%d\tIF %s >= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_IFLT:
+				sprintf(code_string, "\t.l%d\tIF %s < %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_IFLE:
+				sprintf(code_string, "\t.l%d\tIF %s <= %s GOTO %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_GOTO:
+				sprintf(code_string, "\t.l%d\tGOTO %s", i->quad, i->op_one);
+				break;
+			case OP_RETURN_VOID:
+				sprintf(code_string, "\t.l%d\tRETURN", i->quad);
+				break;
+			case OP_RETURN_VAL:
+				sprintf(code_string, "\t.l%d\tRETURN %s", i->quad, i->op_one);
+				break;
+			case OP_CALL_VOID:
+				sprintf(code_string, "\t.l%d\tCALL %s, (%s)", i->quad, i->op_one, i->op_two);
+				break;
+			case OP_CALL_RET:
+				sprintf(code_string, "\t.l%d\t%s = CALL %s, (%s)", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_ARRAY_LOAD:
+				sprintf(code_string, "\t.l%d\t%s = %s[%s]", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case OP_ARRAY_STORE:
+				sprintf(code_string, "\t.l%d\t%s[%s] = %s", i->quad, i->op_one, i->op_two, i->op_three);
+				break;
+			case FUNCTIONNAME:
+				sprintf(code_string, "\n%s:", i->op_one);
+				break;
+			case NEWLINE:
+				sprintf(code_string, " ");
+				break;
+		}
 	}
 }
 
 void printIrCode(char* fn) {
-	FILE *f;
-	f = fopen(fn, "a");
-	if (f == NULL) {
-		fprintf(stderr, "Fehler beim oeffnen der IR Datei.\n");
-		return;
-	}
-	fprintf(f, "/* **************** */\n");
-	fprintf(f, "/* IR code          */\n\n");
-
-	code_quad = first_code_quad; // setze aktuelle code_quad wieder auf erstes...
-	char* tmp = NULL;
-	//Iteriere über alle Quadrupel, formatiere und schreibe sie in die Datei
-	while (code_quad != NULL) {
-		tmp = (char *) malloc(210); //sizeof(char) * ((63 * 3) + 6 + 1 + 13) + 1;// 3 mal identifier + quadruperl number + tab + operator signs and spaces + end of string symbol
-		if (tmp == NULL) {
-			warning("could not allocate memory for code_quad %d, therefore noe ir_code line was generated",
-			      code_quad->quad);
-			continue;
+	if (correct == 1) { // ir code printed wird nur benötigt wenn der code correct ist, prevent errors
+		FILE *f;
+		f = fopen(fn, "a");
+		if (f == NULL) {
+			fprintf(stderr, "Fehler beim oeffnen der IR Datei.\n");
+			return;
 		}
-		formatIrCode(tmp, code_quad);
-		fprintf(f, "%s\n", tmp);
-		code_quad = code_quad->next;
-		free(tmp);
-	}
+		fprintf(f, "/* **************** */\n");
+		fprintf(f, "/* IR code          */\n\n");
 
-	fprintf(f, "\n/* IR code End      */\n");
-	fprintf(f, "/* **************** */\n\n");
-	fclose(f);
-	debug("IR code printed\n");
+		code_quad = first_code_quad; // setze aktuelle code_quad wieder auf erstes...
+		char* tmp = NULL;
+		//Iteriere über alle Quadrupel, formatiere und schreibe sie in die Datei
+		while (code_quad != NULL) {
+			tmp = (char *) malloc(210); //sizeof(char) * ((63 * 3) + 6 + 1 + 13) + 1;// 3 mal identifier + quadruperl number + tab + operator signs and spaces + end of string symbol
+			if (tmp == NULL) {
+				warning("could not allocate memory for code_quad %d, therefore noe ir_code line was generated",
+				      code_quad->quad);
+				continue;
+			}
+			formatIrCode(tmp, code_quad);
+			fprintf(f, "%s\n", tmp);
+			code_quad = code_quad->next;
+			free(tmp);
+		}
+
+		fprintf(f, "\n/* IR code End      */\n");
+		fprintf(f, "/* **************** */\n\n");
+		fclose(f);
+		debug("IR code printed\n");
+	}
 }
 
 // Free functions
