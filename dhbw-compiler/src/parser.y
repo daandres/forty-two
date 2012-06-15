@@ -477,6 +477,7 @@ function_parameter
 								
 stmt_list
 	: /* empty: epsilon */{
+		$$.next = NULL;
 	}
 
 	| stmt_list M_svQuad stmt{
