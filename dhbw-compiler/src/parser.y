@@ -1101,7 +1101,23 @@ function_call
 					 * to activate this functionality
 					 */
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
-					$$.idName = newtemp();
+					
+					// Anstelle von dem obigen error (siehe Erklärung)
+					//Check if there is 'no' parameter-list, as there shouldn't be any.
+					if(entry->vof.symFunction.callVar != NULL){
+						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (NULL)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar));
+						yyerror("Function '%s' in '%s': parameter-missmatch.)", $1, function_context);
+					} else {
+						// Intermediate-Code for function-call
+						$$.idName = newtemp();
+						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
+							genStmt(OP_CALL_VOID, $1, "", NULL, 2); 
+						else {
+							genStmt(OP_CALL_RET, $$.idName, $1, "", 3); 
+						}
+					}
+					//Set the return-value
+					$$.type = entry->vof.symFunction.returnType;
 				} else {
 					//Check if there is 'no' parameter-list, as there shouldn't be any.
 					if(entry->vof.symFunction.callVar != NULL){
@@ -1149,7 +1165,23 @@ function_call
 					 * to activate this functionality
 					 */
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
-					$$.idName = "";
+					
+					// Anstelle von dem obigen error (siehe Erklärung)
+					//Check if the parameter-list is available and correct (type)
+					if(validateDefinition(param_list, $1) == 1){
+						//yyerror("Function %s in '%s': parameter-missmatch. Expected (%s) but found (%s)", $1, function_context, ParameterListToString(entry->vof.symFunction.callVar), ParameterListToString(param_list));
+						yyerror("Function '%s' in '%s': parameter-missmatch.", $1, function_context);
+					} else {
+						// Intermediate-Code for function-call
+						$$.idName = newtemp();
+						if(entry->vof.symFunction.returnType == voidType || entry->vof.symFunction.returnType == None)
+							genStmt(OP_CALL_VOID, $1, $4.idName, NULL, 2); 
+						else {
+							genStmt(OP_CALL_RET, $$.idName, $1, $4.idName, 3); 
+					 	}
+					}
+					//Set the return-value
+					$$.type = entry->vof.symFunction.returnType;
 				} else {
 					//Check if the parameter-list is available and correct (type)
 					if(validateDefinition(param_list, $1) == 1){
@@ -1250,4 +1282,5 @@ void reset_function_vars(){
 	function_context = '___#nktx&';
 	PurgeParameters(param_list);
 	param_list = NULL;
+	offset = 0;
 }
