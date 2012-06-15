@@ -66,8 +66,8 @@
 %token <lexem> NUM
 
 %right ASSIGN 
-%left  LOGICAL_OR
-%left  LOGICAL_AND
+%right  LOGICAL_OR
+%right  LOGICAL_AND
 %left  EQ NE
 %left  LS LSEQ GTEQ GT 
 %left  SHIFT_LEFT SHIFT_RIGHT
