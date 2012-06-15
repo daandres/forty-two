@@ -112,8 +112,10 @@ void backpatch(IRLIST_t* list, int nquad) {
 		sprintf(addr, ".l%d", nquad);
 		// Setze für jedes Listenelement die Adresse nquad
 		int usage_counter = 0; // counts how many times the variable addr is used
-		if (list == NULL)
+		if (list == NULL) {
+			free(addr);
 			return;
+		}
 		while (list != NULL) {
 			debug("nquad: %d; list: %d", nquad, list);
 			if (list->item != NULL)
