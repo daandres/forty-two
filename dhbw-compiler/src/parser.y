@@ -676,7 +676,7 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch($1.false, $3.quad); // False Ausgang von $1 springt zu $4
 			IRCODE_t* truequad = genStmt(OP_ASSIGN, $$.idName, "1", NULL, 2); // wenn EQ true ist soll die expression den Wert 1 erhalten
 			IRLIST_t* nextlist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // überspringe den false wert  		
-			IRCODE_t* falsequad = genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ true ist soll die expression den Wert 0 erhalten
+			IRCODE_t* falsequad = genStmt(OP_ASSIGN, $$.idName, "0", NULL, 2); // wenn EQ false ist soll die expression den Wert 0 erhalten
 			IRLIST_t* falselist = makelist(genStmt(OP_GOTO, NULL, NULL, NULL, 1)); // springe zum Else teil  		
 			genNewLine(); // zur lesbarkeit
 			
@@ -685,6 +685,9 @@ expression  /*Hier werden nicht genutzt Werte NULL gesetzt, damit klar ist was d
 			backpatch(nextlist, nextquad);
 			
 			$$.true = merge($1.true, $4.true); //hier werden beide true Listen gemerged, damit am Ende bei einem True zum Ende gesprungen werden kann
+			//backpatch($1.true, truequad->quad);
+			//backpatch($4.true, truequad->quad);
+					
 			$$.false = falselist;
 			$$.next = NULL; 
 			$$.quad = nextquad-1; //zeigt auf das letzte quad der expression
