@@ -477,6 +477,7 @@ function_parameter
 								
 stmt_list
 	: /* empty: epsilon */{
+		$$.next = NULL;
 	}
 
 	| stmt_list M_svQuad stmt{
@@ -494,22 +495,32 @@ stmt_list
 stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable code is detected.	
 	: stmt_block{
 		$$.next = $1.next;
+		$$.true = NULL;
+		$$.false = NULL;
 	}
 	| variable_declaration SEMICOLON{
 		$$.next = NULL;
+		$$.true = NULL;
+		$$.false = NULL;
 	}
 	| expression SEMICOLON{
 		$$.next = NULL;
+		$$.true = NULL;
+		$$.false = NULL;
 		backpatch($1.true, $1.quad);
 		backpatch($1.false, nextquad);
 		backpatch($1.next, nextquad);
 	}
 	| stmt_conditional{
 		$$.next = NULL; //Set next to null to prevent errors in backpatch
+		$$.true = NULL;
+		$$.false = NULL;
 		backpatch($1.next, nextquad);
 	}
 	| stmt_loop{
 		$$.next = NULL; //Set next to null to prevent errors in backpatch
+		$$.true = NULL;
+		$$.false = NULL;
 		backpatch($1.next, nextquad);
 	}
 	| RETURN expression SEMICOLON{ //Return that returns a actual value
@@ -526,6 +537,8 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 			genStmt(OP_RETURN_VAL, $2.idName, NULL, NULL, 1); // retrun value as the op says...
 
 			$$.next = NULL; //Set next to null to prevent errors in backpatch
+			$$.true = NULL;
+			$$.false = NULL;
 		} else {
 			yyerror("Type missmatch in return statement. '%s' has not the return type '%s'", function_context, typeToString($2.type));	
 		}
@@ -534,18 +547,24 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 		if(CheckFunctionReturnTyp(function_context, voidType) == 0){
 			genStmt(OP_RETURN_VOID, NULL, NULL, NULL, 0); // retrun void as the op says...
 			$$.next = NULL; //Set next to null to prevent errors in backpatch
+			$$.true = NULL;
+			$$.false = NULL;
 		} else {
 			yyerror("Type missmatch in return statement. '%s' has not the return type 'void'", function_context);	
 		}
 	}
 	| SEMICOLON /* empty statement */{
 		$$.next = NULL; //Set next to null to prevent errors in backpatch
+		$$.true = NULL;
+		$$.false = NULL;
 	}
 	;
 
 stmt_block
 	: BRACE_OPEN stmt_list BRACE_CLOSE {
 		$$.next = $2.next;
+		$$.true = NULL;
+		$$.false = NULL;
 	}
 	;
 	
@@ -558,6 +577,9 @@ stmt_conditional
 		backpatch($1.false, nextquad); // backpatche den false Ausgang hinter die Statements der if anweisung
 		backpatch($1.next, nextquad); // backpatche den false Ausgang hinter die Statements der if anweisung
 		genNewLine();
+		$$.next = NULL;
+		$$.true = NULL;
+		$$.false = NULL;
 	}
 	| stmt_cond_if_header M_svQuad stmt ELSE M_NextListAndGOTO M_svQuad stmt { /* ELSE steht vor M_NextListAndGOTO damit es keine reduce/reduce conflict gibt*/
 		backpatch($1.true, $2.quad); 	// backpatche true Ausgang mit true stmt block
@@ -568,6 +590,9 @@ stmt_conditional
 		//$$.next = merge($7.next, $11.next);
 		//$$.next = merge($$.next, $9.quad); //FIXME: we would need to merge the nextlists with the quad for the 
 		genNewLine();
+		$$.next = NULL;
+		$$.true = NULL;
+		$$.false = NULL;
 	}
 	;
 	
@@ -591,6 +616,8 @@ stmt_loop
 		backpatch($5.false, nextquad); 											// backpatche sodass beim false ausgang aus der schleife herausgesprungen wird
 		genNewLine();
 		$$.next = NULL;
+		$$.true = NULL;
+		$$.false = NULL;
 	}
 	| M_NewLine DO M_svQuad stmt WHILE PARA_OPEN M_svQuad expression PARA_CLOSE SEMICOLON{
 		backpatch($8.true, $3.quad); 	//backpatche true ausgang mit begin der schleife
@@ -600,6 +627,8 @@ stmt_loop
 		
 		backpatch(makelist(genStmt(OP_IFEQ, $8.idName, "1", NULL, 3)), $3.quad); // wenn die expression true (1) ist soll zurück zum anfang gesprungen werden
 		genNewLine();
+		$$.true = NULL;
+		$$.false = NULL;
 	}
 	;
 	
