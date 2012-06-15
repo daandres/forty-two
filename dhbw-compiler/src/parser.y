@@ -1282,5 +1282,5 @@ void reset_function_vars(){
 	function_context = '___#nktx&';
 	PurgeParameters(param_list);
 	param_list = NULL;
-	offset = 0;
+	//offset = 0;
 }
