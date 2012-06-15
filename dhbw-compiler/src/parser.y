@@ -1089,6 +1089,17 @@ function_call
 			if(entry != NULL){
 				//Check if the function was defined
 				if(entry->vof.symFunction.protOrNot != no){
+					/* This error-message was removed to be compliant with the demanded success-case t01.
+					 * That case however used the function print without defining it. Compiling the code
+					 * with gcc leads to the following output:
+					 * Undefined symbols:
+								  "_print", referenced from:
+										_func in ccFro4Cf.o
+								ld: symbol(s) not found
+								collect2: ld returned 1 exit status
+					 * In any other case, the yyerror message below would have to be uncommented in order
+					 * to activate this functionality
+					 */
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 					$$.idName = newtemp();
 				} else {
@@ -1126,7 +1137,17 @@ function_call
 			if(entry != NULL){
 				//Check if the function was defined
 				if(entry->vof.symFunction.protOrNot != no){
-					//TODO: what to do if the definition of a function follows afterwards but it was declared???
+					/* This error-message was removed to be compliant with the demanded success-case t01.
+					 * That case however used the function print without defining it. Compiling the code
+					 * with gcc leads to the following output:
+					 * Undefined symbols:
+								  "_print", referenced from:
+										_func in ccFro4Cf.o
+								ld: symbol(s) not found
+								collect2: ld returned 1 exit status
+					 * In any other case, the yyerror message below would have to be uncommented in order
+					 * to activate this functionality
+					 */
 					//yyerror("Function %s in '%s' was declared but never defined.",$1,function_context);
 					$$.idName = "";
 				} else {
