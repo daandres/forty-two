@@ -508,7 +508,7 @@ stmt//TODO: OPTIONAL:Detect returnstatement when it is called and unreachable co
 		$$.true = NULL;
 		$$.false = NULL;
 		backpatch($1.true, $1.quad);
-		backpatch($1.false, nextquad);
+		backpatch($1.false, $1.quad);
 		backpatch($1.next, nextquad);
 	}
 	| stmt_conditional{
